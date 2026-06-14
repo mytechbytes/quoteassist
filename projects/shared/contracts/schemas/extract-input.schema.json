@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quoteassist.dev/contracts/extract-input.schema.json",
+  "title": "ExtractInput",
+  "description": "Normalised intake contract — the only shape the pipeline sees after a channel adapter runs (§8.5).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["correlation_id", "tenant_id", "channel", "source_type", "content"],
+  "properties": {
+    "correlation_id": {
+      "type": "string",
+      "description": "Propagated on every request, log line and span."
+    },
+    "tenant_id": { "type": "string", "format": "uuid" },
+    "channel": {
+      "type": "string",
+      "enum": ["email", "webform", "whatsapp", "voice"]
+    },
+    "source_type": {
+      "type": "string",
+      "enum": ["shared", "individual"],
+      "description": "Shared → auto-assign; individual → pre-assigned owner (§M3)."
+    },
+    "sender_identity": {
+      "type": "string",
+      "description": "Email address / phone / form contact; masked in audit."
+    },
+    "conversation_id": {
+      "type": ["string", "null"],
+      "description": "Channel thread id; used for dedup / reprocessing guard."
+    },
+    "subject": { "type": ["string", "null"] },
+    "content": {
+      "type": "string",
+      "description": "Cleaned body text (signature/quote-trail stripped, latest message only)."
+    },
+    "locale": { "type": "string", "default": "en" },
+    "received_at": { "type": "string", "format": "date-time" },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["filename", "content_type"],
+        "properties": {
+          "filename": { "type": "string" },
+          "content_type": { "type": "string" },
+          "size_bytes": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "default": []
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Active extraction schema version to validate against (PF-10)."
+    },
+    "prompt_version": {
+      "type": "string",
+      "description": "Active prompt version to use (PF-10)."
+    }
+  }
+}

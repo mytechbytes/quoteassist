@@ -1,17 +1,17 @@
 name: platform
 on:
   pull_request:
-    paths: ["platform/**", ".github/workflows/platform.yml"]
+    paths: ["projects/platform/**", ".github/workflows/platform.yml"]
   push:
     branches: [main]
-    paths: ["platform/**"]
+    paths: ["projects/platform/**"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: platform
+        working-directory: projects/platform
     services:
       db:
         image: pgvector/pgvector:pg16
@@ -24,13 +24,48 @@ jobs:
           --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: ecto://postgres:postgres@localhost:5432/quote_assist_test
+      MIX_ENV: test
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "29"
-          elixir-version: "1.18"
+          elixir-version: "1.19"
+      - name: Cache deps & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            projects/platform/deps
+            projects/platform/_build
+          key: ${{ runner.os }}-mix-${{ hashFiles('projects/platform/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
       - run: mix deps.get
+      - run: mix deps.unlock --check-unused
       - run: mix format --check-formatted
       - run: mix compile --warnings-as-errors
+      - run: mix credo
       - run: mix test
+
+  dialyzer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "29"
+          elixir-version: "1.19"
+      - name: Cache deps, build & PLTs
+        uses: actions/cache@v4
+        with:
+          path: |
+            projects/platform/deps
+            projects/platform/_build
+            projects/platform/priv/plts
+          key: ${{ runner.os }}-dialyzer-${{ hashFiles('projects/platform/mix.lock') }}
+          restore-keys: ${{ runner.os }}-dialyzer-
+      - run: mix deps.get
+      - run: mix dialyzer --plt
+      - run: mix dialyzer --format github

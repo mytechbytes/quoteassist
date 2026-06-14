@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quoteassist.dev/contracts/pricing-response.schema.json",
+  "title": "PricingResponse",
+  "description": "Returned by a PricingSource adapter. 'unavailable'/'partial' suppress auto-send (§M6/§M7).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["correlation_id", "status"],
+  "properties": {
+    "correlation_id": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["priced", "partial", "unavailable"]
+    },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "total": { "type": ["number", "null"], "minimum": 0 },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item_id", "amount"],
+        "properties": {
+          "item_id": { "type": "string" },
+          "amount": { "type": "number", "minimum": 0 },
+          "description": { "type": "string" },
+          "priced": { "type": "boolean", "default": true }
+        }
+      },
+      "default": []
+    },
+    "valid_until": { "type": ["string", "null"], "format": "date-time" },
+    "source": {
+      "type": "string",
+      "description": "Adapter type that produced the price.",
+      "enum": ["api", "json", "excel", "book"]
+    },
+    "message": {
+      "type": ["string", "null"],
+      "description": "Human-readable note, e.g. why pricing was unavailable."
+    }
+  }
+}

@@ -1,9 +1,10 @@
 # Elixir / platform
-platform/_build/
-platform/deps/
-platform/*.ez
-platform/priv/static/assets/
-platform/.elixir_ls/
+projects/platform/_build/
+projects/platform/deps/
+projects/platform/*.ez
+projects/platform/priv/static/assets/
+projects/platform/.elixir_ls/
+projects/platform/priv/plts/
 erl_crash.dump
 
 # Node / outlook-plugin

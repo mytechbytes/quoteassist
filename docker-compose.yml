@@ -19,7 +19,7 @@ services:
     ports: ["6379:6379"]
 
   ai-service:
-    build: ./ai-service
+    build: ./projects/ai-service
     environment:
       AI_DEFAULT_MODEL: claude-haiku
     ports: ["8000:8000"]
@@ -28,7 +28,7 @@ services:
         condition: service_healthy
 
   platform:
-    build: ./platform
+    build: ./projects/platform
     environment:
       DATABASE_URL: ecto://postgres:postgres@db/quote_assist_dev
       REDIS_URL: redis://redis:6379

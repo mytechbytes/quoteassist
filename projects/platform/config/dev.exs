@@ -23,7 +23,7 @@ config :quote_assist, QuoteAssistWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "4JzKpu4EaV/aESr0M3JYnUSiL/Zs2CwZoTRdxt7V4KkviNydJYRx9RQRzX387eUm",
+  secret_key_base: "wsV7CTfZg6yN6a8884IGwAxkhgnXXcstk1jRPEVhGl9mZVphXMU7xEbNBWWufRj6",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:quote_assist, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:quote_assist, ~w(--watch)]}

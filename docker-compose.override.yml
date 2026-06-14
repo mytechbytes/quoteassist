@@ -5,9 +5,9 @@ services:
   ai-service:
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     volumes:
-      - ./ai-service/app:/app/app
+      - ./projects/ai-service/app:/app/app
 
   platform:
     command: ["mix", "phx.server"]
     volumes:
-      - ./platform:/app
+      - ./projects/platform:/app

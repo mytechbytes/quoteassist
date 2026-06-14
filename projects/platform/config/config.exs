@@ -20,7 +20,7 @@ config :quote_assist, QuoteAssistWeb.Endpoint,
     layout: false
   ],
   pubsub_server: QuoteAssist.PubSub,
-  live_view: [signing_salt: "AJIUjNsU"]
+  live_view: [signing_salt: "ob3U/gs5"]
 
 # Configure LiveView
 config :phoenix_live_view,

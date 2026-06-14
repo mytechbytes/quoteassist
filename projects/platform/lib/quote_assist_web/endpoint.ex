@@ -7,7 +7,7 @@ defmodule QuoteAssistWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_quote_assist_key",
-    signing_salt: "pDo/0m4y",
+    signing_salt: "ydEslb6g",
     same_site: "Lax"
   ]
 

@@ -5,7 +5,7 @@ defmodule QuoteAssist.MixProject do
     [
       app: :quote_assist,
       version: "0.1.0",
-      elixir: "~> 1.18",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -65,6 +65,7 @@ defmodule QuoteAssist.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
+      {:bandit, "~> 1.5"}
     ]
   end
 

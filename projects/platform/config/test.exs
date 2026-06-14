@@ -17,7 +17,7 @@ config :quote_assist, QuoteAssist.Repo,
 # you can enable the server option below.
 config :quote_assist, QuoteAssistWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "Kmc9VTgW6CHl2H12lDOMDtZLBQEcZBoU2tosPLXfOcgsxlEXwicqCkEX0hMqKVgO",
+  secret_key_base: "hJdIDT/N3dporLSqpOY7QY4e5hUIw5JTnjaEowH1E/KJYRnDv7261CJyYCrVhzRU",
   server: false
 
 # In test we don't send emails

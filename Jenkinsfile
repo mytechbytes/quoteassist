@@ -24,7 +24,7 @@ pipeline {
     OCI_NAMESPACE = 'bmsedjmf13c1'
     PLATFORM_IMAGE = "${OCIR}/${OCI_NAMESPACE}/quote-assist-platform"
     AI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/quote-assist-ai"
-    CI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/quoteassist-elixir-ci:1.18.4-otp-29"
+    CI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/mytechbytes-elixir-ci:1.18.4-otp-29"
     PGVECTOR_IMAGE = 'pgvector/pgvector:pg16'
   }
 

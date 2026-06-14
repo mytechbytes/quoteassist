@@ -82,7 +82,11 @@ Container Registry → Create Repository), all in the **same compartment**:
 |----------------------------|---------|----------------------------------|
 | `quote-assist-platform`    | Private | Elixir/Phoenix app image         |
 | `quote-assist-ai`          | Private | Python/FastAPI AI service image  |
-| `quoteassist-elixir-ci`    | Private | Shared Elixir CI runner image    |
+| `mytechbytes-elixir-ci`    | Private | Shared Elixir CI runner image    |
+
+> `mytechbytes-elixir-ci` is **shared across all your Elixir apps** (e.g. MangoCMS),
+> so it likely already exists — reuse it; only create it if it's missing. The
+> pipeline rebuilds/pushes it only when it's absent or `REBUILD_CI_IMAGE=true`.
 
 ---
 

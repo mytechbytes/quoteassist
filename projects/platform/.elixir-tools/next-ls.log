@@ -1,0 +1,42 @@
+
+16:08:05.516 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 4ms
+
+16:08:12.647 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 1ms
+
+16:08:18.645 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 530µs
+
+16:08:26.166 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 511µs
+
+16:08:43.986 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 460µs
+
+16:08:52.739 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 12ms
+
+16:09:10.125 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 1ms
+
+16:09:17.069 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 547µs
+
+16:10:14.423 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 1ms
+
+16:11:12.325 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 2ms
+
+16:11:27.966 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 1ms
+
+16:11:39.452 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 1ms
+
+16:11:48.866 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 693µs
+
+16:13:30.245 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 41ms
+
+16:14:17.979 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 8ms
+
+16:14:29.001 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 1ms
+
+16:15:42.882 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 1ms
+
+16:15:48.232 [debug] handled notification client -> server workspace/didChangeWatchedFiles in 76ms
+
+16:22:59.401 [debug] handled notification client -> server textDocument/didChange in 1ms
+
+16:22:59.859 id=32 [debug] handled request client -> server textDocument/documentSymbol in 20ms
+
+16:22:59.861 id=33 [debug] handled request client -> server textDocument/documentSymbol in 19ms

@@ -20,10 +20,13 @@ defmodule QuoteAssistWeb.Router do
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", QuoteAssistWeb do
-  #   pipe_through :api
-  # end
+  # Health probes (no auth) — liveness + readiness.
+  scope "/", QuoteAssistWeb do
+    pipe_through :api
+
+    get "/health", HealthController, :show
+    get "/health/ready", HealthController, :ready
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:quote_assist, :dev_routes) do

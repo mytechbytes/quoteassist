@@ -5,7 +5,7 @@ defmodule QuoteAssist.MixProject do
     [
       app: :quote_assist,
       version: "0.1.0",
-      elixir: "~> 1.15",
+      elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -27,7 +27,7 @@ defmodule QuoteAssist.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [precommit: :test, check: :test]
     ]
   end
 
@@ -65,7 +65,9 @@ defmodule QuoteAssist.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      # Static analysis (CI: format/compile/credo/test)
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -88,7 +90,15 @@ defmodule QuoteAssist.MixProject do
         "esbuild quote_assist --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      # Local quality gate — mirrors .github/workflows/platform.yml
+      check: ["format --check-formatted", "compile --warnings-as-errors", "credo", "test"],
+      precommit: [
+        "compile --warnings-as-errors",
+        "deps.unlock --unused",
+        "format",
+        "credo",
+        "test"
+      ]
     ]
   end
 end

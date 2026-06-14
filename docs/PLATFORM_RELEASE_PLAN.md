@@ -30,7 +30,7 @@ Principles, every release:
 
 | #   | Track          | Release                          | Deployable outcome                         |
 | --- | -------------- | -------------------------------- | ------------------------------------------ |
-| R0  | Foundation     | Walking skeleton                 | App + DB deploy; `/health` is green        |
+| R0 ✅ | Foundation   | Walking skeleton                 | App + DB deploy; `/health` is green        |
 | R1  | Foundation     | Auth & accounts                  | Users can sign in / out                    |
 | R2  | Foundation     | Tenancy + RBAC + launcher        | Personas resolve; tenant-scoped shells     |
 | R3  | Site Admin     | Vertical catalog                 | Admin manages verticals/categories         |
@@ -52,7 +52,15 @@ Principles, every release:
 
 # Foundation
 
-### R0 · Walking skeleton  `deployable`
+### R0 · Walking skeleton  `deployable`  — ✅ done
+
+> **Implemented & verified.** `mix check` green (7 tests); `/health` → 200 and
+> `/health/ready` → `{"status":"ready","checks":{"database":"ok"}}`; extensions
+> migration applied; branded landing renders the design tokens; prod release
+> assembles (`bin/quote_assist`). Files: health controller + routes, extensions
+> migration, `assets/css/qa.css` + layout fonts/dark mode, `projects/platform/
+> Dockerfile` + `ci/Dockerfile` + `.tool-versions` + `lib/quote_assist/release.ex`,
+> `Jenkinsfile`, `.github/workflows/platform.yml` (format/compile/credo/test).
 
 **Ships** A running app that deploys to staging with a green health check — no
 features yet, but the whole pipeline works.

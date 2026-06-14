@@ -3,6 +3,10 @@
 
 @import "tailwindcss" source(none);
 @import "phoenix-colocated/quote_assist/colocated.css";
+/* QuoteAssist design system — tokens + component classes (mc-* / qa-*).
+   Ported from designs/quoteassist/qa.css; dark mode keyed off [data-theme="dark"]
+   to track the Phoenix theme switch in root.html.heex. */
+@import "./qa.css";
 @source "../css";
 @source "../js";
 @source "../../lib/quote_assist_web";

@@ -11,6 +11,12 @@ config :quote_assist,
   ecto_repos: [QuoteAssist.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
 
+# UUID primary/foreign keys for every table (referenced by stable id, never label).
+# Applies to `create table` and `references` in migrations.
+config :quote_assist, QuoteAssist.Repo,
+  migration_primary_key: [name: :id, type: :binary_id],
+  migration_foreign_key: [column: :id, type: :binary_id]
+
 # Configure the endpoint
 config :quote_assist, QuoteAssistWeb.Endpoint,
   url: [host: "localhost"],

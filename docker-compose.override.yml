@@ -1,13 +1,11 @@
-# Local dev overrides: bind-mount source and run with hot reload.
-# `docker compose up` picks this up automatically on top of docker-compose.yml.
-
+# Local dev overrides — picked up automatically by `docker compose up`.
+#
+# The `platform` image is a production Elixir *release* (see projects/platform/
+# Dockerfile), so it can't run `mix phx.server`. `make up` therefore runs the
+# release image (production-like). For day-to-day hot-reload dev, run the platform
+# on the host instead: `make db` + `make setup` + `make platform`.
 services:
   ai-service:
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     volumes:
       - ./projects/ai-service/app:/app/app
-
-  platform:
-    command: ["mix", "phx.server"]
-    volumes:
-      - ./projects/platform:/app

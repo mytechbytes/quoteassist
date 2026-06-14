@@ -1,0 +1,4 @@
+# Erlang/OTP 29. Elixir pinned to the installed 1.19.x build (mix.exs requires
+# ~> 1.18, which 1.19.x satisfies and which runs on OTP 29).
+erlang 29.0.1
+elixir 1.19.4-otp-28

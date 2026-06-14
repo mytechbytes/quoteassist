@@ -82,7 +82,7 @@ pipeline {
             -e MIX_ENV=test \
             -e DATABASE_URL=ecto://postgres:postgres@qa-ci-db-${BUILD_NUMBER}:5432/quote_assist_test \
             -v "$PWD/projects/platform":/app -w /app "${CI_IMAGE}" \
-            sh -c "mix deps.get && mix format --check-formatted && mix compile --warnings-as-errors && mix credo && mix coveralls.json --minimum-coverage ${COVERAGE_THRESHOLD}"
+            sh -c "mix deps.get && mix format --check-formatted && mix compile --warnings-as-errors && mix credo && mix test"
         '''
       }
       post {

@@ -38,8 +38,8 @@ starting Caddy (Let's Encrypt validates over HTTP on port 80). The AI service is
 internal — it needs **no** DNS.
 
 ```
-quoteassist.mytechbytes.in      → <PRODUCTION_IP>
-stg.quoteassist.mytechbytes.in  → <PRODUCTION_IP>
+quoteassist.mytechbytes.in      → 161.118.161.178
+stg.quoteassist.mytechbytes.in  → 161.118.161.178
 ```
 
 ---
@@ -406,7 +406,7 @@ coveralls.json --minimum-coverage`) → Build & Push (**two** images,
 `PIPELINE_ACTION` (`BUILD_AND_DEPLOY` | `ROLLBACK`) · `ROLLBACK_TAG`
 (`prd-13`/`stg-13`) · `COVERAGE_THRESHOLD` (default 80) · `REBUILD_CI_IMAGE`.
 
-Before first run, set `<OCI_NAMESPACE>`, `<PRODUCTION_IP>` and the hostnames in the
+Before first run, set `<OCI_NAMESPACE>`, `161.118.161.178` and the hostnames in the
 `Jenkinsfile` (Configure stage + `environment` block).
 
 ### 6.4 Run migrations manually

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>MangoCMS — Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="mangocms-config.js"></script>
+<link rel="stylesheet" href="mangocms.css"/>
+<style>
+  .asset { background: var(--mc-surface); border: 1px solid var(--mc-border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s; position: relative; }
+  .asset:hover { border-color: var(--mc-brand); transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgb(0 0 0 / 0.1); }
+  .asset.selected { border-color: var(--mc-brand); box-shadow: 0 0 0 2px var(--mc-brand-ring); }
+  .asset .thumb { aspect-ratio: 1; background: var(--mc-surface-2); position: relative; overflow: hidden; display: grid; place-items: center; }
+  .asset .meta { padding: 8px 10px; }
+  .asset .check { position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; border-radius: 5px; background: rgb(255 255 255 / 0.85); border: 1.5px solid white; backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.15s; display: grid; place-items: center; }
+  .asset:hover .check, .asset.selected .check { opacity: 1; }
+  .asset.selected .check { background: var(--mc-brand); border-color: var(--mc-brand); }
+  .asset.selected .check svg { color: white; }
+  .ftype { position: absolute; top: 8px; right: 8px; padding: 1px 6px; border-radius: 4px; font: 700 9px/1.4 'JetBrains Mono', monospace; background: rgb(0 0 0 / 0.6); color: white; }
+  .upload-zone { border: 2px dashed var(--mc-border-2); border-radius: 12px; background: var(--mc-surface-2); }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Media">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-mount data-active="media" data-tenant="MangoBook"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <a href="dashboard.html" class="hover:underline" style="color: var(--mc-text-3);">Studio Renza</a>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <a href="tenants.html" class="hover:underline" style="color: var(--mc-text-3);">MangoBook</a>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Media</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3h12l3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+          New folder
+        </button>
+        <button class="mc-btn mc-btn-sm mc-btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>
+          Upload
+        </button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1440px]">
+      <div class="mb-6 flex items-end justify-between">
+        <div>
+          <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">MangoBook · Content</div>
+          <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Media library <span class="text-base font-medium font-mono ml-2" style="color: var(--mc-text-3);">— 2,418 files · 12.4 GB</span></h1>
+        </div>
+        <div class="text-xs flex items-center gap-3" style="color: var(--mc-text-3);">
+          <div>
+            <div class="font-mono text-base font-bold" style="color: var(--mc-text); font-family: 'JetBrains Mono', monospace;">12.4 GB</div>
+            <div class="text-[10px]">of 50 GB used</div>
+          </div>
+          <div class="w-32 h-1.5 rounded-full overflow-hidden" style="background: var(--mc-surface-2);"><div style="width: 25%; height: 100%; background: var(--mc-brand);"></div></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-[200px_1fr] gap-7">
+
+        <!-- Folder rail -->
+        <aside>
+          <div class="relative mb-3">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--mc-text-3);"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input class="mc-input pl-9" style="height:34px; font-size:12.5px;" placeholder="Search files…"/>
+          </div>
+          <div class="space-y-0.5 text-sm">
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md font-semibold" style="background: var(--mc-brand-soft); color: var(--mc-brand);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3h12l3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              All files <span class="ml-auto font-mono text-xs">2,418</span>
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3h12l3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              Covers <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">412</span>
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3h12l3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              Author photos <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">88</span>
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3h12l3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              Hero images <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">142</span>
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3h12l3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              Marketing <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">512</span>
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3h12l3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              Excerpts (PDF) <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">68</span>
+            </a>
+            <div class="text-[10px] font-bold tracking-widest uppercase px-3 pt-4 pb-1" style="color: var(--mc-text-3);">By type</div>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);"><span class="w-1.5 h-1.5 rounded-full" style="background: oklch(74% 0.16 230);"></span> Images <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">1,994</span></a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);"><span class="w-1.5 h-1.5 rounded-full" style="background: oklch(74% 0.14 290);"></span> Video <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">42</span></a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);"><span class="w-1.5 h-1.5 rounded-full" style="background: oklch(70% 0.15 85);"></span> Audio <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">22</span></a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-md" style="color: var(--mc-text-2);"><span class="w-1.5 h-1.5 rounded-full" style="background: oklch(60% 0.17 25);"></span> PDFs &amp; docs <span class="ml-auto font-mono text-xs" style="color: var(--mc-text-3);">360</span></a>
+          </div>
+          <div class="mt-5 p-3 rounded-lg" style="background: var(--mc-surface-2); border: 1px solid var(--mc-border);">
+            <div class="text-xs font-bold mb-1">Storage</div>
+            <div class="text-[11px]" style="color: var(--mc-text-3);">12.4 GB / 50 GB · Studio plan</div>
+            <div class="mt-2 h-1.5 rounded-full overflow-hidden" style="background: var(--mc-surface);"><div style="width: 25%; height: 100%; background: var(--mc-brand);"></div></div>
+            <a href="settings.html" class="block mt-2 text-[11px] font-semibold" style="color: var(--mc-brand);">Manage storage →</a>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <div>
+          <!-- Toolbar -->
+          <div class="mc-card p-3 flex items-center gap-2.5 mb-4">
+            <div class="text-sm">
+              <span class="mc-badge mc-badge-brand font-mono">3 selected</span>
+            </div>
+            <div class="flex gap-1.5">
+              <button class="mc-btn mc-btn-sm mc-btn-secondary">Move to folder</button>
+              <button class="mc-btn mc-btn-sm mc-btn-secondary">Add tags</button>
+              <button class="mc-btn mc-btn-sm mc-btn-secondary">Download</button>
+              <button class="mc-btn mc-btn-sm mc-btn-secondary">Replace</button>
+              <button class="mc-btn mc-btn-sm mc-btn-danger-outline">Delete</button>
+            </div>
+            <div class="flex-1"></div>
+            <button class="mc-btn mc-btn-sm mc-btn-secondary">Sort: Recent <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="flex rounded-lg overflow-hidden" style="border:1px solid var(--mc-border);">
+              <button class="px-3 h-8 text-xs font-semibold" style="background: var(--mc-text); color: var(--mc-surface);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+              <button class="px-3 h-8 text-xs font-semibold" style="color: var(--mc-text-2);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+            </div>
+          </div>
+
+          <!-- Upload zone -->
+          <div class="upload-zone p-5 mb-4 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl grid place-items-center" style="background: var(--mc-brand-soft); color: var(--mc-brand);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>
+            </div>
+            <div class="flex-1">
+              <div class="font-semibold text-sm">Drop files here or <a href="#" style="color: var(--mc-brand);">browse</a></div>
+              <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">PNG, JPG, WebP, MP4, PDF · up to 50 MB · auto-optimised</div>
+            </div>
+            <div class="text-xs font-mono px-3 py-2 rounded-lg" style="background: var(--mc-surface); border: 1px solid var(--mc-border); color: var(--mc-text-3);">
+              <div class="mb-1">salt-garden-cover-v3.png</div>
+              <div class="h-1 w-44 rounded-full overflow-hidden" style="background: var(--mc-surface-2);"><div style="width: 68%; height: 100%; background: var(--mc-brand);"></div></div>
+              <div class="mt-1 flex justify-between" style="color: var(--mc-text-3);"><span>68%</span><span>1.4 / 2.1 MB</span></div>
+            </div>
+          </div>
+
+          <!-- Folders strip -->
+          <div class="mb-4">
+            <div class="text-xs font-bold tracking-widest uppercase mb-2" style="color: var(--mc-text-3);">Folders</div>
+            <div class="grid grid-cols-6 gap-3">
+              <a href="#" class="flex items-center gap-2 p-3 rounded-lg" style="background: var(--mc-surface); border:1px solid var(--mc-border); text-decoration: none; color: inherit;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="oklch(74% 0.16 60 / 0.15)" stroke="oklch(58% 0.17 50)" stroke-width="1.5"><path d="M3 9l3-3h6l2 2h7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <div class="min-w-0"><div class="font-semibold text-sm truncate">Covers</div><div class="text-[10.5px] font-mono" style="color: var(--mc-text-3);">412</div></div>
+              </a>
+              <a href="#" class="flex items-center gap-2 p-3 rounded-lg" style="background: var(--mc-surface); border:1px solid var(--mc-border); text-decoration: none; color: inherit;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="oklch(74% 0.16 60 / 0.15)" stroke="oklch(58% 0.17 50)" stroke-width="1.5"><path d="M3 9l3-3h6l2 2h7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <div class="min-w-0"><div class="font-semibold text-sm truncate">Authors</div><div class="text-[10.5px] font-mono" style="color: var(--mc-text-3);">88</div></div>
+              </a>
+              <a href="#" class="flex items-center gap-2 p-3 rounded-lg" style="background: var(--mc-surface); border:1px solid var(--mc-border); text-decoration: none; color: inherit;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="oklch(74% 0.16 60 / 0.15)" stroke="oklch(58% 0.17 50)" stroke-width="1.5"><path d="M3 9l3-3h6l2 2h7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <div class="min-w-0"><div class="font-semibold text-sm truncate">Hero images</div><div class="text-[10.5px] font-mono" style="color: var(--mc-text-3);">142</div></div>
+              </a>
+              <a href="#" class="flex items-center gap-2 p-3 rounded-lg" style="background: var(--mc-surface); border:1px solid var(--mc-border); text-decoration: none; color: inherit;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="oklch(74% 0.16 60 / 0.15)" stroke="oklch(58% 0.17 50)" stroke-width="1.5"><path d="M3 9l3-3h6l2 2h7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <div class="min-w-0"><div class="font-semibold text-sm truncate">Marketing</div><div class="text-[10.5px] font-mono" style="color: var(--mc-text-3);">512</div></div>
+              </a>
+              <a href="#" class="flex items-center gap-2 p-3 rounded-lg" style="background: var(--mc-surface); border:1px solid var(--mc-border); text-decoration: none; color: inherit;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="oklch(74% 0.16 60 / 0.15)" stroke="oklch(58% 0.17 50)" stroke-width="1.5"><path d="M3 9l3-3h6l2 2h7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <div class="min-w-0"><div class="font-semibold text-sm truncate">Excerpts</div><div class="text-[10.5px] font-mono" style="color: var(--mc-text-3);">68</div></div>
+              </a>
+              <a href="#" class="flex items-center gap-2 p-3 rounded-lg border-dashed" style="background: transparent; border:2px dashed var(--mc-border-2); text-decoration: none; color: var(--mc-text-3);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                <span class="font-semibold text-sm">New folder</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Assets grid -->
+          <div class="text-xs font-bold tracking-widest uppercase mb-2" style="color: var(--mc-text-3);">Recent uploads</div>
+          <div class="grid grid-cols-6 gap-3" id="assets"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="mc-sidebar.js"></script>
+<script src="mangocms-shell.js"></script>
+<script>
+  const cover = (h) => `<div style="width: 60%; height: 80%; border-radius: 3px; background: linear-gradient(160deg, oklch(0.55 0.17 ${h}), oklch(0.38 0.10 ${h})); position: relative; box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);"><div style="position: absolute; left: 4px; top: 0; bottom: 0; width: 3px; background: rgb(0 0 0 / 0.18);"></div></div>`;
+  const portrait = (h) => `<div style="width: 100%; height: 100%; background: linear-gradient(180deg, oklch(0.85 0.05 ${h}), oklch(0.55 0.10 ${h}));"></div>`;
+  const photo = (h) => `<div style="width: 100%; height: 100%; background: linear-gradient(${30+h%180}deg, oklch(0.65 0.12 ${h}), oklch(0.40 0.08 ${(h+90)%360}));"></div>`;
+  const pdfIcon = `<div style="display:flex; flex-direction:column; align-items:center; gap:8px;"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="oklch(60% 0.17 25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="6" y="17" font-size="6" fill="oklch(60% 0.17 25)" font-weight="700" stroke="none">PDF</text></svg></div>`;
+  const videoOverlay = `<div style="position: absolute; inset: 0; display:grid; place-items:center; background: rgb(0 0 0 / 0.3);"><div style="width: 36px; height: 36px; border-radius: 99px; background: rgb(255 255 255 / 0.9); display:grid; place-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="oklch(21.8% 0.008 223.9)"><polygon points="6 4 20 12 6 20"/></svg></div></div>`;
+
+  const assets = [
+    { name: 'salt-garden-cover-v3.png',     type:'PNG', size:'1.2 MB', dim:'1800×2700', thumb: cover(50),  sel:true },
+    { name: 'quiet-reckoning-cover.png',    type:'PNG', size:'1.4 MB', dim:'1800×2700', thumb: cover(290), sel:true },
+    { name: 'orbital-drift-cover.png',      type:'PNG', size:'1.1 MB', dim:'1800×2700', thumb: cover(230), sel:true },
+    { name: 'lemons-in-july-cover.png',     type:'PNG', size:'1.3 MB', dim:'1800×2700', thumb: cover(350) },
+    { name: 'marchetti-portrait.jpg',       type:'JPG', size:'480 KB', dim:'1200×1200', thumb: portrait(60) },
+    { name: 'salt-flats-twilight.webp',     type:'WEBP',size:'620 KB', dim:'2400×1600', thumb: photo(40) },
+    { name: 'spring-launch-banner.png',     type:'PNG', size:'1.8 MB', dim:'2880×1200', thumb: photo(90) },
+    { name: 'salt-garden-excerpt.pdf',      type:'PDF', size:'820 KB', dim:'18 pages',  thumb: pdfIcon },
+    { name: 'marchetti-reading-bw.mp4',     type:'MP4', size:'14 MB',  dim:'2m 14s · 720p', thumb: photo(217), video: true },
+    { name: 'park-author-shot.jpg',         type:'JPG', size:'380 KB', dim:'1200×1500', thumb: portrait(230) },
+    { name: 'reckoning-launch-poster.png',  type:'PNG', size:'2.1 MB', dim:'1080×1920', thumb: photo(290) },
+    { name: 'borrowed-light-cover.png',     type:'PNG', size:'1.2 MB', dim:'1800×2700', thumb: cover(150) },
+  ];
+
+  document.getElementById('assets').innerHTML = assets.map(a => `
+    <div class="asset ${a.sel ? 'selected' : ''}">
+      <div class="thumb">
+        ${a.thumb}
+        ${a.video ? videoOverlay : ''}
+        <div class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span class="ftype">${a.type}</span>
+      </div>
+      <div class="meta">
+        <div class="font-semibold text-xs truncate" title="${a.name}">${a.name}</div>
+        <div class="text-[10px] font-mono mt-0.5 flex items-center justify-between" style="color: var(--mc-text-3);"><span>${a.dim}</span><span>${a.size}</span></div>
+      </div>
+    </div>
+  `).join('');
+</script>
+</body>
+</html>

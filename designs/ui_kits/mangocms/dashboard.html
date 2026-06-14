@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>MangoCMS — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="mangocms-config.js"></script>
+<link rel="stylesheet" href="mangocms.css"/>
+</head>
+<body class="font-sans" data-screen-label="Dashboard">
+
+<div class="mc-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="mc-side">
+    <div class="mc-side-header">
+      <a href="dashboard.html" class="flex items-center gap-2.5" style="text-decoration:none; color:inherit;">
+        <span class="mc-logo" style="width:30px; height:30px; font-size:15px;">M</span>
+        <span class="font-display font-bold text-base mc-side-brand-text">MangoCMS</span>
+      </a>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-brand-text" data-sidebar-toggle aria-label="Collapse sidebar" title="Collapse sidebar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" data-sidebar-toggle aria-label="Expand sidebar" title="Expand sidebar" style="display:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <div class="mc-side-section">Workspace</div>
+    <a href="dashboard.html" class="active">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span class="mc-side-label">Overview</span>
+    </a>
+    <a href="tenants.html">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      <span class="mc-side-label">Sites</span>
+      <span class="mc-side-counter">12</span>
+    </a>
+    <a href="#">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><path d="M4 4h16v12H4z"/><path d="M2 20h20"/></svg>
+      <span class="mc-side-label">Templates</span>
+    </a>
+    <a href="#">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.5 3-5 6-5s5.5 1.5 6 5"/><circle cx="17" cy="6" r="2"/><path d="M15 12c2.5 0 4 1 4.5 3"/></svg>
+      <span class="mc-side-label">Team</span>
+    </a>
+    <a href="#">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+      <span class="mc-side-label">Analytics</span>
+    </a>
+
+    <div class="mc-side-section">Build</div>
+    <a href="builder-page.html">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg>
+      <span class="mc-side-label">Page builder</span>
+    </a>
+    <a href="builder-section.html">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span class="mc-side-label">Sections</span>
+    </a>
+    <a href="#">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      <span class="mc-side-label">Media library</span>
+    </a>
+
+    <div class="mc-side-section">Account</div>
+    <a href="profile.html">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-7 8-7s7 2.5 8 7"/></svg>
+      <span class="mc-side-label">Profile</span>
+    </a>
+    <a href="settings.html">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>
+      <span class="mc-side-label">Settings</span>
+    </a>
+
+    <div class="mc-side-footer">
+      <div class="w-9 h-9 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 60), oklch(0.58 0.17 50));">HN</div>
+      <div class="min-w-0 flex-1 mc-side-brand-text">
+        <div class="text-sm font-semibold leading-tight truncate">Harper Nelson</div>
+        <div class="text-[11px] truncate" style="color: var(--mc-text-3);">Studio Renza · Owner</div>
+      </div>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-brand-text" data-theme-toggle aria-label="Toggle theme">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="min-w-0">
+
+    <!-- TOPBAR -->
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Studio Renza</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Overview</span>
+      </div>
+      <div class="flex-1 max-w-md ml-6">
+        <div class="relative">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--mc-text-3);"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input class="mc-input pl-9 pr-16" placeholder="Search sites, pages, people…"/>
+          <span class="mc-kbd absolute right-3 top-1/2 -translate-y-1/2">⌘K</span>
+        </div>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon" aria-label="Help">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5M12 17h.01"/></svg>
+        </button>
+        <button class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon relative" aria-label="Notifications">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full" style="background: var(--mc-brand);"></span>
+        </button>
+        <div class="w-px h-6 mx-1" style="background: var(--mc-border);"></div>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Last 30 days
+        </button>
+        <button class="mc-btn mc-btn-sm mc-btn-primary" data-modal-open="newSiteModal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          New site
+        </button>
+      </div>
+    </header>
+
+    <!-- BODY -->
+    <main class="p-8 max-w-[1440px]">
+
+      <!-- HEADING -->
+      <div class="mb-7">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Workspace · Overview</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Good morning, Harper.</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">Twelve sites under Studio Renza. Two are building, ten are live, and Atelier Vasa wants a homepage rework this week.</p>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+            <span class="uppercase tracking-widest">Live sites</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight">10<span class="text-base" style="color: var(--mc-text-3);"> / 12</span></div>
+            <span class="mc-badge mc-badge-success mb-1 font-mono">▲ 2 this mo.</span>
+          </div>
+        </div>
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+            <span class="uppercase tracking-widest">Pageviews · 30d</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight font-mono">1.42M</div>
+            <span class="mc-badge mc-badge-success mb-1 font-mono">▲ 24%</span>
+          </div>
+        </div>
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+            <span class="uppercase tracking-widest">Pages published</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight font-mono">214</div>
+            <span class="mc-badge mc-badge-success mb-1 font-mono">▲ 18</span>
+          </div>
+        </div>
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.5 3-5 6-5s5.5 1.5 6 5"/><circle cx="17" cy="6" r="2"/><path d="M15 12c2.5 0 4 1 4.5 3"/></svg>
+            <span class="uppercase tracking-widest">Active editors</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight font-mono">34</div>
+            <span class="mc-badge mc-badge-neutral mb-1 font-mono">+ 4 invited</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW: traffic chart + recent activity -->
+      <div class="grid grid-cols-[1.6fr_1fr] gap-4 mb-6">
+
+        <!-- CHART -->
+        <div class="mc-card p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <div class="font-display font-bold text-lg">Traffic across all sites</div>
+              <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Pageviews vs. unique visitors · last 30 days</div>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-semibold">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: var(--mc-brand);"></span>Pageviews</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(74% 0.16 230);"></span>Unique</span>
+              <button class="mc-btn mc-btn-sm mc-btn-secondary">
+                30d
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
+          </div>
+          <svg viewBox="0 0 800 220" preserveAspectRatio="none" class="w-full h-52">
+            <defs>
+              <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="oklch(58% 0.17 50)" stop-opacity="0.20"/>
+                <stop offset="100%" stop-color="oklch(58% 0.17 50)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- gridlines -->
+            <g stroke="var(--mc-border)" stroke-width="1">
+              <line x1="40" y1="20" x2="800" y2="20"/>
+              <line x1="40" y1="65" x2="800" y2="65"/>
+              <line x1="40" y1="110" x2="800" y2="110"/>
+              <line x1="40" y1="155" x2="800" y2="155"/>
+              <line x1="40" y1="200" x2="800" y2="200"/>
+            </g>
+            <g font-family="JetBrains Mono" font-size="10" fill="var(--mc-text-3)">
+              <text x="34" y="24" text-anchor="end">60k</text>
+              <text x="34" y="69" text-anchor="end">45k</text>
+              <text x="34" y="114" text-anchor="end">30k</text>
+              <text x="34" y="159" text-anchor="end">15k</text>
+              <text x="34" y="204" text-anchor="end">0</text>
+            </g>
+            <!-- area -->
+            <path d="M40 170 L100 162 L160 158 L220 140 L280 148 L340 130 L400 122 L460 112 L520 96 L580 88 L640 78 L700 60 L760 52 L800 40 L800 200 L40 200 Z" fill="url(#grad1)"/>
+            <!-- pageviews -->
+            <polyline fill="none" stroke="oklch(58% 0.17 50)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              points="40,170 100,162 160,158 220,140 280,148 340,130 400,122 460,112 520,96 580,88 640,78 700,60 760,52 800,40"/>
+            <!-- unique -->
+            <polyline fill="none" stroke="oklch(74% 0.16 230)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0"
+              points="40,182 100,178 160,176 220,170 280,172 340,166 400,160 460,156 520,150 580,144 640,138 700,128 760,122 800,118"/>
+            <!-- focus dot -->
+            <circle cx="640" cy="78" r="5" fill="oklch(58% 0.17 50)" stroke="var(--mc-surface)" stroke-width="3"/>
+          </svg>
+        </div>
+
+        <!-- ACTIVITY -->
+        <div class="mc-card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="font-display font-bold text-lg">Activity</div>
+            <span class="mc-status mc-status-live">Live</span>
+          </div>
+          <div class="space-y-4">
+            <div class="flex gap-3">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 60), oklch(0.58 0.17 50));">EM</div>
+              <div class="text-sm leading-snug">
+                <b>Elena Marchetti</b> published <b>The Salt Garden</b> on MangoBook.
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">3 min ago · Pages</div>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 230), oklch(0.50 0.14 230));">SA</div>
+              <div class="text-sm leading-snug">
+                <b>Sara Aboud</b> requested review on <b>Atelier homepage v3</b>.
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">22 min ago · Review</div>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 150), oklch(0.50 0.13 150));">DM</div>
+              <div class="text-sm leading-snug">
+                <b>Diego Moss</b> spun up a new site from <b>Lemon Press</b>.
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">1 h ago · Sites</div>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 290), oklch(0.52 0.14 290));">YK</div>
+              <div class="text-sm leading-snug">
+                <b>Yara Kovač</b> archived <b>old.northbrand.co</b>.
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">2 h ago · Sites</div>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 30), oklch(0.52 0.14 30));">HN</div>
+              <div class="text-sm leading-snug">
+                You connected <b>renza.studio</b> · DNS verified.
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">Today · Domains</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT SITES -->
+      <div class="mc-card overflow-hidden">
+        <div class="p-6 flex items-end justify-between border-b" style="border-color: var(--mc-border);">
+          <div>
+            <div class="font-display font-bold text-lg">Recently edited sites</div>
+            <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Click any site to jump straight to its builder.</div>
+          </div>
+          <a href="tenants.html" class="mc-btn mc-btn-sm mc-btn-ghost">View all sites
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <table class="mc-table">
+          <thead>
+            <tr>
+              <th>Site</th>
+              <th>Domain</th>
+              <th>Template</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th class="num">Pageviews · 30d</th>
+              <th>Last edit</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-md flex-shrink-0 relative" style="background: linear-gradient(160deg, oklch(0.55 0.17 50), oklch(0.38 0.10 50));">
+                    <div class="absolute left-1 top-0 bottom-0 w-[3px]" style="background: rgb(0 0 0 / 0.18);"></div>
+                  </div>
+                  <div>
+                    <div class="font-semibold">MangoBook</div>
+                    <div class="text-[11px] font-mono" style="color: var(--mc-text-3);">12 pages</div>
+                  </div>
+                </div>
+              </td>
+              <td class="font-mono text-xs" style="color: var(--mc-text-2);">mangobook.com</td>
+              <td><span class="mc-badge mc-badge-neutral">Publishing</span></td>
+              <td><span class="mc-badge mc-badge-brand">Studio</span></td>
+              <td><span class="mc-status mc-status-live">Live</span></td>
+              <td class="num">412,801</td>
+              <td class="text-xs" style="color: var(--mc-text-2);">2 h ago</td>
+              <td>
+                <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon" title="Open builder">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-md flex-shrink-0" style="background: linear-gradient(160deg, oklch(0.58 0.16 230), oklch(0.40 0.12 230));"></div>
+                  <div>
+                    <div class="font-semibold">Atelier Vasa</div>
+                    <div class="text-[11px] font-mono" style="color: var(--mc-text-3);">7 pages</div>
+                  </div>
+                </div>
+              </td>
+              <td class="font-mono text-xs" style="color: var(--mc-text-2);">ateliervasa.eu</td>
+              <td><span class="mc-badge mc-badge-neutral">Studio</span></td>
+              <td><span class="mc-badge mc-badge-brand">Studio</span></td>
+              <td><span class="mc-status mc-status-build">Building</span></td>
+              <td class="num">28,194</td>
+              <td class="text-xs" style="color: var(--mc-text-2);">22 min ago</td>
+              <td>
+                <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-md flex-shrink-0" style="background: linear-gradient(160deg, oklch(0.48 0.14 150), oklch(0.32 0.10 150));"></div>
+                  <div>
+                    <div class="font-semibold">Lemon Press</div>
+                    <div class="text-[11px] font-mono" style="color: var(--mc-text-3);">28 pages</div>
+                  </div>
+                </div>
+              </td>
+              <td class="font-mono text-xs" style="color: var(--mc-text-2);">lemon.press</td>
+              <td><span class="mc-badge mc-badge-neutral">Magazine</span></td>
+              <td><span class="mc-badge mc-badge-brand">Studio</span></td>
+              <td><span class="mc-status mc-status-live">Live</span></td>
+              <td class="num">182,447</td>
+              <td class="text-xs" style="color: var(--mc-text-2);">yesterday</td>
+              <td>
+                <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-md flex-shrink-0" style="background: oklch(0.148 0.004 229);"></div>
+                  <div>
+                    <div class="font-semibold">Northbrand</div>
+                    <div class="text-[11px] font-mono" style="color: var(--mc-text-3);">16 pages</div>
+                  </div>
+                </div>
+              </td>
+              <td class="font-mono text-xs" style="color: var(--mc-text-2);">northbrand.co</td>
+              <td><span class="mc-badge mc-badge-neutral">SaaS</span></td>
+              <td><span class="mc-badge mc-badge-neutral">Free</span></td>
+              <td><span class="mc-status mc-status-live">Live</span></td>
+              <td class="num">96,234</td>
+              <td class="text-xs" style="color: var(--mc-text-2);">2 d ago</td>
+              <td>
+                <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-md flex-shrink-0" style="background: linear-gradient(160deg, oklch(0.65 0.17 30), oklch(0.48 0.13 30));"></div>
+                  <div>
+                    <div class="font-semibold">Citrus &amp; Co.</div>
+                    <div class="text-[11px] font-mono" style="color: var(--mc-text-3);">4 pages</div>
+                  </div>
+                </div>
+              </td>
+              <td class="font-mono text-xs" style="color: var(--mc-text-2);">drinkcitrus.shop</td>
+              <td><span class="mc-badge mc-badge-neutral">D2C · shop</span></td>
+              <td><span class="mc-badge mc-badge-brand">Studio</span></td>
+              <td><span class="mc-status mc-status-build">Pending DNS</span></td>
+              <td class="num">—</td>
+              <td class="text-xs" style="color: var(--mc-text-2);">3 d ago</td>
+              <td>
+                <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- NEW SITE MODAL (used in dashboard topbar) -->
+<div class="mc-modal-backdrop" id="newSiteModal" style="display:none;">
+  <div class="mc-modal">
+    <div class="mc-modal-head">
+      <div>
+        <div class="font-display font-bold text-lg">Create a new site</div>
+        <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Pick a template — you can swap or restyle it any time.</div>
+      </div>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" data-modal-close aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="mc-modal-body">
+      <label class="mc-label">Site name</label>
+      <input class="mc-input mb-4" placeholder="e.g. Studio Renza Showcase"/>
+      <label class="mc-label">Domain</label>
+      <div class="flex gap-2 mb-4">
+        <input class="mc-input flex-1" placeholder="renza-showcase"/>
+        <div class="flex items-center px-3 rounded-lg border text-sm font-mono" style="border-color: var(--mc-border-2); background: var(--mc-surface-2); color: var(--mc-text-3);">.mangocms.io</div>
+      </div>
+      <label class="mc-label">Template</label>
+      <div class="grid grid-cols-3 gap-2.5">
+        <label class="mc-card p-3 cursor-pointer" style="border: 2px solid var(--mc-brand);">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: linear-gradient(135deg, oklch(0.97 0.025 60), oklch(0.94 0.05 65));"></div>
+          <div class="font-semibold text-sm">MangoBook</div>
+          <div class="text-[11px]" style="color: var(--mc-text-3);">Publishing</div>
+        </label>
+        <label class="mc-card p-3 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: linear-gradient(135deg, oklch(0.93 0.008 220), oklch(0.85 0.015 220));"></div>
+          <div class="font-semibold text-sm">Atelier</div>
+          <div class="text-[11px]" style="color: var(--mc-text-3);">Studio · portfolio</div>
+        </label>
+        <label class="mc-card p-3 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: oklch(0.148 0.004 229);"></div>
+          <div class="font-semibold text-sm">Northbrand</div>
+          <div class="text-[11px]" style="color: var(--mc-text-3);">SaaS · marketing</div>
+        </label>
+      </div>
+      <a href="#" class="text-xs font-semibold mt-3 inline-block" style="color: var(--mc-brand);">Browse all 12 templates →</a>
+    </div>
+    <div class="mc-modal-foot">
+      <button class="mc-btn mc-btn-sm mc-btn-ghost" data-modal-close>Cancel</button>
+      <button class="mc-btn mc-btn-sm mc-btn-primary">Create site</button>
+    </div>
+  </div>
+</div>
+
+<script src="mangocms-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+/* MangoCMS — Collections workflow modals.
+   Powers: Create Collection wizard, Manage Fields side panel,
+   Choose Field Type modal, Add a Field (Settings · Validations · Default value).
+   All visuals follow MangoCMS tokens (--mc-*); layout/placement borrows
+   from the Wix Studio CMS reference flow. */
+
+/* ─── Generic flow modal overrides ─── */
+.cf-modal { max-width: 720px; }
+.cf-modal.cf-wide { max-width: 880px; }
+.cf-modal.cf-narrow { max-width: 560px; }
+.cf-modal .mc-modal-head { padding: 22px 26px 14px; }
+.cf-modal .mc-modal-body { padding: 22px 26px; }
+.cf-modal .mc-modal-foot { padding: 14px 22px; }
+
+.cf-eyebrow {
+  font: 700 10.5px/1.2 'Inter', sans-serif;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--mc-text-3);
+}
+.cf-help {
+  display: flex; align-items: flex-start; gap: 8px;
+  font: 400 12px/1.45 'Inter', sans-serif; color: var(--mc-text-2);
+  margin-top: 6px;
+}
+.cf-help svg { flex-shrink: 0; margin-top: 1px; color: var(--mc-text-3); }
+
+/* ─── Wizard step indicator ─── */
+.cf-steps {
+  display: flex; align-items: center; gap: 10px;
+  font: 600 11px/1 'Inter', sans-serif; color: var(--mc-text-3);
+  margin-top: 4px;
+}
+.cf-steps .cf-step { display: flex; align-items: center; gap: 6px; }
+.cf-steps .cf-step-dot {
+  width: 18px; height: 18px; border-radius: 99px;
+  display: grid; place-items: center;
+  background: var(--mc-surface-2); color: var(--mc-text-3);
+  border: 1px solid var(--mc-border-2);
+  font: 700 10px/1 'JetBrains Mono', monospace;
+}
+.cf-steps .cf-step.done .cf-step-dot { background: var(--mc-brand); color: #fff; border-color: var(--mc-brand); }
+.cf-steps .cf-step.active .cf-step-dot { background: var(--mc-surface); color: var(--mc-brand); border-color: var(--mc-brand); }
+.cf-steps .cf-step.active span { color: var(--mc-text); }
+.cf-steps .cf-step-sep { width: 18px; height: 1px; background: var(--mc-border-2); }
+
+/* ─── Collection-type radio rows (wizard step 1) ─── */
+.cf-type-list { display: flex; flex-direction: column; gap: 10px; }
+.cf-type {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border: 1.5px solid var(--mc-border);
+  border-radius: 14px; background: var(--mc-surface);
+  cursor: pointer; transition: all 0.15s;
+}
+.cf-type:hover { border-color: var(--mc-border-2); background: var(--mc-surface-2); }
+.cf-type.selected { border-color: var(--mc-brand); background: var(--mc-brand-soft); }
+.cf-type .cf-radio {
+  width: 18px; height: 18px; border-radius: 99px;
+  border: 1.5px solid var(--mc-border-2); flex-shrink: 0;
+  display: grid; place-items: center; background: var(--mc-surface);
+}
+.cf-type.selected .cf-radio { border-color: var(--mc-brand); }
+.cf-type.selected .cf-radio::after {
+  content: ''; width: 8px; height: 8px; border-radius: 99px; background: var(--mc-brand);
+}
+.cf-type-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: grid; place-items: center; flex-shrink: 0; color: #fff;
+}
+.cf-type-icon.t-content  { background: var(--mc-brand); }
+.cf-type-icon.t-catalog  { background: var(--mc-mist-900, oklch(21.8% 0.008 223.9)); }
+.cf-type-icon.t-category { background: oklch(58% 0.10 180); }
+.cf-type-body { flex: 1; min-width: 0; }
+.cf-type-title { font: 700 15px/1.2 'Familjen Grotesk', sans-serif; letter-spacing: -0.01em; }
+.cf-type-desc  { font: 400 12.5px/1.4 'Inter', sans-serif; color: var(--mc-text-2); margin-top: 2px; }
+
+/* ─── Start-mode card grid (wizard step 2A — content path) ─── */
+.cf-start-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.cf-start {
+  border: 1.5px solid var(--mc-border); border-radius: 14px;
+  padding: 22px 18px; background: var(--mc-surface);
+  cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.cf-start:hover { border-color: var(--mc-border-2); background: var(--mc-surface-2); }
+.cf-start.selected { border-color: var(--mc-brand); background: var(--mc-brand-soft); }
+.cf-start-title { font: 700 15px/1.2 'Familjen Grotesk', sans-serif; letter-spacing: -0.01em; }
+.cf-start-desc  { font: 400 12.5px/1.4 'Inter', sans-serif; color: var(--mc-text-2); margin-top: 6px; }
+.cf-start-ico {
+  width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 10px;
+  display: grid; place-items: center; background: var(--mc-surface-2); color: var(--mc-text-2);
+}
+.cf-start.selected .cf-start-ico { background: var(--mc-brand); color: #fff; }
+
+/* ─── Suggested-fields checkbox grid (Catalog path) ─── */
+.cf-sg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 18px; }
+.cf-sg-col-label { font: 700 10.5px/1 'Inter'; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mc-text-3); margin-bottom: 6px; }
+.cf-sg-row { display: flex; align-items: center; gap: 9px; padding: 8px 4px; font: 500 13.5px/1.2 'Inter'; color: var(--mc-text); }
+.cf-sg-row.locked { color: var(--mc-text-3); }
+.cf-sg-row input[type="checkbox"] { accent-color: var(--mc-brand); width: 16px; height: 16px; }
+
+/* ─── Multi / single radio rows (content path step 3) ─── */
+.cf-mode-row {
+  display: flex; gap: 12px; padding: 14px 0;
+  border-bottom: 1px solid var(--mc-border);
+}
+.cf-mode-row:last-child { border-bottom: 0; }
+.cf-mode-radio {
+  width: 18px; height: 18px; border-radius: 99px;
+  border: 1.5px solid var(--mc-border-2); flex-shrink: 0; margin-top: 2px;
+  display: grid; place-items: center; background: var(--mc-surface); cursor: pointer;
+}
+.cf-mode-row.selected .cf-mode-radio { border-color: var(--mc-brand); }
+.cf-mode-row.selected .cf-mode-radio::after {
+  content: ''; width: 8px; height: 8px; border-radius: 99px; background: var(--mc-brand);
+}
+.cf-mode-title { font: 700 14.5px/1.2 'Familjen Grotesk', sans-serif; letter-spacing: -0.01em; }
+.cf-mode-row.selected .cf-mode-title { color: var(--mc-text); }
+.cf-mode-desc  { font: 400 12.5px/1.45 'Inter', sans-serif; color: var(--mc-text-2); margin-top: 4px; }
+
+/* ─── Manage Fields slide panel ─── */
+.cf-panel-backdrop {
+  position: fixed; inset: 0; background: rgb(0 0 0 / 0.18);
+  z-index: 45; display: none; opacity: 0; transition: opacity 0.18s;
+}
+.cf-panel-backdrop.open { display: block; opacity: 1; }
+.cf-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 380px;
+  background: var(--mc-surface); border-left: 1px solid var(--mc-border);
+  box-shadow: -16px 0 40px -8px rgb(0 0 0 / 0.10);
+  z-index: 46; transform: translateX(100%); transition: transform 0.22s ease;
+  display: flex; flex-direction: column;
+}
+.cf-panel.open { transform: translateX(0); }
+.cf-panel-head {
+  padding: 22px 22px 16px; border-bottom: 1px solid var(--mc-border);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+}
+.cf-panel-body { flex: 1; overflow-y: auto; padding: 14px 14px; }
+.cf-panel-foot { padding: 14px 18px; border-top: 1px solid var(--mc-border); background: var(--mc-surface-2); }
+
+.cf-field-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  font: 500 13.5px/1.2 'Inter';
+}
+.cf-field-row:hover { background: var(--mc-surface-2); }
+.cf-field-grip { color: var(--mc-text-3); cursor: grab; display: grid; place-items: center; }
+.cf-field-row input[type="checkbox"] { accent-color: var(--mc-brand); width: 16px; height: 16px; flex-shrink: 0; }
+.cf-field-type-icon { color: var(--mc-text-2); display: grid; place-items: center; width: 18px; }
+.cf-field-name { flex: 1; min-width: 0; color: var(--mc-text); }
+.cf-field-tag {
+  font: 700 9.5px/1 'Inter'; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 3px 7px; border-radius: 99px;
+  background: var(--mc-surface-2); border: 1px solid var(--mc-border);
+  color: var(--mc-text-3);
+}
+.cf-field-tag.primary { background: var(--mc-brand-soft); color: var(--mc-brand); border-color: transparent; }
+
+/* ─── Choose-Field-Type modal cards ─── */
+.cf-group-label {
+  font: 700 10.5px/1 'Inter'; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--mc-text-3); margin: 18px 0 10px;
+}
+.cf-group-label:first-child { margin-top: 0; }
+.cf-ft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cf-ft-card {
+  position: relative;
+  border: 1.5px solid var(--mc-border); border-radius: 12px;
+  padding: 14px 14px; background: var(--mc-surface);
+  cursor: pointer; transition: all 0.15s; min-height: 72px;
+  display: flex; align-items: center; gap: 12px;
+}
+.cf-ft-card:hover { border-color: var(--mc-border-2); background: var(--mc-surface-2); }
+.cf-ft-card.selected { border-color: var(--mc-brand); background: var(--mc-brand-soft); }
+.cf-ft-card.selected::after {
+  content: ''; position: absolute; top: -7px; right: -7px;
+  width: 18px; height: 18px; border-radius: 99px;
+  background: var(--mc-brand);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-repeat: no-repeat; background-position: center;
+}
+.cf-ft-icon { width: 28px; height: 28px; display: grid; place-items: center; color: var(--mc-text-2); flex-shrink: 0; }
+.cf-ft-card.selected .cf-ft-icon { color: var(--mc-brand); }
+.cf-ft-title { font: 700 13.5px/1.2 'Familjen Grotesk', sans-serif; letter-spacing: -0.01em; }
+.cf-ft-desc  { font: 400 11.5px/1.35 'Inter', sans-serif; color: var(--mc-text-3); margin-top: 2px; }
+
+/* ─── Add-a-field tabs ─── */
+.cf-tabs {
+  display: flex; gap: 22px; padding: 0 26px;
+  border-bottom: 1px solid var(--mc-border);
+}
+.cf-tab {
+  font: 500 14px/1 'Inter'; color: var(--mc-text-2);
+  padding: 14px 0; cursor: pointer; border: 0; background: transparent;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.cf-tab:hover { color: var(--mc-text); }
+.cf-tab.active { color: var(--mc-brand); border-bottom-color: var(--mc-brand); font-weight: 600; }
+
+.cf-field-type-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--mc-surface-2); border: 1px solid var(--mc-border);
+  font: 500 13.5px/1 'Inter'; color: var(--mc-text);
+}
+.cf-field-type-pill .cf-chg { margin-left: auto; font: 600 12px/1 'Inter'; color: var(--mc-brand); cursor: pointer; background: transparent; border: 0; padding: 4px 8px; border-radius: 6px; }
+.cf-field-type-pill .cf-chg:hover { background: var(--mc-brand-soft); }
+
+/* ─── Validation rows ─── */
+.cf-val-row {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid var(--mc-border);
+}
+.cf-val-row:last-child { border-bottom: 0; }
+.cf-val-label { font: 500 13.5px/1.3 'Inter'; color: var(--mc-text); }
+.cf-val-help  { font: 400 12px/1.4 'Inter'; color: var(--mc-text-3); margin-top: 2px; }
+.cf-val-ctrl  { display: flex; gap: 6px; align-items: center; }
+.cf-val-ctrl .mc-input { height: 32px; padding: 0 10px; font-size: 13px; }
+.cf-val-ctrl-wh { display: flex; gap: 6px; align-items: center; }
+.cf-val-ctrl-wh .mc-input { width: 80px; }
+.cf-val-ctrl-unit { display: flex; gap: 0; align-items: stretch; }
+.cf-val-ctrl-unit .mc-input { width: 90px; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.cf-val-ctrl-unit .mc-select { width: 70px; border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; padding-right: 22px; }
+
+/* iOS-y switch */
+.cf-switch { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+.cf-switch input { display: none; }
+.cf-switch span {
+  position: absolute; inset: 0; border-radius: 99px;
+  background: var(--mc-border-2); cursor: pointer; transition: background 0.15s;
+}
+.cf-switch span::before {
+  content: ''; position: absolute; left: 2px; top: 2px;
+  width: 18px; height: 18px; border-radius: 99px; background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18); transition: transform 0.15s;
+}
+.cf-switch input:checked + span { background: var(--mc-brand); }
+.cf-switch input:checked + span::before { transform: translateX(16px); }
+
+/* Default-value "not supported" info box */
+.cf-info-box {
+  border: 1px solid color-mix(in oklch, var(--mc-brand) 25%, transparent);
+  background: var(--mc-brand-soft);
+  border-radius: 12px; padding: 14px 16px;
+  font: 400 13px/1.5 'Inter', sans-serif; color: var(--mc-text);
+}
+.cf-info-box strong { font-weight: 700; }
+.cf-info-box a { color: var(--mc-brand); text-decoration: underline; }
+
+/* Category-collection picker (Categories field type) */
+.cf-coll-pick {
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--mc-surface-2); border: 1px dashed var(--mc-border-2);
+  font: 500 13px/1.2 'Inter'; color: var(--mc-text-2); cursor: pointer;
+}
+.cf-coll-pick:hover { border-color: var(--mc-brand); color: var(--mc-text); }

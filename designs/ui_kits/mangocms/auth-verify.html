@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>MangoCMS — Verify email</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="mangocms-config.js"></script>
+<link rel="stylesheet" href="mangocms.css"/>
+<style>
+  body.auth-center { display: grid; place-items: center; min-height: 100vh; padding: 56px 24px; background: var(--mc-bg); position: relative; overflow: hidden; }
+  body.auth-center::before { content:''; position: absolute; left: -10%; top: -10%; width: 60%; height: 60%; background: radial-gradient(ellipse, oklch(0.74 0.16 60 / 0.15), transparent 60%); pointer-events: none; filter: blur(60px); }
+  body.auth-center::after { content:''; position: absolute; right: -10%; bottom: -10%; width: 60%; height: 60%; background: radial-gradient(ellipse, oklch(0.58 0.17 50 / 0.12), transparent 60%); pointer-events: none; filter: blur(60px); }
+  .auth-mini { width: 100%; max-width: 460px; position: relative; }
+  .otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .otp input { width: 100%; height: 56px; text-align: center; font: 700 22px/1 'JetBrains Mono', monospace; border-radius: 12px; border: 1.5px solid var(--mc-border-2); background: var(--mc-surface); color: var(--mc-text); outline: none; transition: all 0.15s; }
+  .otp input:focus { border-color: var(--mc-brand); box-shadow: 0 0 0 4px var(--mc-brand-ring); }
+  .otp input.filled { border-color: var(--mc-text); }
+</style>
+</head>
+<body class="font-sans auth-center">
+<div class="auth-mini">
+  <a href="index.html" class="flex items-center justify-center gap-2.5 mb-9" style="text-decoration:none; color:inherit;">
+    <span class="mc-logo" style="width:36px; height:36px; font-size: 18px;">M</span>
+    <span class="font-display font-bold text-xl">MangoCMS</span>
+  </a>
+
+  <div class="mc-card p-9 text-center">
+    <div class="w-14 h-14 rounded-2xl grid place-items-center mx-auto mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+    </div>
+    <h1 class="font-display font-bold text-2xl tracking-[-0.02em]">Check your inbox</h1>
+    <p class="mt-2 text-sm" style="color: var(--mc-text-2);">We sent a 6-digit code to <b style="color: var(--mc-text);">harper@renza.studio</b>. Enter it to finish signing up.</p>
+
+    <form class="mt-7">
+      <div class="otp">
+        <input maxlength="1" class="filled" value="4" inputmode="numeric"/>
+        <input maxlength="1" class="filled" value="2" inputmode="numeric"/>
+        <input maxlength="1" class="filled" value="9" inputmode="numeric"/>
+        <input maxlength="1" class="filled" value="1" inputmode="numeric"/>
+        <input maxlength="1" inputmode="numeric"/>
+        <input maxlength="1" inputmode="numeric"/>
+      </div>
+
+      <button class="mc-btn mc-btn-lg mc-btn-primary w-full mt-7" disabled style="opacity: 0.6;">Verify &amp; continue</button>
+    </form>
+
+    <div class="mt-6 mc-hairline"></div>
+    <div class="mt-4 text-sm" style="color: var(--mc-text-2);">
+      Didn't get it? <a href="#" class="font-semibold" style="color: var(--mc-brand);">Resend</a> in <span class="font-mono">00:47</span>
+    </div>
+    <div class="mt-1.5 text-xs" style="color: var(--mc-text-3);">
+      Wrong email? <a href="auth-register.html" style="color: var(--mc-text-2); text-decoration: underline;">Start over</a>
+    </div>
+  </div>
+</div>
+<script src="mangocms-shell.js"></script>
+<script>
+  // Auto-focus and advance
+  document.querySelectorAll('.otp input').forEach((inp, i, all) => {
+    inp.addEventListener('input', () => {
+      if (inp.value && all[i+1]) all[i+1].focus();
+      inp.classList.toggle('filled', !!inp.value);
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !inp.value && all[i-1]) all[i-1].focus();
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>MangoCMS — Sites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="mangocms-config.js"></script>
+<link rel="stylesheet" href="mangocms.css"/>
+</head>
+<body class="font-sans" data-screen-label="Sites">
+
+<div class="mc-shell">
+
+  <!-- SIDEBAR (same as dashboard, condensed) -->
+  <aside class="mc-side">
+    <div class="mc-side-header">
+      <a href="dashboard.html" class="flex items-center gap-2.5" style="text-decoration:none; color:inherit;">
+        <span class="mc-logo" style="width:30px; height:30px; font-size:15px;">M</span>
+        <span class="font-display font-bold text-base mc-side-brand-text">MangoCMS</span>
+      </a>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-brand-text" data-sidebar-toggle aria-label="Toggle sidebar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+    <div class="mc-side-section">Workspace</div>
+    <a href="dashboard.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span class="mc-side-label">Overview</span></a>
+    <a href="tenants.html" class="active"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span class="mc-side-label">Sites</span><span class="mc-side-counter">12</span></a>
+    <a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><path d="M4 4h16v12H4z"/><path d="M2 20h20"/></svg><span class="mc-side-label">Templates</span></a>
+    <a href="team.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.5 3-5 6-5s5.5 1.5 6 5"/><circle cx="17" cy="6" r="2"/><path d="M15 12c2.5 0 4 1 4.5 3"/></svg><span class="mc-side-label">Team</span></a>
+    <a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span class="mc-side-label">Analytics</span></a>
+
+    <div class="mc-side-section">Build</div>
+    <a href="builder-page.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg><span class="mc-side-label">Page builder</span></a>
+    <a href="builder-section.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="mc-side-label">Sections</span></a>
+
+    <div class="mc-side-section">Account</div>
+    <a href="profile.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-7 8-7s7 2.5 8 7"/></svg><span class="mc-side-label">Profile</span></a>
+    <a href="settings.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg><span class="mc-side-label">Settings</span></a>
+
+    <div class="mc-side-footer">
+      <div class="w-9 h-9 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 60), oklch(0.58 0.17 50));">HN</div>
+      <div class="min-w-0 flex-1 mc-side-brand-text">
+        <div class="text-sm font-semibold leading-tight truncate">Harper Nelson</div>
+        <div class="text-[11px] truncate" style="color: var(--mc-text-3);">Studio Renza · Owner</div>
+      </div>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-brand-text" data-theme-toggle>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <a href="dashboard.html" class="font-medium hover:underline" style="color: var(--mc-text-3);">Studio Renza</a>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Sites</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          Export CSV
+        </button>
+        <button class="mc-btn mc-btn-sm mc-btn-primary" data-modal-open="newSiteModal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          New site
+        </button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1440px]">
+      <div class="mb-7 flex items-end justify-between">
+        <div>
+          <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Workspace · Sites</div>
+          <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Sites <span class="text-base font-medium font-mono ml-2" style="color: var(--mc-text-3);">— 12</span></h1>
+          <p class="mt-1 text-sm" style="color: var(--mc-text-2);">Every site under Studio Renza. Click any row to open it in the builder.</p>
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="mc-card p-3 flex items-center gap-2.5 mb-4">
+        <div class="relative flex-1 max-w-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--mc-text-3);"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input class="mc-input pl-9 pr-12" placeholder="Search by name, domain, owner…"/>
+          <span class="mc-kbd absolute right-3 top-1/2 -translate-y-1/2">⌘K</span>
+        </div>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+          Template: All
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <span class="w-1.5 h-1.5 rounded-full" style="background: var(--mc-success);"></span>
+          Status: All
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          Plan: All
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="flex-1"></div>
+        <div class="flex rounded-lg overflow-hidden" style="border:1px solid var(--mc-border);">
+          <button class="px-3 h-8 text-xs font-semibold" style="background: var(--mc-text); color: var(--mc-surface);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>
+          </button>
+          <button class="px-3 h-8 text-xs font-semibold" style="color: var(--mc-text-2);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="mc-card overflow-hidden">
+        <table class="mc-table">
+          <thead>
+            <tr>
+              <th class="w-10"><input type="checkbox" class="rounded" style="accent-color: var(--mc-brand);"/></th>
+              <th>Site</th>
+              <th>Domain</th>
+              <th>Template</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th class="num">Pages</th>
+              <th class="num">Views · 30d</th>
+              <th>Owner</th>
+              <th>Last edit</th>
+              <th class="text-right" style="text-align:right; padding-right: 18px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sites-tbody"></tbody>
+        </table>
+        <div class="flex items-center gap-3 px-5 py-3 text-xs border-t" style="border-color: var(--mc-border); background: var(--mc-surface-2); color: var(--mc-text-3);">
+          <span>Rows per page</span>
+          <select class="px-2 py-1 rounded-md border bg-transparent text-xs" style="border-color: var(--mc-border-2);"><option>10</option><option selected>12</option><option>25</option></select>
+          <span class="ml-2">1–12 of 12</span>
+          <div class="ml-auto flex gap-1">
+            <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-secondary" disabled style="opacity:0.5;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button class="mc-btn mc-btn-sm" style="background: var(--mc-text); color: var(--mc-surface); height:28px; padding:0 10px; font-size: 12px;">1</button>
+            <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-secondary" disabled style="opacity:0.5;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- NEW SITE MODAL -->
+<div class="mc-modal-backdrop" id="newSiteModal" style="display:none;">
+  <div class="mc-modal" style="max-width: 720px;">
+    <div class="mc-modal-head">
+      <div>
+        <div class="font-display font-bold text-lg">Create a new site</div>
+        <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Step 1 of 2 · pick a template &amp; name it.</div>
+      </div>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" data-modal-close>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="mc-modal-body">
+      <div class="grid grid-cols-2 gap-4 mb-5">
+        <div>
+          <label class="mc-label">Site name</label>
+          <input class="mc-input" placeholder="Studio Renza Showcase" value="Citrus & Co."/>
+        </div>
+        <div>
+          <label class="mc-label">Subdomain</label>
+          <div class="flex gap-2">
+            <input class="mc-input flex-1" placeholder="renza-showcase" value="drinkcitrus"/>
+            <div class="flex items-center px-3 rounded-lg text-sm font-mono whitespace-nowrap" style="border:1px solid var(--mc-border-2); background: var(--mc-surface-2); color: var(--mc-text-3);">.mangocms.io</div>
+          </div>
+          <div class="mt-1.5 flex items-center gap-1 text-[11px]" style="color: var(--mc-success);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            drinkcitrus.mangocms.io is available
+          </div>
+        </div>
+      </div>
+
+      <label class="mc-label">Template</label>
+      <div class="grid grid-cols-4 gap-2.5">
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: linear-gradient(135deg, oklch(0.97 0.025 60), oklch(0.94 0.05 65));"></div>
+          <div class="font-semibold text-xs">MangoBook</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">Publishing</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: linear-gradient(135deg, oklch(0.93 0.008 220), oklch(0.85 0.015 220));"></div>
+          <div class="font-semibold text-xs">Atelier</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">Portfolio</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer" style="border: 2px solid var(--mc-brand);">
+          <div class="aspect-[16/10] rounded-md mb-2 relative" style="background: linear-gradient(135deg, oklch(0.92 0.04 85), oklch(0.95 0.03 60));">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="absolute top-1.5 right-1.5 p-0.5 rounded-full" style="background: var(--mc-brand); color: #fff;"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="font-semibold text-xs">Citrus</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">D2C · shop</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: oklch(0.148 0.004 229);"></div>
+          <div class="font-semibold text-xs">Northbrand</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">SaaS</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: linear-gradient(135deg, oklch(0.95 0.03 150), oklch(0.92 0.06 150));"></div>
+          <div class="font-semibold text-xs">Lemon Press</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">Magazine</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: linear-gradient(135deg, oklch(0.95 0.04 350), oklch(0.90 0.06 350));"></div>
+          <div class="font-semibold text-xs">Sundial</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">Hospitality</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2" style="background: linear-gradient(135deg, oklch(0.95 0.03 230), oklch(0.92 0.05 230));"></div>
+          <div class="font-semibold text-xs">Orbit</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">Docs · KB</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[16/10] rounded-md mb-2 flex items-center justify-center" style="background: var(--mc-surface-2); border:1px dashed var(--mc-border-2);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><path d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <div class="font-semibold text-xs">Start from blank</div>
+          <div class="text-[10px]" style="color: var(--mc-text-3);">No template</div>
+        </label>
+      </div>
+    </div>
+    <div class="mc-modal-foot">
+      <button class="mc-btn mc-btn-sm mc-btn-ghost" data-modal-close>Cancel</button>
+      <button class="mc-btn mc-btn-sm mc-btn-secondary">Back</button>
+      <button class="mc-btn mc-btn-sm mc-btn-primary">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="mc-modal-backdrop" id="deleteModal" style="display:none;">
+  <div class="mc-modal" style="max-width: 480px;">
+    <div class="mc-modal-head">
+      <div>
+        <div class="font-display font-bold text-lg">Delete this site?</div>
+        <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">This action cannot be undone.</div>
+      </div>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" data-modal-close>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="mc-modal-body">
+      <div class="flex gap-3.5">
+        <div class="w-11 h-11 rounded-full grid place-items-center flex-shrink-0" style="background: color-mix(in oklch, var(--mc-error) 12%, transparent); color: var(--mc-error);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">
+          You're about to permanently remove <b style="color: var(--mc-text);">old.northbrand.co</b>. All 16 pages, the linked custom domain, 5 GB of assets, and the audit log will be deleted.
+        </p>
+      </div>
+      <div class="mt-4 p-3.5 rounded-lg text-xs" style="background: color-mix(in oklch, var(--mc-error) 6%, transparent);">
+        <div>Type the site name <code class="font-mono font-bold px-1.5 py-0.5 rounded" style="background: var(--mc-surface); border: 1px solid color-mix(in oklch, var(--mc-error) 25%, transparent);">old.northbrand.co</code> to confirm:</div>
+        <input class="mc-input mt-2 font-mono text-xs" placeholder="Site name"/>
+      </div>
+    </div>
+    <div class="mc-modal-foot">
+      <button class="mc-btn mc-btn-sm mc-btn-ghost" data-modal-close>Cancel</button>
+      <button class="mc-btn mc-btn-sm mc-btn-danger" disabled style="opacity:0.7;">Delete site</button>
+    </div>
+  </div>
+</div>
+
+<script src="mangocms-shell.js"></script>
+<script>
+  // Render table rows
+  const sites = [
+    { name:'MangoBook',     domain:'mangobook.com',          dot:'oklch(0.55 0.17 50)',  dotBg:'linear-gradient(160deg, oklch(0.55 0.17 50), oklch(0.38 0.10 50))', tpl:'Publishing',  plan:'Studio',  status:'live',  pages:12, views:'412,801', owner:'EM', last:'2 h ago' },
+    { name:'Atelier Vasa',  domain:'ateliervasa.eu',         dot:'oklch(0.58 0.16 230)', dotBg:'linear-gradient(160deg, oklch(0.58 0.16 230), oklch(0.40 0.12 230))', tpl:'Studio',     plan:'Studio',  status:'build', pages:7,  views:'28,194',  owner:'SA', last:'22 min ago' },
+    { name:'Lemon Press',   domain:'lemon.press',            dot:'oklch(0.48 0.14 150)', dotBg:'linear-gradient(160deg, oklch(0.48 0.14 150), oklch(0.32 0.10 150))', tpl:'Magazine',  plan:'Studio',  status:'live',  pages:28, views:'182,447', owner:'DM', last:'yesterday' },
+    { name:'Northbrand',    domain:'northbrand.co',          dot:'oklch(0.30 0.011 217)',dotBg:'oklch(0.148 0.004 229)',                                              tpl:'SaaS',      plan:'Free',    status:'live',  pages:16, views:'96,234',  owner:'YK', last:'2 d ago' },
+    { name:'Citrus & Co.',  domain:'drinkcitrus.shop',       dot:'oklch(0.65 0.17 30)',  dotBg:'linear-gradient(160deg, oklch(0.65 0.17 30), oklch(0.48 0.13 30))',   tpl:'D2C · shop',plan:'Studio',  status:'build', pages:4,  views:'—',        owner:'HN', last:'3 d ago' },
+    { name:'Hollander & Sons', domain:'hollander.de',        dot:'oklch(0.74 0.14 290)', dotBg:'linear-gradient(160deg, oklch(0.42 0.14 290), oklch(0.28 0.10 290))', tpl:'Studio',    plan:'Studio',  status:'live',  pages:9,  views:'24,109',  owner:'IB', last:'4 d ago' },
+    { name:'Marchetti',     domain:'marchetti.work',         dot:'oklch(0.74 0.16 60)',  dotBg:'linear-gradient(160deg, oklch(0.55 0.17 50), oklch(0.38 0.10 50))',   tpl:'Portfolio', plan:'Free',    status:'live',  pages:6,  views:'12,402',  owner:'EM', last:'5 d ago' },
+    { name:'Park Studio',   domain:'park.studio',            dot:'oklch(0.55 0.17 350)', dotBg:'linear-gradient(160deg, oklch(0.55 0.17 350), oklch(0.38 0.12 350))', tpl:'Portfolio', plan:'Studio',  status:'live',  pages:10, views:'31,008',  owner:'MP', last:'1 wk ago' },
+    { name:'old.northbrand', domain:'old.northbrand.co',     dot:'oklch(0.45 0.017 213)',dotBg:'oklch(0.27 0.011 217)',                                              tpl:'SaaS',      plan:'Free',    status:'archived', pages:4, views:'—',     owner:'YK', last:'2 wk ago' },
+    { name:'Sundial Café',  domain:'sundialcafe.fr',         dot:'oklch(0.55 0.17 350)', dotBg:'linear-gradient(160deg, oklch(0.55 0.17 350), oklch(0.38 0.12 350))', tpl:'Hospitality',plan:'Studio',status:'live',  pages:8,  views:'9,402',   owner:'CR', last:'2 wk ago' },
+    { name:'Renza · Docs',  domain:'docs.renza.studio',      dot:'oklch(0.58 0.16 230)', dotBg:'linear-gradient(160deg, oklch(0.58 0.16 230), oklch(0.40 0.12 230))', tpl:'Docs · KB',  plan:'Studio',  status:'live',  pages:34, views:'14,201',  owner:'HN', last:'3 wk ago' },
+    { name:'renza.studio',  domain:'renza.studio',           dot:'oklch(0.66 0.17 55)',  dotBg:'linear-gradient(160deg, oklch(0.74 0.16 60), oklch(0.58 0.17 50))',   tpl:'Studio',     plan:'Studio',  status:'live',  pages:5,  views:'72,201',  owner:'HN', last:'1 mo ago' },
+  ];
+  const statusBadge = s => ({
+    live:  '<span class="mc-status mc-status-live">Live</span>',
+    build: '<span class="mc-status mc-status-build">Building</span>',
+    archived: '<span class="mc-status">Archived</span>',
+  })[s];
+  const ownerAvatar = (init) => {
+    const hueMap = { EM: 60, SA: 230, DM: 150, YK: 290, HN: 30, IB: 290, MP: 350, CR: 350 };
+    const h = hueMap[init] || 60;
+    return `<div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full grid place-items-center text-white text-[10px] font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 ${h}), oklch(0.50 0.14 ${h}));">${init}</div></div>`;
+  };
+  document.getElementById('sites-tbody').innerHTML = sites.map(s => `
+    <tr>
+      <td><input type="checkbox" class="rounded" style="accent-color: var(--mc-brand);"/></td>
+      <td>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-md flex-shrink-0 relative" style="background: ${s.dotBg};">
+            ${s.dotBg.includes('gradient(160') ? '<div class="absolute left-1 top-0 bottom-0 w-[3px]" style="background: rgb(0 0 0 / 0.18);"></div>' : ''}
+          </div>
+          <div class="font-semibold">${s.name}</div>
+        </div>
+      </td>
+      <td class="font-mono text-xs" style="color: var(--mc-text-2);">${s.domain}</td>
+      <td><span class="mc-badge mc-badge-neutral">${s.tpl}</span></td>
+      <td><span class="mc-badge ${s.plan==='Studio'?'mc-badge-brand':'mc-badge-neutral'}">${s.plan}</span></td>
+      <td>${statusBadge(s.status)}</td>
+      <td class="num">${s.pages}</td>
+      <td class="num">${s.views}</td>
+      <td>${ownerAvatar(s.owner)}</td>
+      <td class="text-xs" style="color: var(--mc-text-2);">${s.last}</td>
+      <td style="text-align:right;">
+        <div class="inline-flex gap-0.5">
+          <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" title="Open builder">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          </a>
+          <a href="https://${s.domain}" class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" title="Open site">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+          </a>
+          <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" title="Delete" data-modal-open="deleteModal" style="color: var(--mc-text-3);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Rebind modal triggers added by JS
+  document.querySelectorAll('[data-modal-open]').forEach(b => {
+    if (b.dataset._bound) return; b.dataset._bound = '1';
+    b.addEventListener('click', () => {
+      const m = document.getElementById(b.getAttribute('data-modal-open'));
+      if (m) m.style.display = 'grid';
+    });
+  });
+</script>
+</body>
+</html>

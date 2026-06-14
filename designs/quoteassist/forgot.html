@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Reset your password</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  body.cauth { display:grid; place-items:center; min-height:100vh; padding:48px 24px; position:relative; overflow:hidden; }
+  body.cauth::before { content:''; position:absolute; left:-10%; top:-15%; width:55%; height:55%; background:radial-gradient(ellipse, color-mix(in oklch, var(--mc-grad-1) 22%, transparent), transparent 60%); filter:blur(70px); pointer-events:none; }
+  .cauth-card { width:100%; max-width:440px; position:relative; z-index:1; }
+</style>
+</head>
+<body class="font-sans cauth" data-screen-label="Forgot password">
+
+<a href="index.html" class="absolute top-6 left-6 flex items-center gap-2.5 z-10" style="text-decoration:none; color:inherit;">
+  <span class="mc-logo" style="width:28px; height:28px; font-size:12px;">QA</span>
+  <span class="font-display font-bold">QuoteAssist</span>
+</a>
+<button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost absolute top-6 right-6 z-10" data-theme-toggle aria-label="Toggle theme">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<div class="cauth-card">
+  <!-- STATE 1: request -->
+  <div id="requestState" class="mc-card p-8">
+    <div class="w-12 h-12 rounded-2xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h1 class="font-display font-bold text-2xl tracking-[-0.02em]">Forgot your password?</h1>
+    <p class="mt-2 text-sm" style="color: var(--mc-text-2);">Enter the email on your account and we'll send a link to reset it.</p>
+    <form class="mt-6 space-y-4" onsubmit="document.getElementById('requestState').style.display='none';document.getElementById('sentState').style.display='block';return false;">
+      <div>
+        <label class="mc-label">Work email</label>
+        <input class="mc-input mc-input-lg" type="email" placeholder="rana@skylinetravel.com" required/>
+      </div>
+      <button class="mc-btn mc-btn-lg mc-btn-primary w-full" type="submit">Send reset link</button>
+    </form>
+    <a href="login.html" class="flex items-center justify-center gap-2 mt-6 text-sm font-semibold" style="color: var(--mc-text-2);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to sign in
+    </a>
+  </div>
+
+  <!-- STATE 2: sent -->
+  <div id="sentState" class="mc-card p-8 text-center" style="display:none;">
+    <div class="w-12 h-12 rounded-2xl grid place-items-center mb-5 mx-auto" style="background: color-mix(in oklch, var(--mc-success) 14%, transparent); color: var(--mc-success);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6 12 13 2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+    </div>
+    <h1 class="font-display font-bold text-2xl tracking-[-0.02em]">Check your inbox</h1>
+    <p class="mt-2 text-sm mx-auto" style="color: var(--mc-text-2); max-width: 320px;">If an account exists for that email, a reset link is on its way. The link expires in 30 minutes.</p>
+    <a href="reset.html" class="mc-btn mc-btn-lg mc-btn-primary w-full mt-6">Open reset link (demo)</a>
+    <div class="mt-4 text-xs" style="color: var(--mc-text-3);">Didn't get it? <a href="#" onclick="document.getElementById('sentState').style.display='none';document.getElementById('requestState').style.display='block';return false;" class="font-semibold" style="color: var(--mc-brand);">Try another email</a></div>
+  </div>
+</div>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

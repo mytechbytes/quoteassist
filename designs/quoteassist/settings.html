@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  .sw { width:40px; height:23px; border-radius:99px; background:var(--mc-border-2); position:relative; cursor:pointer; transition:background .18s; flex-shrink:0; border:0; }
+  .sw::after { content:''; position:absolute; top:2px; left:2px; width:19px; height:19px; border-radius:99px; background:#fff; transition:left .18s; box-shadow:0 1px 2px rgb(0 0 0 / .2); }
+  .sw.on { background:var(--mc-brand); }
+  .sw.on::after { left:19px; }
+  .settings-grid { display:grid; grid-template-columns:200px 1fr; gap:32px; align-items:start; }
+  @media (max-width:900px){ .settings-grid{grid-template-columns:1fr;} .settings-nav{display:none;} }
+  .settings-nav { position:sticky; top:88px; }
+  .settings-nav a { display:block; padding:7px 12px; border-radius:8px; font:500 13px/1.3 'Inter',sans-serif; color:var(--mc-text-2); text-decoration:none; }
+  .settings-nav a:hover { background:var(--mc-surface-2); color:var(--mc-text); }
+  /* appearance controls */
+  .ap-swatches { display:flex; gap:10px; }
+  .ap-sw { width:42px; height:42px; border-radius:11px; border:2px solid transparent; box-shadow:inset 0 0 0 1px rgb(0 0 0 / 0.08); cursor:pointer; padding:0; transition:transform .12s; position:relative; }
+  .ap-sw:hover { transform:translateY(-1px); }
+  .ap-sw.on { border-color:var(--mc-text); }
+  .ap-sw.on::after { content:''; position:absolute; inset:0; display:grid; place-items:center; }
+  .ap-seg { display:inline-flex; gap:4px; background:var(--mc-surface-2); border:1px solid var(--mc-border); border-radius:10px; padding:3px; }
+  .ap-seg button { min-width:78px; height:32px; padding:0 14px; border:0; border-radius:7px; background:transparent; color:var(--mc-text-2); font:600 13px/1 'Inter',sans-serif; cursor:pointer; transition:all .12s; }
+  .ap-seg button:hover { color:var(--mc-text); }
+  .ap-seg button.on { background:var(--mc-surface); color:var(--mc-text); box-shadow:0 1px 2px rgb(0 0 0 / 0.08); }
+  .ap-row { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:14px 0; }
+  .ap-row + .ap-row { border-top:1px solid var(--mc-border); }
+  .ap-row .ap-meta { font-size:13px; }
+  .ap-row .ap-meta .ap-sub { color:var(--mc-text-3); font-size:12px; margin-top:2px; }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Settings">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-active="settings"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Workspace</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Settings</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-primary" onclick="qaSaved()">Save changes</button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1080px]">
+      <div class="mb-7">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Workspace</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Settings</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">Configure how Skyline Travel prices, sources and drafts its quotations.</p>
+      </div>
+
+      <div class="settings-grid">
+        <nav class="settings-nav">
+          <a href="#appearance">Appearance</a>
+          <a href="#general">General</a>
+          <a href="#policy">Fare policy</a>
+          <a href="#sources">Pricing sources</a>
+          <a href="#input">Email input</a>
+          <a href="#branding">Draft &amp; branding</a>
+        </nav>
+
+        <div class="space-y-5">
+          <!-- APPEARANCE -->
+          <section id="appearance" class="mc-card p-6">
+            <div class="font-display font-bold text-base mb-1">Appearance</div>
+            <p class="text-xs mb-2" style="color: var(--mc-text-3);">Personalise how QuoteAssist looks for you. Saved to this browser and applied across every page.</p>
+            <div class="ap-row">
+              <div class="ap-meta"><div class="font-medium" style="color:var(--mc-text);">Accent colour</div><div class="ap-sub">Drives buttons, links and the brand gradient.</div></div>
+              <div class="ap-swatches" id="apAccent"></div>
+            </div>
+            <div class="ap-row">
+              <div class="ap-meta"><div class="font-medium" style="color:var(--mc-text);">Corner style</div><div class="ap-sub">Roundness of cards, inputs and buttons.</div></div>
+              <div class="ap-seg" id="apRadius">
+                <button type="button" data-val="sharp">Sharp</button>
+                <button type="button" data-val="rounded">Rounded</button>
+                <button type="button" data-val="soft">Soft</button>
+              </div>
+            </div>
+            <div class="ap-row">
+              <div class="ap-meta"><div class="font-medium" style="color:var(--mc-text);">Theme</div><div class="ap-sub">Light or dark interface.</div></div>
+              <div class="ap-seg" id="apTheme">
+                <button type="button" data-val="light">Light</button>
+                <button type="button" data-val="dark">Dark</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- GENERAL -->
+          <section id="general" class="mc-card p-6">
+            <div class="font-display font-bold text-base mb-4">General</div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="mc-label">Agency name</label><input class="mc-input" value="Skyline Travel"/></div>
+              <div><label class="mc-label">Support email</label><input class="mc-input" value="quotes@skylinetravel.com"/></div>
+              <div><label class="mc-label">Default currency</label><select class="mc-input mc-select"><option>GBP · £</option><option>EUR · €</option><option>USD · $</option></select></div>
+              <div><label class="mc-label">Timezone</label><select class="mc-input mc-select"><option>Europe/London (GMT)</option><option>Europe/Paris (CET)</option><option>Asia/Dubai (GST)</option></select></div>
+            </div>
+          </section>
+
+          <!-- POLICY -->
+          <section id="policy" class="mc-card p-6">
+            <div class="font-display font-bold text-base mb-1">Fare policy</div>
+            <p class="text-xs mb-4" style="color: var(--mc-text-3);">Applied automatically to every generated quote.</p>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="mc-label">Default markup</label>
+                <div class="relative"><input class="mc-input pr-8" value="8"/><span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm" style="color:var(--mc-text-3);">%</span></div>
+              </div>
+              <div><label class="mc-label">Fare hold window</label><select class="mc-input mc-select"><option>48 hours</option><option>24 hours</option><option>72 hours</option></select></div>
+              <div><label class="mc-label">Child fare</label><select class="mc-input mc-select"><option>75% of adult fare</option><option>50% of adult fare</option><option>Full adult fare</option></select></div>
+              <div><label class="mc-label">Rounding</label><select class="mc-input mc-select"><option>Nearest £5</option><option>Nearest £1</option><option>Nearest £10</option></select></div>
+            </div>
+            <label class="flex items-center justify-between mt-4 pt-4 border-t cursor-pointer" style="border-color:var(--mc-border);">
+              <span><span class="text-sm font-medium">Auto-fill missing details with safe defaults</span><span class="block text-xs" style="color:var(--mc-text-3);">When off, missing info is flagged instead of assumed.</span></span>
+              <button type="button" class="sw on" onclick="this.classList.toggle('on')"></button>
+            </label>
+          </section>
+
+          <!-- SOURCES -->
+          <section id="sources" class="mc-card p-6">
+            <div class="font-display font-bold text-base mb-1">Pricing sources</div>
+            <p class="text-xs mb-4" style="color: var(--mc-text-3);">Adapters supply live fares. The mock adapter returns realistic fixtures in development; connect real providers for production.</p>
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-3 p-3 rounded-xl" style="border:1px solid var(--mc-border);">
+                <div class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0" style="background:var(--mc-brand-soft); color:var(--mc-brand);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/></svg></div>
+                <div class="flex-1"><div class="text-sm font-semibold">Mock adapter <span class="mc-badge mc-badge-success" style="margin-left:4px;">Active</span></div><div class="text-xs" style="color:var(--mc-text-3);">Fixture data · development default</div></div>
+                <button type="button" class="sw on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-xl" style="border:1px solid var(--mc-border);">
+                <div class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0 font-display font-bold text-sm" style="background:var(--mc-surface-2); color:var(--mc-text-2);">A</div>
+                <div class="flex-1"><div class="text-sm font-semibold">Amadeus</div><div class="text-xs" style="color:var(--mc-text-3);">Flights · GDS fares</div></div>
+                <button class="mc-btn mc-btn-sm mc-btn-secondary">Connect</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-xl" style="border:1px solid var(--mc-border);">
+                <div class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0 font-display font-bold text-sm" style="background:var(--mc-surface-2); color:var(--mc-text-2);">H</div>
+                <div class="flex-1"><div class="text-sm font-semibold">Hotelbeds</div><div class="text-xs" style="color:var(--mc-text-3);">Hotels · 180k+ properties</div></div>
+                <button class="mc-btn mc-btn-sm mc-btn-secondary">Connect</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-xl" style="border:1px solid var(--mc-border);">
+                <div class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0 font-display font-bold text-sm" style="background:var(--mc-surface-2); color:var(--mc-text-2);">S</div>
+                <div class="flex-1"><div class="text-sm font-semibold">Sabre</div><div class="text-xs" style="color:var(--mc-text-3);">Flights · GDS fares</div></div>
+                <button class="mc-btn mc-btn-sm mc-btn-secondary">Connect</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- INPUT -->
+          <section id="input" class="mc-card p-6">
+            <div class="font-display font-bold text-base mb-1">Email input methods</div>
+            <p class="text-xs mb-4" style="color: var(--mc-text-3);">How customer emails reach the quoting engine. Rolls out in phases.</p>
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-3 p-3 rounded-xl" style="border:1px solid var(--mc-border);">
+                <div class="flex-1"><div class="text-sm font-semibold flex items-center gap-2">Web form <span class="mc-badge mc-badge-brand">Phase 2 · MVP</span></div><div class="text-xs" style="color:var(--mc-text-3);">Agent pastes the email into QuoteAssist.</div></div>
+                <button type="button" class="sw on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-xl" style="border:1px solid var(--mc-border);">
+                <div class="flex-1"><div class="text-sm font-semibold flex items-center gap-2">Outlook add-in <span class="mc-badge mc-badge-neutral">Phase 2b</span></div><div class="text-xs" style="color:var(--mc-text-3);">Office.js button inside Outlook. In design.</div></div>
+                <button type="button" class="sw" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-xl" style="border:1px solid var(--mc-border);">
+                <div class="flex-1"><div class="text-sm font-semibold flex items-center gap-2">Mailbox automation <span class="mc-badge mc-badge-neutral">Phase 11</span></div><div class="text-xs" style="color:var(--mc-text-3);">Microsoft Graph listener auto-drafts incoming enquiries.</div></div>
+                <button type="button" class="sw" onclick="this.classList.toggle('on')"></button>
+              </div>
+            </div>
+          </section>
+
+          <!-- BRANDING -->
+          <section id="branding" class="mc-card p-6">
+            <div class="font-display font-bold text-base mb-4">Draft &amp; branding</div>
+            <div class="space-y-4">
+              <div><label class="mc-label">Draft tone</label><select class="mc-input mc-select"><option>Professional &amp; warm</option><option>Concise &amp; formal</option><option>Friendly &amp; casual</option></select></div>
+              <div><label class="mc-label">Sign-off</label><textarea class="mc-input" rows="3">Kind regards,
+Skyline Travel · QuoteAssist</textarea></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="mc-card" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:80; padding:12px 18px; box-shadow: var(--mc-pop, 0 24px 60px -12px rgb(0 0 0 / 0.25)); align-items:center; gap:10px;"></div>
+<script>
+function qaSaved(){ var el=document.getElementById('toast'); el.style.display='flex'; el.innerHTML='<span style="color:var(--mc-success);">✓</span><span class="text-sm font-medium">Settings saved.</span>'; clearTimeout(el._t); el._t=setTimeout(function(){el.style.display='none';},2200); }
+</script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+<script>
+(function(){
+  if (!window.QA) return;
+  var ACCENT_SWATCH = {
+    teal:   'linear-gradient(135deg, oklch(72% 0.13 188), oklch(50% 0.105 192))',
+    ocean:  'linear-gradient(135deg, oklch(70% 0.15 245), oklch(50% 0.15 255))',
+    violet: 'linear-gradient(135deg, oklch(70% 0.16 295), oklch(50% 0.17 288))',
+    mango:  'linear-gradient(135deg, oklch(74% 0.16 60), oklch(58% 0.17 50))'
+  };
+  var check = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 1px 1px rgb(0 0 0/.35));"><polyline points="20 6 9 17 4 12"/></svg>';
+  var st = window.QA.getState();
+
+  // accent swatches
+  var acc = document.getElementById('apAccent');
+  acc.innerHTML = Object.keys(ACCENT_SWATCH).map(function(k){
+    return '<button type="button" class="ap-sw'+(k===st.accent?' on':'')+'" data-accent="'+k+'" title="'+k+'" style="background:'+ACCENT_SWATCH[k]+'">'+(k===st.accent?check:'')+'</button>';
+  }).join('');
+  acc.querySelectorAll('.ap-sw').forEach(function(b){
+    b.addEventListener('click', function(){
+      window.QA.setAccent(b.dataset.accent);
+      acc.querySelectorAll('.ap-sw').forEach(function(x){ x.classList.toggle('on', x===b); x.innerHTML = x===b?check:''; });
+    });
+  });
+
+  function wireSeg(id, val, apply){
+    var seg = document.getElementById(id);
+    seg.querySelectorAll('button').forEach(function(b){
+      b.classList.toggle('on', b.dataset.val===val);
+      b.addEventListener('click', function(){
+        seg.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x===b); });
+        apply(b.dataset.val);
+      });
+    });
+  }
+  wireSeg('apRadius', st.radius, function(v){ window.QA.setRadius(v); });
+  wireSeg('apTheme', st.theme, function(v){ window.QA.applyTheme(v); });
+})();
+</script>
+</body>
+</html>

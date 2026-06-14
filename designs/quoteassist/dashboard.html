@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+</head>
+<body class="font-sans" data-screen-label="Dashboard">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-active="overview"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Skyline Travel</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Overview</span>
+      </div>
+      <div class="flex-1 max-w-md ml-6">
+        <div class="relative">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--mc-text-3);"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input class="mc-input pl-9 pr-16" placeholder="Search quotes, customers, routes…"/>
+          <span class="mc-kbd absolute right-3 top-1/2 -translate-y-1/2">⌘K</span>
+        </div>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon relative" aria-label="Notifications">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full" style="background: var(--mc-brand);"></span>
+        </button>
+        <div class="w-px h-6 mx-1" style="background: var(--mc-border);"></div>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Last 30 days
+        </button>
+        <a href="get-quote.html" class="mc-btn mc-btn-sm mc-btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Get a quote
+        </a>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1440px]">
+      <div class="mb-7">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Workspace · Overview</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Good morning, Rana.</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">You've drafted 41 quotes this month and converted 23 of them. Three enquiries are waiting in the queue.</p>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>
+            <span class="uppercase tracking-widest">Quotes · 30d</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight font-mono">41</div>
+            <span class="mc-badge mc-badge-success mb-1 font-mono">▲ 12</span>
+          </div>
+        </div>
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+            <span class="uppercase tracking-widest">Conversion</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight font-mono">56%</div>
+            <span class="mc-badge mc-badge-success mb-1 font-mono">▲ 9%</span>
+          </div>
+        </div>
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span class="uppercase tracking-widest">Avg. draft time</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight font-mono">3.4s</div>
+            <span class="mc-badge mc-badge-success mb-1 font-mono">▼ 0.8s</span>
+          </div>
+        </div>
+        <div class="mc-card p-5">
+          <div class="flex items-center gap-2 text-xs font-semibold" style="color: var(--mc-text-3);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span class="uppercase tracking-widest">Quoted value</span>
+          </div>
+          <div class="flex items-end gap-2 mt-2">
+            <div class="font-display font-bold text-3xl tracking-tight font-mono">£284k</div>
+            <span class="mc-badge mc-badge-success mb-1 font-mono">▲ 18%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW: chart + queue -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 mb-6">
+        <div class="mc-card p-6">
+          <div class="flex items-start justify-between mb-4 gap-4">
+            <div class="min-w-0">
+              <div class="font-display font-bold text-lg whitespace-nowrap">Quotes drafted vs. sent</div>
+              <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Daily · last 30 days</div>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-semibold">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: var(--mc-brand);"></span>Drafted</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(74% 0.16 230);"></span>Sent</span>
+            </div>
+          </div>
+          <svg viewBox="0 0 800 220" preserveAspectRatio="none" class="w-full h-52">
+            <defs>
+              <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--mc-brand)" stop-opacity="0.20"/>
+                <stop offset="100%" stop-color="var(--mc-brand)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <g stroke="var(--mc-border)" stroke-width="1">
+              <line x1="40" y1="20" x2="800" y2="20"/><line x1="40" y1="65" x2="800" y2="65"/><line x1="40" y1="110" x2="800" y2="110"/><line x1="40" y1="155" x2="800" y2="155"/><line x1="40" y1="200" x2="800" y2="200"/>
+            </g>
+            <g font-family="JetBrains Mono" font-size="10" fill="var(--mc-text-3)">
+              <text x="34" y="24" text-anchor="end">8</text><text x="34" y="69" text-anchor="end">6</text><text x="34" y="114" text-anchor="end">4</text><text x="34" y="159" text-anchor="end">2</text><text x="34" y="204" text-anchor="end">0</text>
+            </g>
+            <path d="M40 150 L100 142 L160 158 L220 120 L280 138 L340 110 L400 122 L460 92 L520 106 L580 78 L640 88 L700 60 L760 72 L800 52 L800 200 L40 200 Z" fill="url(#grad1)"/>
+            <polyline fill="none" stroke="var(--mc-brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="40,150 100,142 160,158 220,120 280,138 340,110 400,122 460,92 520,106 580,78 640,88 700,60 760,72 800,52"/>
+            <polyline fill="none" stroke="oklch(74% 0.16 230)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="40,176 100,170 160,178 220,158 280,166 340,150 400,156 460,140 520,148 580,128 640,134 700,116 760,122 800,108"/>
+            <circle cx="700" cy="60" r="5" fill="var(--mc-brand)" stroke="var(--mc-surface)" stroke-width="3"/>
+          </svg>
+        </div>
+
+        <!-- QUEUE -->
+        <div class="mc-card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="font-display font-bold text-lg">Enquiry queue</div>
+            <span class="mc-badge mc-badge-brand font-mono">3 waiting</span>
+          </div>
+          <div class="space-y-3">
+            <a href="get-quote.html" class="flex gap-3 items-start group" style="text-decoration:none;color:inherit;">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 60), oklch(0.58 0.17 50));">JB</div>
+              <div class="text-sm leading-snug flex-1">
+                <b>The Bennetts</b> · LHR → HND family trip
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">4 min ago · via web form</div>
+              </div>
+              <span class="mc-status mc-status-build text-[10px] mt-1">New</span>
+            </a>
+            <a href="get-quote.html" class="flex gap-3 items-start group" style="text-decoration:none;color:inherit;">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 230), oklch(0.50 0.14 230));">CL</div>
+              <div class="text-sm leading-snug flex-1">
+                <b>Claire L.</b> · CDG → FCO, couple
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">26 min ago · via web form</div>
+              </div>
+              <span class="mc-status mc-status-build text-[10px] mt-1">New</span>
+            </a>
+            <a href="get-quote.html" class="flex gap-3 items-start group" style="text-decoration:none;color:inherit;">
+              <div class="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 150), oklch(0.50 0.13 150));">MW</div>
+              <div class="text-sm leading-snug flex-1">
+                <b>Marcus Webb</b> · LHR → JFK, business
+                <div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">1 h ago · via web form</div>
+              </div>
+              <span class="mc-status mc-status-build text-[10px] mt-1">New</span>
+            </a>
+          </div>
+          <a href="get-quote.html" class="mc-btn mc-btn-sm mc-btn-secondary w-full mt-4">Process next enquiry →</a>
+        </div>
+      </div>
+
+      <!-- RECENT QUOTES -->
+      <div class="mc-card overflow-hidden">
+        <div class="p-6 flex items-end justify-between border-b" style="border-color: var(--mc-border);">
+          <div>
+            <div class="font-display font-bold text-lg">Recent quotes</div>
+            <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Your latest drafts and sent quotations.</div>
+          </div>
+          <a href="quotes.html" class="mc-btn mc-btn-sm mc-btn-ghost">View all quotes
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <table class="mc-table">
+          <thead>
+            <tr><th>Reference</th><th>Customer</th><th>Route</th><th>Travel dates</th><th>Pax</th><th class="num">Total</th><th>Status</th><th>Updated</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="font-mono text-xs" style="color: var(--mc-brand);">QA-1479</td><td>The Bennetts</td><td class="font-mono text-xs">LHR–HND</td><td class="text-xs" style="color:var(--mc-text-2);">14–28 Aug</td><td class="font-mono text-xs">2A·2C</td><td class="num">£6,150</td><td><span class="mc-status mc-status-draft">Draft</span></td><td class="text-xs" style="color:var(--mc-text-2);">2 min ago</td></tr>
+            <tr><td class="font-mono text-xs" style="color: var(--mc-brand);">QA-1478</td><td>Diaz Family</td><td class="font-mono text-xs">MAD–CUN</td><td class="text-xs" style="color:var(--mc-text-2);">02–16 Jul</td><td class="font-mono text-xs">2A·1C</td><td class="num">£4,820</td><td><span class="mc-status mc-status-live">Sent</span></td><td class="text-xs" style="color:var(--mc-text-2);">1 h ago</td></tr>
+            <tr><td class="font-mono text-xs" style="color: var(--mc-brand);">QA-1477</td><td>Marcus Webb</td><td class="font-mono text-xs">LHR–JFK</td><td class="text-xs" style="color:var(--mc-text-2);">03–07 Oct</td><td class="font-mono text-xs">1A</td><td class="num">£3,290</td><td><span class="mc-status mc-status-live">Sent</span></td><td class="text-xs" style="color:var(--mc-text-2);">3 h ago</td></tr>
+            <tr><td class="font-mono text-xs" style="color: var(--mc-brand);">QA-1476</td><td>Okonkwo &amp; Co.</td><td class="font-mono text-xs">LOS–DXB</td><td class="text-xs" style="color:var(--mc-text-2);">19–24 Sep</td><td class="font-mono text-xs">3A</td><td class="num">£7,410</td><td><span class="mc-status" style="color:var(--mc-success);">Accepted</span></td><td class="text-xs" style="color:var(--mc-text-2);">yesterday</td></tr>
+            <tr><td class="font-mono text-xs" style="color: var(--mc-brand);">QA-1475</td><td>Claire Laurent</td><td class="font-mono text-xs">CDG–FCO</td><td class="text-xs" style="color:var(--mc-text-2);">12–19 Sep</td><td class="font-mono text-xs">2A</td><td class="num">£2,140</td><td><span class="mc-status mc-status-error">Expired</span></td><td class="text-xs" style="color:var(--mc-text-2);">2 d ago</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

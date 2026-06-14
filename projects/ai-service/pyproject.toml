@@ -1,0 +1,25 @@
+[project]
+name = "quote-assist-ai"
+version = "0.1.0"
+description = "QuoteAssist AI / extraction service — extract, classify, embed."
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "httpx>=0.28",
+  "anthropic>=0.40",
+  "openai>=1.57",
+  "jsonschema>=4.23",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "ruff>=0.8", "mypy>=1.13"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+strict = true

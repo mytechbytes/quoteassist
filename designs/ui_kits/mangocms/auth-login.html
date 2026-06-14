@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>MangoCMS — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="mangocms-config.js"></script>
+<link rel="stylesheet" href="mangocms.css"/>
+<style>
+  .auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+  @media (max-width: 1024px) { .auth { grid-template-columns: 1fr; } .auth-aside { display: none; } }
+  .auth-aside { position: relative; overflow: hidden; background: linear-gradient(140deg, oklch(0.30 0.10 42) 0%, oklch(0.58 0.17 50) 60%, oklch(0.74 0.16 60) 100%); color: white; padding: 56px; display: flex; flex-direction: column; }
+  .auth-aside::before { content:''; position: absolute; inset:-20% -20% auto auto; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, oklch(0.82 0.12 60 / 0.4) 0%, transparent 60%); pointer-events: none; }
+  .auth-aside::after { content:''; position: absolute; inset: auto -10% -20% -20%; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, oklch(0.40 0.13 45 / 0.6) 0%, transparent 60%); pointer-events: none; }
+  .auth-form { display: flex; align-items: center; justify-content: center; padding: 56px; background: var(--mc-bg); position: relative; }
+  .auth-card { width: 100%; max-width: 420px; }
+</style>
+</head>
+<body class="font-sans">
+
+<div class="auth">
+  <!-- BRAND PANEL -->
+  <aside class="auth-aside">
+    <a href="index.html" class="flex items-center gap-2.5 relative" style="text-decoration:none; color:inherit;">
+      <span class="grid place-items-center rounded-xl font-display font-bold" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); font-size: 18px;">M</span>
+      <span class="font-display font-bold text-lg">MangoCMS</span>
+    </a>
+    <div class="flex-1 flex items-center relative">
+      <div>
+        <div class="text-sm font-semibold tracking-widest uppercase opacity-80 mb-5">One CMS · Every brand</div>
+        <h1 class="font-display font-bold tracking-[-0.025em]" style="font-size: 56px; line-height: 1.02;">
+          Welcome back.<br/>Your client's site<br/>is waiting.
+        </h1>
+        <p class="mt-6 text-lg opacity-85 max-w-md" style="line-height: 1.55;">
+          Twelve free templates, infinite tenant sites, and a builder your client can't break. Pick up where you left off.
+        </p>
+      </div>
+    </div>
+    <div class="relative">
+      <figure class="border-l-2 pl-5 max-w-md" style="border-color: rgba(255,255,255,0.4);">
+        <blockquote class="font-display text-xl leading-snug">"We moved 38 client sites onto MangoCMS in a quarter. The page builder is the first one I trust to give to a client."</blockquote>
+        <figcaption class="mt-4 text-sm flex items-center gap-3 opacity-90">
+          <span class="w-9 h-9 rounded-full grid place-items-center text-xs font-bold" style="background: rgba(255,255,255,0.2);">MR</span>
+          <span><b>Maya Rivera</b> · Founder, Renza Studio</span>
+        </figcaption>
+      </figure>
+    </div>
+  </aside>
+
+  <!-- FORM -->
+  <main class="auth-form">
+    <div class="absolute top-6 right-6 flex items-center gap-2 text-sm">
+      <span style="color: var(--mc-text-2);">New here?</span>
+      <a href="auth-register.html" class="font-semibold" style="color: var(--mc-brand);">Create account →</a>
+    </div>
+
+    <div class="auth-card">
+      <a href="index.html" class="flex items-center gap-2 mb-10 lg:hidden" style="text-decoration:none; color:inherit;">
+        <span class="mc-logo" style="width:28px; height:28px; font-size: 14px;">M</span>
+        <span class="font-display font-bold">MangoCMS</span>
+      </a>
+
+      <h1 class="font-display font-bold text-3xl tracking-[-0.02em]">Sign in to MangoCMS</h1>
+      <p class="mt-2 text-sm" style="color: var(--mc-text-2);">Use the account that owns your workspace — invited editors should use their invite link.</p>
+
+      <!-- SSO -->
+      <div class="grid grid-cols-2 gap-2 mt-7">
+        <button class="mc-btn mc-btn-secondary justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h5.9c-.3 1.4-1 2.6-2.2 3.4v2.8h3.6c2.1-1.9 3.2-4.7 3.2-8.4z"/><path fill="#34A853" d="M12 23c2.9 0 5.4-1 7.2-2.6l-3.6-2.8c-1 .7-2.3 1.1-3.6 1.1-2.8 0-5.2-1.9-6-4.4H2.3v2.8C4.1 20.7 7.8 23 12 23z"/><path fill="#FBBC04" d="M6 14.3c-.2-.7-.3-1.4-.3-2.3s.1-1.6.3-2.3V6.9H2.3C1.5 8.5 1 10.2 1 12s.5 3.5 1.3 5.1L6 14.3z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .5 4 1.6l3.1-3.1C17.5 2.3 14.9 1 12 1 7.8 1 4.1 3.3 2.3 6.9L6 9.7c.8-2.5 3.2-4.3 6-4.3z"/></svg>
+          Google
+        </button>
+        <button class="mc-btn mc-btn-secondary justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1.1 1.9 2.9 1.3 3.6 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.9 0-1.3.5-2.4 1.2-3.2-.2-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
+          GitHub
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3 my-6">
+        <div class="flex-1 mc-hairline"></div>
+        <span class="text-xs font-medium" style="color: var(--mc-text-3);">or with email</span>
+        <div class="flex-1 mc-hairline"></div>
+      </div>
+
+      <form class="space-y-4">
+        <div>
+          <label class="mc-label">Email</label>
+          <input class="mc-input mc-input-lg" type="email" placeholder="harper@renza.studio" autocomplete="email"/>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="mc-label" style="margin: 0;">Password</label>
+            <a href="auth-forgot.html" class="text-xs font-semibold" style="color: var(--mc-brand);">Forgot?</a>
+          </div>
+          <div class="relative">
+            <input class="mc-input mc-input-lg pr-11" type="password" placeholder="••••••••" value="••••••••••" autocomplete="current-password"/>
+            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" aria-label="Show password">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <label class="flex items-center gap-2 text-sm" style="color: var(--mc-text-2);">
+          <input type="checkbox" checked class="rounded" style="accent-color: var(--mc-brand);"/>
+          Keep me signed in for 30 days
+        </label>
+        <button class="mc-btn mc-btn-lg mc-btn-primary w-full">
+          Sign in
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </form>
+
+      <div class="mt-7 p-3 rounded-lg flex items-start gap-3 text-xs" style="background: var(--mc-surface-2); border: 1px solid var(--mc-border);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0" style="color: var(--mc-text-3);"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+        <div style="color: var(--mc-text-2); line-height: 1.5;">
+          Single sign-on with your workspace?
+          <a href="#" class="font-semibold" style="color: var(--mc-brand);">Use SSO →</a>
+        </div>
+      </div>
+
+      <div class="mt-10 text-center text-xs" style="color: var(--mc-text-3);">
+        By signing in you agree to our <a href="#" style="color: var(--mc-text-2); text-decoration: underline;">Terms</a> and <a href="#" style="color: var(--mc-text-2); text-decoration: underline;">Privacy Policy</a>.
+      </div>
+    </div>
+  </main>
+</div>
+<script src="mangocms-shell.js"></script>
+</body>
+</html>

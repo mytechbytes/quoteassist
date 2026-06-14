@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Set a new password</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  body.cauth { display:grid; place-items:center; min-height:100vh; padding:48px 24px; position:relative; overflow:hidden; }
+  body.cauth::before { content:''; position:absolute; right:-10%; top:-15%; width:55%; height:55%; background:radial-gradient(ellipse, color-mix(in oklch, var(--mc-grad-1) 22%, transparent), transparent 60%); filter:blur(70px); pointer-events:none; }
+  .cauth-card { width:100%; max-width:440px; position:relative; z-index:1; }
+</style>
+</head>
+<body class="font-sans cauth" data-screen-label="Reset password">
+
+<a href="index.html" class="absolute top-6 left-6 flex items-center gap-2.5 z-10" style="text-decoration:none; color:inherit;">
+  <span class="mc-logo" style="width:28px; height:28px; font-size:12px;">QA</span>
+  <span class="font-display font-bold">QuoteAssist</span>
+</a>
+<button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost absolute top-6 right-6 z-10" data-theme-toggle aria-label="Toggle theme">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<div class="cauth-card">
+  <div id="resetState" class="mc-card p-8">
+    <div class="w-12 h-12 rounded-2xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 7.5 8 9 4.6-1.5 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
+    </div>
+    <h1 class="font-display font-bold text-2xl tracking-[-0.02em]">Set a new password</h1>
+    <p class="mt-2 text-sm" style="color: var(--mc-text-2);">For <b style="color: var(--mc-text);">rana@skylinetravel.com</b>. Choose something you haven't used before.</p>
+    <form class="mt-6 space-y-4" onsubmit="document.getElementById('resetState').style.display='none';document.getElementById('doneState').style.display='block';return false;">
+      <div>
+        <label class="mc-label">New password</label>
+        <div class="relative">
+          <input id="pw" class="mc-input mc-input-lg pr-11" type="password" placeholder="At least 8 characters" oninput="qaStrength(this.value)" required/>
+          <button type="button" onclick="var p=document.getElementById('pw');p.type=p.type==='password'?'text':'password';" class="absolute right-2 top-1/2 -translate-y-1/2 mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" aria-label="Show password">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="flex gap-1.5 mt-2" id="strengthBars">
+          <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+          <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+          <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+          <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+        </div>
+      </div>
+      <div>
+        <label class="mc-label">Confirm password</label>
+        <input class="mc-input mc-input-lg" type="password" placeholder="Re-enter password" required/>
+      </div>
+      <button class="mc-btn mc-btn-lg mc-btn-primary w-full" type="submit">Update password</button>
+    </form>
+  </div>
+
+  <div id="doneState" class="mc-card p-8 text-center" style="display:none;">
+    <div class="w-12 h-12 rounded-2xl grid place-items-center mb-5 mx-auto" style="background: color-mix(in oklch, var(--mc-success) 14%, transparent); color: var(--mc-success);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h1 class="font-display font-bold text-2xl tracking-[-0.02em]">Password updated</h1>
+    <p class="mt-2 text-sm mx-auto" style="color: var(--mc-text-2); max-width: 320px;">You're all set. Sign in with your new password to get back to quoting.</p>
+    <a href="login.html" class="mc-btn mc-btn-lg mc-btn-primary w-full mt-6">Continue to sign in</a>
+  </div>
+</div>
+<script>
+function qaStrength(v){
+  var s=0; if(v.length>=8)s++; if(/[A-Z]/.test(v)&&/[a-z]/.test(v))s++; if(/\d/.test(v))s++; if(/[^A-Za-z0-9]/.test(v))s++;
+  var bars=document.querySelectorAll('#strengthBars div');
+  var colors=['','var(--mc-error)','var(--mc-warning)','var(--mc-warning)','var(--mc-success)'];
+  bars.forEach(function(b,i){ b.style.background = i<s ? colors[s] : 'var(--mc-border-2)'; });
+}
+</script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

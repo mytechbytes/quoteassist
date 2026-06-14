@@ -1,0 +1,33 @@
+# Elixir / platform
+platform/_build/
+platform/deps/
+platform/*.ez
+platform/priv/static/assets/
+platform/.elixir_ls/
+erl_crash.dump
+
+# Node / outlook-plugin
+node_modules/
+**/dist/
+**/dist-ssr/
+
+# Python / ai-service
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Secrets / local
+.env
+.env.*
+!.env.example
+.DS_Store

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+</head>
+<body class="font-sans" data-screen-label="Profile">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-active="profile"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Account</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Profile</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-ghost">Discard</button>
+        <button class="mc-btn mc-btn-sm mc-btn-primary" onclick="qaSaved()">Save changes</button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[840px]">
+      <div class="mb-7">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Account</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Your profile</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">Manage how you appear to teammates and how QuoteAssist signs your drafts.</p>
+      </div>
+
+      <!-- identity -->
+      <div class="mc-card p-6 mb-5">
+        <div class="flex items-center gap-5">
+          <div class="w-20 h-20 rounded-full grid place-items-center text-white text-2xl font-bold flex-shrink-0 font-display" style="background: linear-gradient(135deg, var(--mc-grad-1), var(--mc-grad-2));">RA</div>
+          <div>
+            <div class="font-display font-bold text-lg">Rana Aziz</div>
+            <div class="text-sm" style="color: var(--mc-text-3);">rana@skylinetravel.com · Agent</div>
+            <div class="flex gap-2 mt-3">
+              <button class="mc-btn mc-btn-sm mc-btn-secondary">Upload photo</button>
+              <button class="mc-btn mc-btn-sm mc-btn-ghost">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- details -->
+      <div class="mc-card p-6 mb-5">
+        <div class="font-display font-bold text-base mb-4">Personal details</div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="mc-label">First name</label><input class="mc-input" value="Rana"/></div>
+          <div><label class="mc-label">Last name</label><input class="mc-input" value="Aziz"/></div>
+          <div><label class="mc-label">Email</label><input class="mc-input" type="email" value="rana@skylinetravel.com"/></div>
+          <div><label class="mc-label">Phone</label><input class="mc-input" value="+44 7700 900421"/></div>
+          <div><label class="mc-label">Role</label>
+            <select class="mc-input mc-select"><option>Agent</option><option>Senior agent</option><option>Team lead</option></select>
+          </div>
+          <div><label class="mc-label">Signature name (on drafts)</label><input class="mc-input" value="Rana Aziz"/></div>
+        </div>
+      </div>
+
+      <!-- password -->
+      <div class="mc-card p-6 mb-5">
+        <div class="font-display font-bold text-base mb-4">Password</div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="mc-label">Current password</label><input class="mc-input" type="password" value="········"/></div>
+          <div></div>
+          <div><label class="mc-label">New password</label><input class="mc-input" type="password" placeholder="At least 8 characters"/></div>
+          <div><label class="mc-label">Confirm new password</label><input class="mc-input" type="password" placeholder="Re-enter password"/></div>
+        </div>
+      </div>
+
+      <!-- notifications -->
+      <div class="mc-card p-6 mb-5">
+        <div class="font-display font-bold text-base mb-4">Notifications</div>
+        <div class="space-y-1">
+          <label class="flex items-center justify-between py-2.5 border-b cursor-pointer" style="border-color: var(--mc-border);">
+            <span><span class="text-sm font-medium">New enquiry in queue</span><span class="block text-xs" style="color:var(--mc-text-3);">Ping me when a new customer email arrives.</span></span>
+            <input type="checkbox" checked class="rounded" style="accent-color: var(--mc-brand); width:18px; height:18px;"/>
+          </label>
+          <label class="flex items-center justify-between py-2.5 border-b cursor-pointer" style="border-color: var(--mc-border);">
+            <span><span class="text-sm font-medium">Quote accepted</span><span class="block text-xs" style="color:var(--mc-text-3);">When a customer confirms a quotation.</span></span>
+            <input type="checkbox" checked class="rounded" style="accent-color: var(--mc-brand); width:18px; height:18px;"/>
+          </label>
+          <label class="flex items-center justify-between py-2.5 cursor-pointer">
+            <span><span class="text-sm font-medium">Weekly summary</span><span class="block text-xs" style="color:var(--mc-text-3);">Monday digest of your quoting stats.</span></span>
+            <input type="checkbox" class="rounded" style="accent-color: var(--mc-brand); width:18px; height:18px;"/>
+          </label>
+        </div>
+      </div>
+
+      <!-- danger -->
+      <div class="mc-card p-6" style="border-color: color-mix(in oklch, var(--mc-error) 30%, var(--mc-border));">
+        <div class="font-display font-bold text-base mb-1" style="color: var(--mc-error);">Danger zone</div>
+        <div class="flex items-center justify-between gap-4">
+          <p class="text-sm" style="color: var(--mc-text-2);">Deleting your account removes your drafts and removes you from Skyline Travel. This action cannot be undone.</p>
+          <button class="mc-btn mc-btn-danger-outline mc-btn-sm flex-shrink-0">Delete account</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="mc-card" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:80; padding:12px 18px; box-shadow: var(--mc-pop, 0 24px 60px -12px rgb(0 0 0 / 0.25)); align-items:center; gap:10px;"></div>
+<script>
+function qaSaved(){ var el=document.getElementById('toast'); el.style.display='flex'; el.innerHTML='<span style="color:var(--mc-success);">✓</span><span class="text-sm font-medium">Profile saved.</span>'; clearTimeout(el._t); el._t=setTimeout(function(){el.style.display='none';},2200); }
+</script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

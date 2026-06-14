@@ -1,0 +1,53 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link rel="stylesheet" href="_card.css"/>
+<style>
+  body { padding: 0; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; }
+  .pane { padding: 22px 24px; min-height: 200px; position: relative; }
+  .pane.light { background: oklch(96.3% 0.002 197.1); color: oklch(21.8% 0.008 223.9); }
+  .pane.dark  { background: oklch(14.8% 0.004 228.8); color: oklch(96.3% 0.002 197.1); }
+  .lbl { font: 700 10.5px/1.2 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.55; }
+  .ttl { font: 700 22px/1.1 'Familjen Grotesk', sans-serif; letter-spacing: -0.025em; margin-top: 8px; }
+  .meta { font: 400 12px/1.4 'Inter', sans-serif; opacity: 0.7; margin-top: 4px; }
+  .card { margin-top: 14px; padding: 12px; border-radius: 12px; }
+  .pane.light .card { background: white; border: 1px solid oklch(92.5% 0.005 214.3); }
+  .pane.dark  .card { background: oklch(21.8% 0.008 223.9); border: 1px solid oklch(27.5% 0.011 216.9); }
+  .btn { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 8px; font: 600 12px/1 'Inter', sans-serif; }
+  .pane.light .btn { background: oklch(58% 0.17 50); color: white; }
+  .pane.dark  .btn { background: oklch(74% 0.16 60); color: oklch(18% 0.02 60); }
+  .pane.dark::before { content: 'DARK'; }
+  .pane.light::before { content: 'LIGHT'; }
+  .pane::before { position: absolute; top: 12px; right: 16px; font: 700 9px/1 'JetBrains Mono', monospace; letter-spacing: 0.2em; opacity: 0.4; }
+</style>
+</head>
+<body>
+  <div class="pair">
+    <div class="pane light">
+      <div class="lbl">Workspace</div>
+      <div class="ttl">Good morning, Harper.</div>
+      <div class="meta">Twelve sites under Studio Renza. Two building, ten live.</div>
+      <div class="card">
+        <div style="font-family:'Familjen Grotesk'; font-weight:700; font-size:13px;">Live sites · 10 / 12</div>
+        <div style="font-family:'JetBrains Mono'; font-size: 11px; color: oklch(56% 0.021 213.5); margin-top: 4px;">▲ 2 this month</div>
+      </div>
+      <div style="display:flex; gap: 6px; margin-top: 14px;">
+        <div class="btn">New site</div>
+        <div class="btn" style="background: transparent; border: 1px solid oklch(92.5% 0.005 214.3); color: oklch(21.8% 0.008 223.9);">Filter</div>
+      </div>
+    </div>
+    <div class="pane dark">
+      <div class="lbl">Workspace</div>
+      <div class="ttl">Good morning, Harper.</div>
+      <div class="meta">Twelve sites under Studio Renza. Two building, ten live.</div>
+      <div class="card">
+        <div style="font-family:'Familjen Grotesk'; font-weight:700; font-size:13px;">Live sites · 10 / 12</div>
+        <div style="font-family:'JetBrains Mono'; font-size: 11px; color: oklch(72.3% 0.014 214.4); margin-top: 4px;">▲ 2 this month</div>
+      </div>
+      <div style="display:flex; gap: 6px; margin-top: 14px;">
+        <div class="btn">New site</div>
+        <div class="btn" style="background: transparent; border: 1px solid oklch(37.8% 0.015 216); color: oklch(96.3% 0.002 197.1);">Filter</div>
+      </div>
+    </div>
+  </div>
+</body></html>

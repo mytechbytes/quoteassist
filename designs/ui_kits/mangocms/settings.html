@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>MangoCMS — Workspace settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="mangocms-config.js"></script>
+<link rel="stylesheet" href="mangocms.css"/>
+<style>
+  .toggle { position:relative; width: 36px; height: 20px; border-radius: 99px; background: var(--mc-border-2); transition: background 0.15s; flex-shrink: 0; cursor:pointer; }
+  .toggle::after { content:''; position:absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 99px; background: white; box-shadow: 0 1px 2px rgb(0 0 0 / 0.15); transition: transform 0.15s; }
+  .toggle.on { background: var(--mc-brand); }
+  .toggle.on::after { transform: translateX(16px); }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Settings">
+
+<div class="mc-shell">
+  <aside class="mc-side">
+    <div class="mc-side-header">
+      <a href="dashboard.html" class="flex items-center gap-2.5" style="text-decoration:none; color:inherit;">
+        <span class="mc-logo" style="width:30px; height:30px; font-size:15px;">M</span>
+        <span class="font-display font-bold text-base mc-side-brand-text">MangoCMS</span>
+      </a>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-brand-text" data-sidebar-toggle><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    </div>
+    <div class="mc-side-section">Workspace</div>
+    <a href="dashboard.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span class="mc-side-label">Overview</span></a>
+    <a href="tenants.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span class="mc-side-label">Sites</span><span class="mc-side-counter">12</span></a>
+    <a href="team.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.5 3-5 6-5s5.5 1.5 6 5"/><circle cx="17" cy="6" r="2"/><path d="M15 12c2.5 0 4 1 4.5 3"/></svg><span class="mc-side-label">Team</span></a>
+    <div class="mc-side-section">Account</div>
+    <a href="profile.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-7 8-7s7 2.5 8 7"/></svg><span class="mc-side-label">Profile</span></a>
+    <a href="settings.html" class="active"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg><span class="mc-side-label">Settings</span></a>
+    <div class="mc-side-footer">
+      <div class="w-9 h-9 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 60), oklch(0.58 0.17 50));">HN</div>
+      <div class="min-w-0 flex-1 mc-side-brand-text"><div class="text-sm font-semibold leading-tight truncate">Harper Nelson</div><div class="text-[11px] truncate" style="color: var(--mc-text-3);">Studio Renza · Owner</div></div>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-brand-text" data-theme-toggle><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <a href="dashboard.html" class="font-medium hover:underline" style="color: var(--mc-text-3);">Studio Renza</a>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Settings</span>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1200px]">
+      <div class="mb-7">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Workspace · Studio Renza</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Settings</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">Workspace-level configuration. Changes here affect every site &amp; every member of Studio Renza.</p>
+      </div>
+
+      <div class="grid grid-cols-[200px_1fr] gap-8">
+        <!-- Left rail (settings nav) -->
+        <aside>
+          <div class="space-y-0.5 text-sm">
+            <a href="#general" class="block px-3 py-2 rounded-md font-semibold" style="background: var(--mc-brand-soft); color: var(--mc-brand);">General</a>
+            <a href="#billing" class="block px-3 py-2 rounded-md" style="color: var(--mc-text-2);">Plan &amp; billing</a>
+            <a href="#domains" class="block px-3 py-2 rounded-md" style="color: var(--mc-text-2);">Domains</a>
+            <a href="#api" class="block px-3 py-2 rounded-md" style="color: var(--mc-text-2);">API &amp; webhooks</a>
+            <a href="#integrations" class="block px-3 py-2 rounded-md" style="color: var(--mc-text-2);">Integrations</a>
+            <a href="#security" class="block px-3 py-2 rounded-md" style="color: var(--mc-text-2);">Security &amp; SSO</a>
+            <a href="#audit" class="block px-3 py-2 rounded-md" style="color: var(--mc-text-2);">Audit log</a>
+            <a href="#advanced" class="block px-3 py-2 rounded-md" style="color: var(--mc-text-2);">Advanced</a>
+          </div>
+        </aside>
+
+        <!-- Cards stack -->
+        <div class="space-y-6">
+
+          <!-- GENERAL -->
+          <div class="mc-card p-6" id="general">
+            <div class="flex items-start justify-between mb-5">
+              <div>
+                <div class="font-display font-bold text-base">Workspace identity</div>
+                <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Shown across MangoCMS — on dashboards, exports, billing.</div>
+              </div>
+              <button class="mc-btn mc-btn-sm mc-btn-primary">Save</button>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="mc-label">Workspace name</label><input class="mc-input" value="Studio Renza"/></div>
+              <div>
+                <label class="mc-label">Workspace ID</label>
+                <div class="flex gap-2">
+                  <input class="mc-input flex-1 font-mono text-xs" value="ws_2pK4n_renza" readonly style="background: var(--mc-surface-2);"/>
+                  <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-secondary" title="Copy">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div><label class="mc-label">Default time zone</label><select class="mc-input mc-select"><option>Europe/Lisbon — UTC+00:00</option></select></div>
+              <div><label class="mc-label">Default locale</label><select class="mc-input mc-select"><option>English (US)</option><option>English (UK)</option><option>Português (PT)</option></select></div>
+              <div class="col-span-2">
+                <label class="mc-label">Workspace logo</label>
+                <div class="flex items-center gap-3">
+                  <div class="w-14 h-14 rounded-xl grid place-items-center text-white font-display font-bold text-2xl" style="background: linear-gradient(135deg, oklch(0.74 0.16 60), oklch(0.58 0.17 50));">SR</div>
+                  <button class="mc-btn mc-btn-sm mc-btn-secondary">Upload PNG/SVG</button>
+                  <button class="mc-btn mc-btn-sm mc-btn-ghost">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BILLING -->
+          <div class="mc-card p-6" id="billing">
+            <div class="font-display font-bold text-base mb-1">Plan &amp; billing</div>
+            <div class="text-xs mb-5" style="color: var(--mc-text-3);">You're on the <b style="color: var(--mc-brand);">Studio plan</b>. Next invoice: $49.00 on 12 Jun 2026.</div>
+            <div class="grid grid-cols-3 gap-3 mb-5">
+              <div class="rounded-xl p-4" style="border: 1px solid var(--mc-border);">
+                <div class="text-xs font-bold tracking-widest uppercase mb-1" style="color: var(--mc-text-3);">Sites</div>
+                <div class="font-display font-bold text-2xl"><span class="font-mono">12</span> <span class="text-base font-medium" style="color: var(--mc-text-3);">/ 30</span></div>
+                <div class="mt-2 h-1.5 rounded-full overflow-hidden" style="background: var(--mc-surface-2);"><div style="width: 40%; height: 100%; background: var(--mc-brand);"></div></div>
+              </div>
+              <div class="rounded-xl p-4" style="border: 1px solid var(--mc-border);">
+                <div class="text-xs font-bold tracking-widest uppercase mb-1" style="color: var(--mc-text-3);">Storage</div>
+                <div class="font-display font-bold text-2xl"><span class="font-mono">186</span> <span class="text-base font-medium" style="color: var(--mc-text-3);">GB / 1.5 TB</span></div>
+                <div class="mt-2 h-1.5 rounded-full overflow-hidden" style="background: var(--mc-surface-2);"><div style="width: 12%; height: 100%; background: var(--mc-brand);"></div></div>
+              </div>
+              <div class="rounded-xl p-4" style="border: 1px solid var(--mc-border);">
+                <div class="text-xs font-bold tracking-widest uppercase mb-1" style="color: var(--mc-text-3);">Editors</div>
+                <div class="font-display font-bold text-2xl"><span class="font-mono">34</span> <span class="text-base font-medium" style="color: var(--mc-text-3);">/ 50</span></div>
+                <div class="mt-2 h-1.5 rounded-full overflow-hidden" style="background: var(--mc-surface-2);"><div style="width: 68%; height: 100%; background: var(--mc-warning);"></div></div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 p-4 rounded-xl" style="background: var(--mc-surface-2); border: 1px solid var(--mc-border);">
+              <div class="w-10 h-7 rounded-md grid place-items-center text-[10px] font-bold text-white" style="background: linear-gradient(135deg, oklch(0.55 0.17 280), oklch(0.45 0.17 240));">VISA</div>
+              <div class="flex-1">
+                <div class="text-sm font-semibold">•••• •••• •••• 4242</div>
+                <div class="text-xs font-mono" style="color: var(--mc-text-3);">Expires 09 / 28 · billed to Studio Renza Lda</div>
+              </div>
+              <button class="mc-btn mc-btn-sm mc-btn-secondary">Update</button>
+              <button class="mc-btn mc-btn-sm mc-btn-primary">Upgrade to Scale</button>
+            </div>
+          </div>
+
+          <!-- DOMAINS -->
+          <div class="mc-card overflow-hidden" id="domains">
+            <div class="p-6 flex items-center justify-between border-b" style="border-color: var(--mc-border);">
+              <div>
+                <div class="font-display font-bold text-base">Custom domains</div>
+                <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">4 connected · DNS &amp; SSL managed automatically.</div>
+              </div>
+              <button class="mc-btn mc-btn-sm mc-btn-primary">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add domain
+              </button>
+            </div>
+            <table class="mc-table">
+              <thead><tr><th>Domain</th><th>Connected site</th><th>SSL</th><th>DNS</th><th class="num">Added</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="font-mono text-sm">mangobook.com</td><td>MangoBook</td><td><span class="mc-status mc-status-live">Active</span></td><td><span class="mc-badge mc-badge-success">Verified</span></td><td class="num">12 Mar 2024</td><td><button class="mc-btn mc-btn-sm mc-btn-ghost">⋯</button></td></tr>
+                <tr><td class="font-mono text-sm">lemon.press</td><td>Lemon Press</td><td><span class="mc-status mc-status-live">Active</span></td><td><span class="mc-badge mc-badge-success">Verified</span></td><td class="num">02 Sep 2024</td><td><button class="mc-btn mc-btn-sm mc-btn-ghost">⋯</button></td></tr>
+                <tr><td class="font-mono text-sm">drinkcitrus.shop</td><td>Citrus &amp; Co.</td><td><span class="mc-status mc-status-build">Pending</span></td><td><span class="mc-badge mc-badge-warning">DNS records needed</span></td><td class="num">24 May 2026</td><td><button class="mc-btn mc-btn-sm mc-btn-ghost">⋯</button></td></tr>
+                <tr><td class="font-mono text-sm">renza.studio</td><td>renza.studio</td><td><span class="mc-status mc-status-live">Active</span></td><td><span class="mc-badge mc-badge-success">Verified</span></td><td class="num">Today</td><td><button class="mc-btn mc-btn-sm mc-btn-ghost">⋯</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- API -->
+          <div class="mc-card p-6" id="api">
+            <div class="flex items-start justify-between mb-1">
+              <div>
+                <div class="font-display font-bold text-base">API keys</div>
+                <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Use these to pull content into mobile apps, signage, or other surfaces.</div>
+              </div>
+              <button class="mc-btn mc-btn-sm mc-btn-primary">Generate new key</button>
+            </div>
+            <div class="mt-4 space-y-2">
+              <div class="flex items-center gap-3 p-3 rounded-lg" style="background: var(--mc-surface-2); border: 1px solid var(--mc-border);">
+                <span class="mc-badge mc-badge-brand">Production</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-semibold">Default · all sites</div>
+                  <code class="text-xs font-mono" style="color: var(--mc-text-3);">mc_pk_live_•••••••••••••••••••••••••••3F2K</code>
+                </div>
+                <div class="text-xs font-mono" style="color: var(--mc-text-3);">used 2 h ago</div>
+                <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" style="color: var(--mc-error);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-lg" style="background: var(--mc-surface-2); border: 1px solid var(--mc-border);">
+                <span class="mc-badge mc-badge-neutral">Read-only</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-semibold">MangoBook · mobile app</div>
+                  <code class="text-xs font-mono" style="color: var(--mc-text-3);">mc_pk_ro_•••••••••••••••••••••••••0xQ1</code>
+                </div>
+                <div class="text-xs font-mono" style="color: var(--mc-text-3);">used yesterday</div>
+                <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" style="color: var(--mc-error);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECURITY -->
+          <div class="mc-card p-6" id="security">
+            <div class="font-display font-bold text-base mb-1">Security &amp; SSO</div>
+            <div class="text-xs mb-5" style="color: var(--mc-text-3);">Affects every member of Studio Renza.</div>
+            <div class="space-y-4">
+              <div class="flex items-center gap-4 py-3" style="border-top: 1px solid var(--mc-border);">
+                <div class="flex-1">
+                  <div class="font-semibold text-sm">Require 2-factor authentication</div>
+                  <div class="text-xs mt-0.5" style="color: var(--mc-text-2);">All members must enable TOTP or a hardware key to sign in.</div>
+                </div>
+                <button class="toggle on" aria-pressed="true"></button>
+              </div>
+              <div class="flex items-center gap-4 py-3" style="border-top: 1px solid var(--mc-border);">
+                <div class="flex-1">
+                  <div class="font-semibold text-sm">Restrict sign-in by IP</div>
+                  <div class="text-xs mt-0.5" style="color: var(--mc-text-2);">Allow sign-ins only from listed CIDRs. <a href="#" style="color: var(--mc-brand); font-weight: 600;">Manage list</a></div>
+                </div>
+                <button class="toggle" aria-pressed="false"></button>
+              </div>
+              <div class="flex items-center gap-4 py-3" style="border-top: 1px solid var(--mc-border);">
+                <div class="flex-1">
+                  <div class="font-semibold text-sm">Auto-revoke inactive sessions</div>
+                  <div class="text-xs mt-0.5" style="color: var(--mc-text-2);">Sign members out after <select class="bg-transparent border-0 font-semibold p-0 outline-none" style="color: var(--mc-text);"><option>14 days</option><option>30 days</option></select> of inactivity.</div>
+                </div>
+                <button class="toggle on" aria-pressed="true"></button>
+              </div>
+              <div class="flex items-center gap-4 py-3" style="border-top: 1px solid var(--mc-border);">
+                <div class="flex-1">
+                  <div class="font-semibold text-sm">SAML SSO</div>
+                  <div class="text-xs mt-0.5" style="color: var(--mc-text-2);">Sign in members through your IdP. <span class="mc-badge mc-badge-warning" style="vertical-align: middle;">Scale plan</span></div>
+                </div>
+                <button class="mc-btn mc-btn-sm mc-btn-secondary">Configure</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Danger zone -->
+          <div class="rounded-2xl p-6" style="background: color-mix(in oklch, var(--mc-error) 5%, transparent); border: 1px solid color-mix(in oklch, var(--mc-error) 30%, transparent);" id="advanced">
+            <div class="font-display font-bold text-base" style="color: var(--mc-error);">Delete workspace</div>
+            <div class="text-xs mt-1 mb-4" style="color: var(--mc-text-2);">Permanently deletes Studio Renza, all 12 sites, their pages, assets, members, and the billing history. Cannot be undone.</div>
+            <button class="mc-btn mc-btn-sm mc-btn-danger-outline">Delete workspace</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="mangocms-shell.js"></script>
+<script>
+  document.querySelectorAll('.toggle').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
+</script>
+</body>
+</html>

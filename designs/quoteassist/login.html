@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  .auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+  @media (max-width: 1024px) { .auth { grid-template-columns: 1fr; } .auth-aside { display: none; } }
+  .auth-aside { position: relative; overflow: hidden; background: linear-gradient(140deg, oklch(0.30 0.065 196) 0%, var(--mc-brand) 60%, var(--mc-grad-1) 100%); color: white; padding: 56px; display: flex; flex-direction: column; }
+  .auth-aside::before { content:''; position: absolute; inset:-20% -20% auto auto; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgb(255 255 255 / 0.25) 0%, transparent 60%); pointer-events: none; }
+  .auth-aside::after { content:''; position: absolute; inset: auto -10% -20% -20%; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, oklch(0.30 0.07 196 / 0.6) 0%, transparent 60%); pointer-events: none; }
+  .auth-form { display: flex; align-items: center; justify-content: center; padding: 56px; background: var(--mc-bg); position: relative; }
+  .auth-card { width: 100%; max-width: 440px; }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Login">
+
+<div class="auth">
+  <aside class="auth-aside">
+    <a href="index.html" class="flex items-center gap-2.5 relative" style="text-decoration:none; color:inherit;">
+      <span class="grid place-items-center rounded-xl font-display font-bold" style="width: 36px; height: 36px; background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); font-size: 15px; letter-spacing:-0.04em;">QA</span>
+      <span class="font-display font-bold text-lg">QuoteAssist</span>
+    </a>
+    <div class="flex-1 flex items-center relative">
+      <div>
+        <div class="text-sm font-semibold tracking-widest uppercase opacity-80 mb-5">Paste · Price · Approve</div>
+        <h1 class="font-display font-bold tracking-[-0.025em]" style="font-size: 52px; line-height: 1.02;">
+          Welcome back.<br/>There's a quote<br/>waiting to be sent.
+        </h1>
+        <p class="mt-6 text-lg opacity-85 max-w-md" style="line-height: 1.55;">
+          Sign in to turn inbound enquiries into polished, policy-checked quotations — without leaving your browser.
+        </p>
+      </div>
+    </div>
+    <div class="relative">
+      <figure class="border-l-2 pl-5 max-w-md" style="border-color: rgba(255,255,255,0.4);">
+        <blockquote class="font-display text-xl leading-snug">"What took twenty minutes per enquiry now takes one. The drafts come out cleaner than mine did."</blockquote>
+        <figcaption class="mt-4 text-sm flex items-center gap-3 opacity-90">
+          <span class="w-9 h-9 rounded-full grid place-items-center text-xs font-bold" style="background: rgba(255,255,255,0.2);">RA</span>
+          <span><b>Rana Aziz</b> · Senior agent, Skyline Travel</span>
+        </figcaption>
+      </figure>
+    </div>
+  </aside>
+
+  <main class="auth-form">
+    <div class="absolute top-6 right-6 flex items-center gap-3 text-sm">
+      <button class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <span style="color: var(--mc-text-2);">New here?</span>
+      <a href="register.html" class="font-semibold" style="color: var(--mc-brand);">Create account →</a>
+    </div>
+
+    <div class="auth-card">
+      <a href="index.html" class="flex items-center gap-2 mb-10 lg:hidden" style="text-decoration:none; color:inherit;">
+        <span class="mc-logo" style="width:28px; height:28px; font-size: 12px;">QA</span>
+        <span class="font-display font-bold">QuoteAssist</span>
+      </a>
+
+      <h1 class="font-display font-bold text-3xl tracking-[-0.02em]">Sign in</h1>
+      <p class="mt-2 text-sm" style="color: var(--mc-text-2);">Use your agency account. Invited agents should sign in with their work email.</p>
+
+      <div class="grid grid-cols-2 gap-2 mt-7">
+        <button class="mc-btn mc-btn-secondary justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h5.9c-.3 1.4-1 2.6-2.2 3.4v2.8h3.6c2.1-1.9 3.2-4.7 3.2-8.4z"/><path fill="#34A853" d="M12 23c2.9 0 5.4-1 7.2-2.6l-3.6-2.8c-1 .7-2.3 1.1-3.6 1.1-2.8 0-5.2-1.9-6-4.4H2.3v2.8C4.1 20.7 7.8 23 12 23z"/><path fill="#FBBC04" d="M6 14.3c-.2-.7-.3-1.4-.3-2.3s.1-1.6.3-2.3V6.9H2.3C1.5 8.5 1 10.2 1 12s.5 3.5 1.3 5.1L6 14.3z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .5 4 1.6l3.1-3.1C17.5 2.3 14.9 1 12 1 7.8 1 4.1 3.3 2.3 6.9L6 9.7c.8-2.5 3.2-4.3 6-4.3z"/></svg>
+          Google
+        </button>
+        <button class="mc-btn mc-btn-secondary justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#0078D4"><path d="M11.5 11.5H3V3h8.5v8.5zM21 11.5h-8.5V3H21v8.5zM11.5 21H3v-8.5h8.5V21zM21 21h-8.5v-8.5H21V21z"/></svg>
+          Microsoft
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3 my-6">
+        <div class="flex-1 mc-hairline"></div>
+        <span class="text-xs font-medium" style="color: var(--mc-text-3);">or with email</span>
+        <div class="flex-1 mc-hairline"></div>
+      </div>
+
+      <form class="space-y-4" onsubmit="window.location.href='dashboard.html';return false;">
+        <div>
+          <label class="mc-label">Work email</label>
+          <input class="mc-input mc-input-lg" type="email" placeholder="rana@skylinetravel.com" autocomplete="email" required/>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="mc-label" style="margin: 0;">Password</label>
+            <a href="forgot.html" class="text-xs font-semibold" style="color: var(--mc-brand);">Forgot?</a>
+          </div>
+          <div class="relative">
+            <input id="pw" class="mc-input mc-input-lg pr-11" type="password" placeholder="••••••••" value="quoteassist" autocomplete="current-password"/>
+            <button type="button" onclick="var p=document.getElementById('pw');p.type=p.type==='password'?'text':'password';" class="absolute right-2 top-1/2 -translate-y-1/2 mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" aria-label="Show password">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <label class="flex items-center gap-2 text-sm" style="color: var(--mc-text-2);">
+          <input type="checkbox" checked class="rounded" style="accent-color: var(--mc-brand);"/>
+          Keep me signed in for 30 days
+        </label>
+        <button class="mc-btn mc-btn-lg mc-btn-primary w-full" type="submit">
+          Sign in
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </form>
+
+      <div class="mt-7 p-3 rounded-lg flex items-start gap-3 text-xs" style="background: var(--mc-surface-2); border: 1px solid var(--mc-border);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0" style="color: var(--mc-text-3);"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+        <div style="color: var(--mc-text-2); line-height: 1.5;">
+          Your agency uses single sign-on?
+          <a href="#" class="font-semibold" style="color: var(--mc-brand);">Use SSO →</a>
+        </div>
+      </div>
+
+      <div class="mt-10 text-center text-xs" style="color: var(--mc-text-3);">
+        By signing in you agree to our <a href="#" style="color: var(--mc-text-2); text-decoration: underline;">Terms</a> and <a href="#" style="color: var(--mc-text-2); text-decoration: underline;">Privacy Policy</a>.
+      </div>
+    </div>
+  </main>
+</div>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

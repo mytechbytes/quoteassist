@@ -1,0 +1,23 @@
+name: outlook-plugin
+on:
+  pull_request:
+    paths: ["outlook-plugin/**", ".github/workflows/outlook-plugin.yml"]
+  push:
+    branches: [main]
+    paths: ["outlook-plugin/**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: outlook-plugin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build

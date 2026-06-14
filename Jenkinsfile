@@ -21,7 +21,7 @@ pipeline {
 
   environment {
     OCIR          = 'ap-mumbai-1.ocir.io'
-    OCI_NAMESPACE = '<OCI_NAMESPACE>'
+    OCI_NAMESPACE = 'bmsedjmf13c1'
     PLATFORM_IMAGE = "${OCIR}/${OCI_NAMESPACE}/quote-assist-platform"
     AI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/quote-assist-ai"
     CI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/quoteassist-elixir-ci:1.18.4-otp-29"
@@ -35,17 +35,17 @@ pipeline {
           if (env.BRANCH_NAME == 'main') {
             env.TARGET = 'production'
             env.SSH_CRED = 'production-server-ssh'
-            env.DEPLOY_HOST = 'ubuntu@<PRODUCTION_IP>'
+            env.DEPLOY_HOST = 'ubuntu@161.118.161.178'
             env.COMPOSE_DIR = '/home/ubuntu/apps'
             env.TAG_PREFIX = 'prd'
-            env.APP_URL = 'https://quoteassist.yourdomain.com'
+            env.APP_URL = 'https://quoteassist.mytechbytes.in'
           } else if (env.BRANCH_NAME == 'develop') {
             env.TARGET = 'staging'
             env.SSH_CRED = 'production-server-ssh'
-            env.DEPLOY_HOST = 'ubuntu@<PRODUCTION_IP>'
+            env.DEPLOY_HOST = 'ubuntu@161.118.161.178'
             env.COMPOSE_DIR = '/home/ubuntu/apps-stg'
             env.TAG_PREFIX = 'stg'
-            env.APP_URL = 'https://stg.quoteassist.yourdomain.com'
+            env.APP_URL = 'https://stg.quoteassist.mytechbytes.in'
           } else {
             env.TARGET = 'ci-only'
             env.TAG_PREFIX = 'pr'

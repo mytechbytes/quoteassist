@@ -38,8 +38,8 @@ starting Caddy (Let's Encrypt validates over HTTP on port 80). The AI service is
 internal — it needs **no** DNS.
 
 ```
-quoteassist.yourdomain.com      → <PRODUCTION_IP>
-stg.quoteassist.yourdomain.com  → <PRODUCTION_IP>
+quoteassist.mytechbytes.in      → <PRODUCTION_IP>
+stg.quoteassist.mytechbytes.in  → <PRODUCTION_IP>
 ```
 
 ---
@@ -291,7 +291,7 @@ services:
     environment:
       DATABASE_URL: ecto://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
-      PHX_HOST: quoteassist.yourdomain.com
+      PHX_HOST: quoteassist.mytechbytes.in
       PHX_SERVER: "true"
       PORT: 4000
       POOL_SIZE: 10
@@ -312,16 +312,16 @@ EOF
 ### 4.8 Staging `docker-compose.yml`
 Same shape under `/home/ubuntu/apps-stg/` with container names suffixed `-stg`
 (`platform-stg`, `ai-service-stg`, `postgres-stg`, `redis-stg`), `POOL_SIZE: 5`,
-`PHX_HOST: stg.quoteassist.yourdomain.com`, bind-mounts under `apps-stg/data`, and
+`PHX_HOST: stg.quoteassist.mytechbytes.in`, bind-mounts under `apps-stg/data`, and
 the Caddy `reverse_proxy` pointing at `platform-stg:4000`.
 
 ### 4.9 Caddyfile (platform only — AI service stays internal)
 ```bash
 cat > /home/ubuntu/apps/Caddyfile << 'EOF'
-quoteassist.yourdomain.com {
+quoteassist.mytechbytes.in {
     reverse_proxy platform:4000
 }
-stg.quoteassist.yourdomain.com {
+stg.quoteassist.mytechbytes.in {
     reverse_proxy platform-stg:4000
 }
 EOF
@@ -344,10 +344,10 @@ The required extensions (`vector`, `citext`, `pgcrypto`) are created by the firs
 
 ### 4.11 Verify
 ```bash
-curl -s https://quoteassist.yourdomain.com/health
+curl -s https://quoteassist.mytechbytes.in/health
 # → {"status":"ok","service":"platform","version":"0.1.0"}
 
-curl -s https://quoteassist.yourdomain.com/health/ready
+curl -s https://quoteassist.mytechbytes.in/health/ready
 # → {"status":"ready","checks":{"database":"ok"}}
 ```
 
@@ -428,11 +428,11 @@ docker exec platform     /app/bin/quote_assist eval "QuoteAssist.Release.seed()"
 > set; `:ssl`/`:crypto` are in `extra_applications` and `gen_smtp` is a dependency.
 
 ### 7.1 Email domain + DNS
-OCI → Email Delivery → Email Domains → Create `yourdomain.com`. Add the **SPF** TXT
+OCI → Email Delivery → Email Domains → Create `mytechbytes.in`. Add the **SPF** TXT
 and **DKIM** CNAME records OCI shows you; it verifies to **Active** in 5–30 min.
 
 ### 7.2 Approved sender
-OCI → Email Delivery → Approved Senders → Create `no-reply@quoteassist.yourdomain.com`.
+OCI → Email Delivery → Approved Senders → Create `no-reply@quoteassist.mytechbytes.in`.
 
 > **Critical:** the application FROM address must exactly match an approved sender.
 > Wait 10–15 min for propagation before testing (535 errors in that window are
@@ -457,7 +457,7 @@ SMTP_SERVER=smtp.email.ap-mumbai-1.oci.oraclecloud.com
 SMTP_PORT=587
 SMTP_USERNAME=<smtp-username>
 SMTP_PASSWORD=<smtp-password>
-SMTP_FROM=no-reply@quoteassist.yourdomain.com
+SMTP_FROM=no-reply@quoteassist.mytechbytes.in
 EOF
 ```
 Add them to the `platform` service `environment:` block (Compose only injects vars
@@ -540,8 +540,8 @@ docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
 | Check | Command | Expected |
 |---|---|---|
 | Uptime | `docker ps` | `platform`/`ai-service` up in days |
-| Liveness | `curl -s https://quoteassist.yourdomain.com/health` | `{"status":"ok",...}` |
-| Readiness | `curl -s https://quoteassist.yourdomain.com/health/ready` | `{"status":"ready",...}` |
+| Liveness | `curl -s https://quoteassist.mytechbytes.in/health` | `{"status":"ok",...}` |
+| Readiness | `curl -s https://quoteassist.mytechbytes.in/health/ready` | `{"status":"ready",...}` |
 | Logs | `docker logs --tail 50 platform` | no `[error]` |
 | Disk | `df -h` | `<80%` on `/` |
 | SMTP | RPC test (7.7) | `{:ok, "Ok\r\n"}` |

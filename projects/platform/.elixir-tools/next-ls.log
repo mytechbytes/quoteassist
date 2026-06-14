@@ -40,3 +40,7 @@
 16:22:59.859 id=32 [debug] handled request client -> server textDocument/documentSymbol in 20ms
 
 16:22:59.861 id=33 [debug] handled request client -> server textDocument/documentSymbol in 19ms
+
+16:57:07.172 [debug] handled notification client -> server textDocument/didClose in 15ms
+
+16:58:00.244 id=34 [debug] handled request client -> server shutdown in 17ms

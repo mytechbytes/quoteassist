@@ -1,17 +1,24 @@
 import Config
 
-# Configure your database
+# Configure your database.
 #
-# The MIX_TEST_PARTITION environment variable can be used
-# to provide built-in test partitioning in CI environment.
-# Run `mix help test` for more information.
-config :quote_assist, QuoteAssist.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "quote_assist_test#{System.get_env("MIX_TEST_PARTITION")}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+# In CI the database lives in a throwaway container, so DATABASE_URL is set and
+# wins. Locally (no DATABASE_URL) we fall back to localhost. MIX_TEST_PARTITION
+# enables built-in test partitioning — see `mix help test`.
+if database_url = System.get_env("DATABASE_URL") do
+  config :quote_assist, QuoteAssist.Repo,
+    url: database_url,
+    pool: Ecto.Adapters.SQL.Sandbox,
+    pool_size: System.schedulers_online() * 2
+else
+  config :quote_assist, QuoteAssist.Repo,
+    username: "postgres",
+    password: "postgres",
+    hostname: "localhost",
+    database: "quote_assist_test#{System.get_env("MIX_TEST_PARTITION")}",
+    pool: Ecto.Adapters.SQL.Sandbox,
+    pool_size: System.schedulers_online() * 2
+end
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

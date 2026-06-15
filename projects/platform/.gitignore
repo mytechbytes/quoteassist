@@ -35,3 +35,6 @@ quote_assist-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Dialyzer PLT cache (built in CI; persisted in a named volume there).
+/priv/plts/
+

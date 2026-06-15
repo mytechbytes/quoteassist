@@ -87,7 +87,7 @@ Container Registry → Create Repository), all in the **same compartment**:
 > `mytechbytes-elixir-ci` is **shared across all your Elixir apps** (MangoCMS,
 > QuoteAssist, MangoGST…). It has **one owner** — a single repo (or the MangoCMS
 > repo) holds the Dockerfile and builds/pushes the image. Every other app pipeline
-> only **pulls** the tag `mytechbytes-elixir-ci:otp-29` — they do not carry a copy
+> only **pulls** the tag `mytechbytes-elixir-ci:1.20.1-otp-29` — they do not carry a copy
 > of the CI Dockerfile (that's how you avoid drift: change the toolchain once in
 > the owner, rebuild, and all apps pick it up on their next run).
 
@@ -402,33 +402,58 @@ Files live in the monorepo. The platform release files are under `projects/platf
 | other     | CI only   | skipped                | `pr-N`              |
 
 ### 6.2 Stages
-Configure (branch vars) → Platform CI (**pulls** the shared `mytechbytes-elixir-ci`
-runner, runs against a throwaway **pgvector** container:
-`mix deps.get · format --check · compile --warnings-as-errors · credo · test`) →
-Build & Push (`docker buildx --platform linux/arm64`: the `quoteassist` platform
-image from `projects/platform`; the `quoteassist-ai` image ships in its own release)
-→ Approval (**main** only, 24h) → Deploy (SSH: bump `QUOTEASSIST_IMAGE_TAG` in
-`.env`, `compose pull quoteassist` + `up -d quoteassist`, run migrations — touches
-**only** the quoteassist service) → Smoke Test (`GET /health/ready`, 5 tries).
+Modelled on the MangoCMS pipeline. CI runs every mix task inside the shared
+runner via a reusable `DOCKER_RUN` (named volumes cache `deps`/`_build`/hex/mix +
+the Dialyzer PLT; the workspace is bind-mounted so `cover/` lands back for
+archiving), against a throwaway **pgvector pg18** container on an isolated network.
 
-The shared CI runner is **not built here** — one owner repo builds/pushes
-`mytechbytes-elixir-ci:otp-29`; this pipeline only pulls it.
+1. **Configure** — branch vars (target, host, compose dir, tags, container/service
+   name, env-var name, app URL) + a run banner.
+2. **CI Image** — **pulls** the shared `mytechbytes-elixir-ci:1.20.1-otp-29` runner
+   (login first — OCIR is private). Never built here.
+3. **Checkout** — capture `GIT_COMMIT_SHORT` / branch for image labels.
+4. **CI Infrastructure** — create the CI network + `quoteassist-postgres-ci`
+   (pgvector pg18) and wait for readiness.
+5. **Setup** — `mix deps.get · ecto.create · ecto.migrate`.
+6. **Compile** — `mix compile --warnings-as-errors`.
+7. **Quality Checks** (parallel) — `mix credo --strict` ‖ `mix dialyzer`.
+8. **Tests & Coverage** — `mix coveralls.json` then
+   `mix run --no-start ci/check_coverage.exs $COVERAGE_THRESHOLD`; archives
+   `cover/*.json`.
+9. **Build & Push** — `docker buildx --platform linux/arm64` with OCI/build labels:
+   the `quoteassist` image from `projects/platform`, tagged `<prefix>-N` +
+   `<prefix>-latest` (the `quoteassist-ai` image ships in its own release).
+10. **Approval** — **main** only, 24h timeout.
+11. **Deploy** — SSH (key + on-server `docker login`): pin `QUOTEASSIST_IMAGE_TAG`
+    in `.env`, `compose pull` + `up -d --no-deps`, migrate, verify — scoped to
+    **only** the quoteassist service so MangoCMS / others are never restarted.
+12. **Rollback** (action = `ROLLBACK`) — validate the tag exists in OCIR, pin it,
+    `pull` + `up -d --no-deps`, verify. No automatic migrations.
+13. **Smoke Test** — `GET /health/ready`, 5 tries.
+
+`post`: success/failure email (`emailext` → `NOTIFY_EMAIL`); `always` tears down
+the CI postgres/network + root-owned `cover/` and logs out of OCIR (the cached
+named volumes are kept for the next build).
+
+The shared CI runner is **not built here** — one owner repo (MangoCMS) builds/pushes
+`mytechbytes-elixir-ci:1.20.1-otp-29`; this pipeline only pulls it.
 
 ### 6.3 Parameters
 `PIPELINE_ACTION` (`BUILD_AND_DEPLOY` | `ROLLBACK`) · `ROLLBACK_TAG`
-(`prd-13`/`stg-13`) · `COVERAGE_THRESHOLD` (default 80).
+(`prd-13`/`stg-13`) · `COVERAGE_THRESHOLD` (default `70` — raise toward 80+ as the
+app matures).
 
 Before first run, set `<OCI_NAMESPACE>`, `161.118.161.178` and the hostnames in the
 `Jenkinsfile` (Configure stage + `environment` block).
 
 ### 6.4 Run migrations manually
 ```bash
-# Production
-docker exec platform     /app/bin/quote_assist eval "QuoteAssist.Release.migrate()"
-# Staging
-docker exec platform-stg /app/bin/quote_assist eval "QuoteAssist.Release.migrate()"
+# Production (run from /home/ubuntu/apps)
+docker compose exec -T quoteassist     /app/bin/quote_assist eval "QuoteAssist.Release.migrate()"
+# Staging (run from /home/ubuntu/apps-stg)
+docker compose exec -T quoteassist-stg /app/bin/quote_assist eval "QuoteAssist.Release.migrate()"
 # Seed reference data (idempotent) — usually production only, once
-docker exec platform     /app/bin/quote_assist eval "QuoteAssist.Release.seed()"
+docker compose exec -T quoteassist     /app/bin/quote_assist eval "QuoteAssist.Release.seed()"
 ```
 
 ---

@@ -11,7 +11,13 @@ defmodule QuoteAssist.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      test_coverage: [tool: ExCoveralls],
+      dialyzer: [
+        plt_local_path: "priv/plts",
+        plt_core_path: "priv/plts",
+        plt_add_apps: [:ex_unit, :mix]
+      ]
     ]
   end
 
@@ -27,7 +33,13 @@ defmodule QuoteAssist.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test, check: :test]
+      preferred_envs: [
+        precommit: :test,
+        check: :test,
+        coveralls: :test,
+        "coveralls.json": :test,
+        "coveralls.html": :test
+      ]
     ]
   end
 
@@ -66,8 +78,10 @@ defmodule QuoteAssist.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      # Static analysis (CI: format/compile/credo/test)
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      # Static analysis + coverage (CI: format/credo/dialyzer/coveralls)
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:excoveralls, "~> 0.18", only: :test, runtime: false}
     ]
   end
 
@@ -90,13 +104,19 @@ defmodule QuoteAssist.MixProject do
         "esbuild quote_assist --minify",
         "phx.digest"
       ],
-      # Local quality gate — mirrors .github/workflows/platform.yml
-      check: ["format --check-formatted", "compile --warnings-as-errors", "credo", "test"],
+      # Local quality gate — mirrors the Jenkins pipeline (minus the slow dialyzer;
+      # run `mix dialyzer` separately).
+      check: [
+        "format --check-formatted",
+        "compile --warnings-as-errors",
+        "credo --strict",
+        "test"
+      ],
       precommit: [
         "compile --warnings-as-errors",
         "deps.unlock --unused",
         "format",
-        "credo",
+        "credo --strict",
         "test"
       ]
     ]

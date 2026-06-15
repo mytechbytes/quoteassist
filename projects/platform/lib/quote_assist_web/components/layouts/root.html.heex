@@ -45,6 +45,21 @@
     </script>
   </head>
   <body>
+    <%!-- Minimal account bar for signed-in users (auth/landing pages stay clean).
+          The full persona navigation arrives with the R2 workspace shell. --%>
+    <header
+      :if={@current_scope}
+      class="flex items-center justify-end gap-3 px-4 sm:px-6 lg:px-8 py-2.5 border-b"
+      style="border-color:var(--mc-border);background:var(--mc-surface);"
+    >
+      <span class="text-sm font-medium" style="color:var(--mc-text-2);">
+        {@current_scope.user.email}
+      </span>
+      <.link href={~p"/users/settings"} class="mc-btn mc-btn-sm mc-btn-ghost">Settings</.link>
+      <.link href={~p"/users/log-out"} method="delete" class="mc-btn mc-btn-sm mc-btn-secondary">
+        Log out
+      </.link>
+    </header>
     {@inner_content}
   </body>
 </html>

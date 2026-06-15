@@ -75,7 +75,20 @@ features yet, but the whole pipeline works.
 **Deploy & verify** `curl https://staging/health` → 200; CI green on a PR.
 **Done when** a no-op change ships to staging through CI and `/health/ready` passes.
 
-### R1 · Auth & accounts  `deployable`
+### R1 · Auth & accounts  `deployable`  — ✅ done
+
+> **Implemented & verified.** Built on `phx.gen.auth` (Accounts context, `User` /
+> `UserToken` / `Scope`, `UserAuth` plug + `on_mount`, session controller),
+> adapted to the QuoteAssist design system. Sign-in offers **email + password**,
+> **passwordless magic link**, and disabled **SSO** placeholders (Google/Microsoft)
+> wired as seams for a later OAuth slice. Registration accepts an optional password
+> (`User.registration_changeset/3`) so the screen can require one while the
+> passwordless flow still works. Login/Register/Confirmation use a split-screen
+> `Layouts.auth` shell; password reveal + theme toggle are `Phoenix.LiveView.JS`
+> only. `mix check` green + `mix dialyzer` clean; **115 tests**, coverage 98.6%.
+> Protected routes (`/users/settings`) redirect to `/users/log-in`. Files:
+> `lib/quote_assist/accounts*`, `lib/quote_assist_web/{user_auth,live/user_live/*}`,
+> `Layouts.auth` + `qa-auth*` styles, `users` + `users_tokens` migration.
 
 **Ships** People can sign in and out.
 **Build**

@@ -73,6 +73,99 @@ defmodule QuoteAssistWeb.Layouts do
   end
 
   @doc """
+  Split-screen shell for the public auth screens (login / register / confirm).
+
+  The left aside carries the brand; the right side renders the form slot with a
+  compact theme toggle. Build the form content with `mc-*` / `qa-*` classes.
+
+  ## Examples
+
+      <Layouts.auth flash={@flash}>
+        <h1 class="font-display font-bold text-3xl">Sign in</h1>
+        ...
+      </Layouts.auth>
+  """
+  attr :flash, :map, default: %{}, doc: "the map of flash messages"
+  slot :inner_block, required: true
+
+  def auth(assigns) do
+    ~H"""
+    <div class="qa-auth font-sans">
+      <aside class="qa-auth-aside">
+        <a href={~p"/"} class="flex items-center gap-2.5 relative no-underline text-inherit">
+          <span
+            class="mc-logo"
+            style="width:36px;height:36px;background:rgb(255 255 255 / 0.18);border:1px solid rgb(255 255 255 / 0.25);"
+          >
+            QA
+          </span>
+          <span class="font-display font-bold text-lg">QuoteAssist</span>
+        </a>
+
+        <div class="flex-1 flex items-center relative">
+          <div>
+            <div class="text-sm font-semibold tracking-widest uppercase opacity-80 mb-5">
+              Paste · Price · Approve
+            </div>
+            <h1 class="font-display font-bold tracking-[-0.025em] text-5xl leading-[1.02]">
+              Turn inbound enquiries<br />into polished, policy-checked<br />quotations.
+            </h1>
+            <p class="mt-6 text-lg opacity-85 max-w-md leading-relaxed">
+              Human-in-the-loop from capture to send — pricing, discount approvals and
+              audit, without leaving your browser.
+            </p>
+          </div>
+        </div>
+
+        <figure class="border-l-2 pl-5 max-w-md relative" style="border-color:rgb(255 255 255 / 0.4);">
+          <blockquote class="font-display text-xl leading-snug">
+            "What took twenty minutes per enquiry now takes one. The drafts come out cleaner than mine did."
+          </blockquote>
+          <figcaption class="mt-4 text-sm flex items-center gap-3 opacity-90">
+            <span
+              class="w-9 h-9 rounded-full grid place-items-center text-xs font-bold"
+              style="background:rgb(255 255 255 / 0.2);"
+            >
+              RA
+            </span>
+            <span><b>Rana Aziz</b> · Senior agent, Skyline Travel</span>
+          </figcaption>
+        </figure>
+      </aside>
+
+      <main class="qa-auth-form">
+        <div class="absolute top-6 right-6 flex items-center gap-1">
+          <button
+            type="button"
+            class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"
+            phx-click={JS.dispatch("phx:set-theme")}
+            data-phx-theme="light"
+            aria-label="Light theme"
+          >
+            <.icon name="hero-sun-micro" class="size-4" />
+          </button>
+          <button
+            type="button"
+            class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"
+            phx-click={JS.dispatch("phx:set-theme")}
+            data-phx-theme="dark"
+            aria-label="Dark theme"
+          >
+            <.icon name="hero-moon-micro" class="size-4" />
+          </button>
+        </div>
+
+        <div class="qa-auth-card">
+          {render_slot(@inner_block)}
+        </div>
+      </main>
+    </div>
+
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
 
   ## Examples

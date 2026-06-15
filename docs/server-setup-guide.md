@@ -555,8 +555,37 @@ docker exec platform /app/bin/quote_assist rpc '
    service).
 4. **Prod server** — add the service to `docker-compose.yml`, env to `.env`, create
    its DB if it needs one: `docker compose exec postgres createdb -U postgres <db>`.
-5. **Caddyfile** — add a block + `docker compose exec caddy caddy reload --config
-   /etc/caddy/Caddyfile` (zero downtime). Internal services get no block.
+5. **Caddyfile** — add a reverse-proxy block for the public host (internal-only
+   services like the AI service get **no** block). Edit the host file
+   `~/apps/Caddyfile` (bind-mounted read-only into the container):
+
+   ```caddyfile
+   quoteassist.mytechbytes.in {
+       reverse_proxy quoteassist:4000
+   }
+   ```
+
+   The proxy target is `<compose-service>:<port>` (the platform listens on **4000**)
+   — the service must share `frontend-net` with Caddy. Then:
+
+   ```bash
+   cd ~/apps
+   # Confirm the block is actually loaded (catches "edited the wrong file"):
+   docker compose exec caddy caddy adapt --config /etc/caddy/Caddyfile | grep -i <host>
+   # Apply (graceful, zero downtime):
+   docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+   ```
+
+   **New-host gotcha — cert won't issue after a reload:** a graceful `reload`
+   keeps the running process's ACME **backoff** state, so a brand-new host whose
+   first issuance attempt failed (e.g. tried before DNS pointed here) won't get
+   its cert retried promptly — `curl` shows `tls internal error` / smoke test
+   HTTP 000. A full **restart** starts a clean process that issues immediately:
+
+   ```bash
+   docker compose restart caddy   # ~1–2s blip for the OTHER vhosts too — shared proxy
+   curl -sS -o /dev/null -w "http=%{http_code}\n" https://<host>/health/ready
+   ```
 6. **Jenkins** — point the Configure stage + image envs at the new app/branch.
 
 ---
@@ -615,7 +644,8 @@ docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
 | `ESOCK WARNING: libsctp.so.1` | missing SCTP lib | add `libsctp1` to runtime (done) |
 | `groupadd: GID 1000 already exists` | base image default user | `userdel` UID 1000 before `groupadd` (done) |
 | 502 from Caddy | Caddy not on `frontend-net` | add the network to the Caddy service |
-| Smoke test HTTP 000 | container/Caddy not up | check `docker compose ps`, Caddy logs |
+| Smoke test HTTP 000 + `tls internal error` | no Caddyfile vhost for the host, or its cert never issued | add the block (Part 8.5); if a `reload` doesn't issue the cert (ACME backoff), `docker compose restart caddy` |
+| Smoke test HTTP 000, no TLS alert | container/Caddy not up | check `docker compose ps`, app logs |
 | `SSL not started` on SMTP | `:ssl` missing | already in `extra_applications`; rebuild |
 | `tls_failed` | `tls: :always` on port 587 | `tls: :if_available` (already set) |
 | platform can't reach AI service | not on `backend-net` / wrong URL | both on `backend-net`; `AI_SERVICE_URL=http://ai-service:8000` |

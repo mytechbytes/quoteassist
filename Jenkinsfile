@@ -24,9 +24,9 @@ pipeline {
     // Image repos match the shared-server .env / compose conventions.
     PLATFORM_IMAGE = "${OCIR}/${OCI_NAMESPACE}/quoteassist"
     AI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/quoteassist-ai"
-    // Shared CI runner — built & pushed by ONE owner repo (not here). This
-    // pipeline only pulls it. Bump the toolchain in the owner repo, not per-app.
-    CI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/mytechbytes-elixir-ci:otp-29"
+    // Shared CI runner — built & pushed by the MangoCMS pipeline (the owner).
+    // This pipeline only pulls it; the tag must match what MangoCMS pushes.
+    CI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/mytechbytes-elixir-ci:1.20.1-otp-29"
     PGVECTOR_IMAGE = 'pgvector/pgvector:pg18'
   }
 
@@ -61,11 +61,13 @@ pipeline {
     stage('Platform CI') {
       when { expression { params.PIPELINE_ACTION == 'BUILD_AND_DEPLOY' } }
       steps {
-        sh '''
-          set -e
-          # Shared CI runner is owned/built by another repo — just pull the latest.
-          docker pull "${CI_IMAGE}"
-          docker network create qa-ci-${BUILD_NUMBER} || true
+        withCredentials([usernamePassword(credentialsId: 'ocir-credentials', usernameVariable: 'OCIR_USER', passwordVariable: 'OCIR_PASS')]) {
+          sh '''
+            set -e
+            # OCIR is private — log in before pulling the shared CI runner.
+            echo "$OCIR_PASS" | docker login "${OCIR}" -u "$OCIR_USER" --password-stdin
+            docker pull "${CI_IMAGE}"
+            docker network create qa-ci-${BUILD_NUMBER} || true
           docker run -d --name qa-ci-db-${BUILD_NUMBER} --network qa-ci-${BUILD_NUMBER} \
             -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=quote_assist_test ${PGVECTOR_IMAGE}
           for i in $(seq 1 20); do docker exec qa-ci-db-${BUILD_NUMBER} pg_isready -U postgres && break; sleep 2; done
@@ -75,7 +77,8 @@ pipeline {
             -e DATABASE_URL=ecto://postgres:postgres@qa-ci-db-${BUILD_NUMBER}:5432/quote_assist_test \
             -v "$PWD/projects/platform":/app -w /app "${CI_IMAGE}" \
             sh -c "mix deps.get && mix format --check-formatted && mix compile --warnings-as-errors && mix credo && mix test"
-        '''
+          '''
+        }
       }
       post {
         always {
@@ -95,17 +98,21 @@ pipeline {
         }
       }
       steps {
-        sh '''
-          set -e
-          docker buildx build --platform linux/arm64 \
-            -t "${PLATFORM_IMAGE}:${TAG}" -t "${PLATFORM_IMAGE}:${TAG_PREFIX}-latest" \
-            --push projects/platform
-          # ai-service image is built + deployed in its own release (Phase 5). Until
-          # then QuoteAssist is platform-only, so we don't build/ship it:
-          # docker buildx build --platform linux/arm64 \
-          #   -t "${AI_IMAGE}:${TAG}" -t "${AI_IMAGE}:${TAG_PREFIX}-latest" \
-          #   --push projects/ai-service
-        '''
+        withCredentials([usernamePassword(credentialsId: 'ocir-credentials', usernameVariable: 'OCIR_USER', passwordVariable: 'OCIR_PASS')]) {
+          sh '''
+            set -e
+            echo "$OCIR_PASS" | docker login "${OCIR}" -u "$OCIR_USER" --password-stdin
+            docker buildx build --platform linux/arm64 \
+              -t "${PLATFORM_IMAGE}:${TAG}" -t "${PLATFORM_IMAGE}:${TAG_PREFIX}-latest" \
+              --push projects/platform
+            docker logout "${OCIR}"
+            # ai-service image is built + deployed in its own release (Phase 5). Until
+            # then QuoteAssist is platform-only, so we don't build/ship it:
+            # docker buildx build --platform linux/arm64 \
+            #   -t "${AI_IMAGE}:${TAG}" -t "${AI_IMAGE}:${TAG_PREFIX}-latest" \
+            #   --push projects/ai-service
+          '''
+        }
       }
     }
 

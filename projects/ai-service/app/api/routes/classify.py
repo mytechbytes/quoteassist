@@ -8,6 +8,6 @@ router = APIRouter()
 
 
 @router.post("/classify")
-async def classify(payload: ExtractInput) -> dict:
+async def classify(payload: ExtractInput) -> dict[str, object]:
     # TODO: rules-first, LLM-fallback category classification (LA-03).
     return {"category": None, "confidence": 0.0}

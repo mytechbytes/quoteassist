@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -15,9 +17,9 @@ class ExtractInput(BaseModel):
 
 
 class ExtractionResult(BaseModel):
-    fields: dict = Field(default_factory=dict)
+    fields: dict[str, Any] = Field(default_factory=dict)
     overall_confidence: float = 0.0
-    confidence_breakdown: dict = Field(default_factory=dict)
+    confidence_breakdown: dict[str, float] = Field(default_factory=dict)
     missing_fields: list[str] = Field(default_factory=list)
     ambiguous_fields: list[str] = Field(default_factory=list)
     prompt_version: str = "v1"

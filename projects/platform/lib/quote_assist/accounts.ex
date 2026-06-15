@@ -76,16 +76,8 @@ defmodule QuoteAssist.Accounts do
   """
   def register_user(attrs) do
     %User{}
-    |> User.registration_changeset(attrs)
+    |> User.email_changeset(attrs)
     |> Repo.insert()
-  end
-
-  @doc """
-  Returns a changeset for tracking registration form changes (email + optional
-  password), without hashing or hitting the DB for uniqueness — for live validation.
-  """
-  def change_user_registration(user \\ %User{}, attrs \\ %{}) do
-    User.registration_changeset(user, attrs, hash_password: false, validate_unique: false)
   end
 
   ## Settings

@@ -51,43 +51,6 @@ defmodule QuoteAssistWeb.UserLive.Registration do
           </p>
         </div>
 
-        <div>
-          <label class="mc-label">Password</label>
-          <div class="relative">
-            <input
-              type="password"
-              name={@form[:password].name}
-              id="register_password"
-              placeholder="At least 12 characters"
-              autocomplete="new-password"
-              spellcheck="false"
-              required
-              minlength="12"
-              class="mc-input mc-input-lg pr-11"
-            />
-            <button
-              type="button"
-              aria-label="Show password"
-              phx-click={
-                JS.toggle_attribute({"type", "text", "password"}, to: "#register_password")
-                |> JS.toggle_class("hidden", to: "#register-eye")
-                |> JS.toggle_class("hidden", to: "#register-eye-off")
-              }
-              class="absolute right-2 top-1/2 -translate-y-1/2 mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost"
-            >
-              <span id="register-eye" class="hero-eye size-4"></span>
-              <span id="register-eye-off" class="hero-eye-slash size-4 hidden"></span>
-            </button>
-          </div>
-          <p
-            :for={msg <- field_errors(@form[:password])}
-            class="mt-1.5 text-xs"
-            style="color:var(--mc-danger, #dc2626);"
-          >
-            {msg}
-          </p>
-        </div>
-
         <button
           type="submit"
           phx-disable-with="Creating account..."
@@ -103,7 +66,8 @@ defmodule QuoteAssistWeb.UserLive.Registration do
       >
         <span class="hero-shield-check size-4 mt-0.5 shrink-0" style="color:var(--mc-text-3);"></span>
         <div style="color:var(--mc-text-2);line-height:1.5;">
-          We'll email a link to confirm your account. You can also sign in with a magic link any time.
+          We'll email a link to confirm your account — then you can set a password (or
+          keep signing in with a magic link).
         </div>
       </div>
     </Layouts.auth>
@@ -117,7 +81,7 @@ defmodule QuoteAssistWeb.UserLive.Registration do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_registration(%User{})
+    changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
 
     {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
   end
@@ -146,7 +110,7 @@ defmodule QuoteAssistWeb.UserLive.Registration do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_registration(%User{}, user_params)
+    changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 

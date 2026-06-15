@@ -59,30 +59,6 @@ defmodule QuoteAssist.Accounts.User do
   end
 
   @doc """
-  A changeset for self-registration.
-
-  Always validates the email. A password is **optional** at the changeset level so
-  the passwordless magic-link flow (and test fixtures) keep working; when one is
-  supplied — the registration screen requires it — it is validated and hashed.
-  """
-  def registration_changeset(user, attrs, opts \\ []) do
-    changeset = email_changeset(user, attrs, opts)
-
-    if password_provided?(attrs) do
-      changeset
-      |> cast(attrs, [:password])
-      |> validate_confirmation(:password, message: "does not match password")
-      |> validate_password(opts)
-    else
-      changeset
-    end
-  end
-
-  defp password_provided?(%{"password" => p}), do: is_binary(p) and p != ""
-  defp password_provided?(%{password: p}), do: is_binary(p) and p != ""
-  defp password_provided?(_), do: false
-
-  @doc """
   A user changeset for changing the password.
 
   It is important to validate the length of the password, as long passwords may

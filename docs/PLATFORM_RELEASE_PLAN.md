@@ -79,13 +79,15 @@ features yet, but the whole pipeline works.
 
 > **Implemented & verified.** Built on `phx.gen.auth` (Accounts context, `User` /
 > `UserToken` / `Scope`, `UserAuth` plug + `on_mount`, session controller),
-> adapted to the QuoteAssist design system. Sign-in offers **email + password**,
-> **passwordless magic link**, and disabled **SSO** placeholders (Google/Microsoft)
-> wired as seams for a later OAuth slice. Registration accepts an optional password
-> (`User.registration_changeset/3`) so the screen can require one while the
-> passwordless flow still works. Login/Register/Confirmation use a split-screen
-> `Layouts.auth` shell; password reveal + theme toggle are `Phoenix.LiveView.JS`
-> only. `mix check` green + `mix dialyzer` clean; **115 tests**, coverage 98.6%.
+> adapted to the QuoteAssist design system. Sign-in offers **email + password** and
+> **passwordless magic link**; **SSO** (Google/Microsoft) are disabled seams for a
+> later OAuth slice. Registration is **passwordless** (email → magic-link confirm →
+> set a password afterwards) — the Phoenix-default flow, chosen over password-at-
+> registration to avoid the documented **credential pre-stuffing** risk of storing a
+> password before the email is verified (see `mix help phx.gen.auth`). Login then
+> supports email+password *and* magic link. Login/Register/Confirmation use a
+> split-screen `Layouts.auth` shell; password reveal + theme toggle are
+> `Phoenix.LiveView.JS` only. `mix check` green + `mix dialyzer` clean; **113 tests**.
 > Protected routes (`/users/settings`) redirect to `/users/log-in`. Files:
 > `lib/quote_assist/accounts*`, `lib/quote_assist_web/{user_auth,live/user_live/*}`,
 > `Layouts.auth` + `qa-auth*` styles, `users` + `users_tokens` migration.

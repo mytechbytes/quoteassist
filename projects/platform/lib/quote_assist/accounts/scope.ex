@@ -16,9 +16,10 @@ defmodule QuoteAssist.Accounts.Scope do
   growing application requirements.
   """
 
+  alias QuoteAssist.Accounts.Membership
   alias QuoteAssist.Accounts.User
 
-  defstruct user: nil
+  defstruct user: nil, membership: nil, tenant: nil, persona: nil
 
   @doc """
   Creates a scope for the given user.
@@ -30,4 +31,13 @@ defmodule QuoteAssist.Accounts.Scope do
   end
 
   def for_user(nil), do: nil
+
+  @doc """
+  Activates a persona on the scope from a membership (its `tenant` and `role`
+  should be preloaded). Sets the active persona and tenant used for authorization
+  (`QuoteAssist.Policy`) and tenant scoping (`QuoteAssist.Tenancy.scope/2`).
+  """
+  def put_active(%__MODULE__{} = scope, %Membership{} = membership) do
+    %{scope | membership: membership, persona: membership.persona, tenant: membership.tenant}
+  end
 end

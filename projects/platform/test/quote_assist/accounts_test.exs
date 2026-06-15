@@ -394,4 +394,56 @@ defmodule QuoteAssist.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "memberships & personas" do
+    test "list_memberships/1 returns the user's memberships with tenant + role preloaded" do
+      {user, _} = user_with_persona_fixture(:agency_admin)
+
+      assert [membership] = Accounts.list_memberships(user)
+      assert membership.persona == :agency_admin
+      assert %QuoteAssist.Tenancy.Tenant{} = membership.tenant
+      assert %QuoteAssist.Accounts.Role{} = membership.role
+    end
+
+    test "list_personas/1 returns the distinct personas held" do
+      user = user_fixture()
+      tenant = tenant_fixture()
+      membership_fixture(user, :agency_admin, %{tenant_id: tenant.id})
+      membership_fixture(user, :salesperson, %{tenant_id: tenant.id})
+
+      assert Accounts.list_personas(user) |> Enum.sort() == [:agency_admin, :salesperson]
+    end
+
+    test "get_membership/2 returns the membership for a persona, or nil" do
+      {user, membership} = user_with_persona_fixture(:salesperson, seller_level: "Senior")
+
+      assert found = Accounts.get_membership(user, :salesperson)
+      assert found.id == membership.id
+      assert found.seller_level == "Senior"
+      assert is_nil(Accounts.get_membership(user, :site_admin))
+    end
+
+    test "create_membership/1 rejects a tenant on the site_admin persona" do
+      user = user_fixture()
+      tenant = tenant_fixture()
+
+      assert {:error, changeset} =
+               Accounts.create_membership(%{
+                 user_id: user.id,
+                 persona: :site_admin,
+                 tenant_id: tenant.id
+               })
+
+      assert "must be empty for the site_admin persona" in errors_on(changeset).tenant_id
+    end
+
+    test "create_membership/1 requires a tenant for tenant personas" do
+      user = user_fixture()
+
+      assert {:error, changeset} =
+               Accounts.create_membership(%{user_id: user.id, persona: :agency_admin})
+
+      assert "is required for tenant personas" in errors_on(changeset).tenant_id
+    end
+  end
 end

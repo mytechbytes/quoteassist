@@ -6,7 +6,7 @@ defmodule QuoteAssist.Accounts do
   import Ecto.Query, warn: false
   alias QuoteAssist.Repo
 
-  alias QuoteAssist.Accounts.{User, UserNotifier, UserToken}
+  alias QuoteAssist.Accounts.{Membership, Role, User, UserNotifier, UserToken}
 
   ## Database getters
 
@@ -279,6 +279,57 @@ defmodule QuoteAssist.Accounts do
   def delete_user_session_token(token) do
     Repo.delete_all(from(UserToken, where: [token: ^token, context: "session"]))
     :ok
+  end
+
+  ## Memberships & personas
+
+  @doc "Lists a user's memberships, with `tenant` and `role` preloaded."
+  def list_memberships(%User{} = user) do
+    Membership
+    |> where(user_id: ^user.id)
+    |> order_by(asc: :persona)
+    |> preload([:tenant, :role])
+    |> Repo.all()
+  end
+
+  @doc "The distinct personas a user holds (drives the launcher tiles)."
+  def list_personas(%User{} = user) do
+    user |> list_memberships() |> Enum.map(& &1.persona) |> Enum.uniq()
+  end
+
+  @doc """
+  The user's membership for a persona (with `tenant`/`role` preloaded), or nil.
+
+  R2 assumes at most one membership per persona; if a user later belongs to several
+  tenants for the same persona, the earliest is returned and tenant selection moves
+  to the launcher.
+  """
+  def get_membership(%User{} = user, persona) when is_atom(persona) do
+    Membership
+    |> where(user_id: ^user.id, persona: ^persona)
+    |> order_by(asc: :inserted_at)
+    |> limit(1)
+    |> preload([:tenant, :role])
+    |> Repo.one()
+  end
+
+  def create_membership(attrs) do
+    %Membership{}
+    |> Membership.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  ## Roles
+
+  @doc "Fetches a system role (tenant_id IS NULL) by name."
+  def get_system_role(name) when is_binary(name) do
+    Repo.one(from r in Role, where: r.name == ^name and is_nil(r.tenant_id))
+  end
+
+  def create_role(attrs) do
+    %Role{}
+    |> Role.changeset(attrs)
+    |> Repo.insert()
   end
 
   ## Token helper

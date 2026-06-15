@@ -166,6 +166,74 @@ defmodule QuoteAssistWeb.Layouts do
   end
 
   @doc """
+  Persona workspace shell (Admin / Agency / App) — a top bar with the active
+  persona + tenant, workspace switcher, settings and log out, plus a content slot.
+
+  Full per-workspace navigation arrives in later releases; R2 ships the chrome.
+  """
+  attr :flash, :map, default: %{}, doc: "the map of flash messages"
+  attr :current_scope, :map, required: true, doc: "the active scope (persona + tenant)"
+  attr :title, :string, required: true, doc: "the workspace label, e.g. \"Site Admin\""
+  slot :inner_block, required: true
+
+  def workspace(assigns) do
+    ~H"""
+    <div class="min-h-screen font-sans" style="background:var(--mc-bg);">
+      <header
+        class="flex flex-wrap items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b"
+        style="border-color:var(--mc-border);background:var(--mc-surface);"
+      >
+        <a href={~p"/launcher"} class="flex items-center gap-2 no-underline text-inherit">
+          <span class="mc-logo" style="width:30px;height:30px;font-size:13px;">QA</span>
+          <span class="font-display font-bold">QuoteAssist</span>
+        </a>
+        <span class="mc-badge mc-badge-brand">{@title}</span>
+        <span :if={@current_scope.tenant} class="text-sm" style="color:var(--mc-text-3);">
+          {@current_scope.tenant.name}
+        </span>
+
+        <div class="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"
+            phx-click={JS.dispatch("phx:set-theme")}
+            data-phx-theme="light"
+            aria-label="Light theme"
+          >
+            <.icon name="hero-sun-micro" class="size-4" />
+          </button>
+          <button
+            type="button"
+            class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon"
+            phx-click={JS.dispatch("phx:set-theme")}
+            data-phx-theme="dark"
+            aria-label="Dark theme"
+          >
+            <.icon name="hero-moon-micro" class="size-4" />
+          </button>
+          <span class="text-sm hidden md:inline" style="color:var(--mc-text-2);">
+            {@current_scope.user.email}
+          </span>
+          <.link navigate={~p"/launcher"} class="mc-btn mc-btn-sm mc-btn-ghost">Switch</.link>
+          <.link href={~p"/users/settings"} class="mc-btn mc-btn-sm mc-btn-ghost">Settings</.link>
+          <.link href={~p"/users/log-out"} method="delete" class="mc-btn mc-btn-sm mc-btn-secondary">
+            Log out
+          </.link>
+        </div>
+      </header>
+
+      <main class="px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mx-auto" style="max-width:1100px;">
+          {render_slot(@inner_block)}
+        </div>
+      </main>
+    </div>
+
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
 
   ## Examples

@@ -247,6 +247,42 @@ defmodule QuoteAssistWeb.UserAuth do
     end
   end
 
+  def on_mount(:require_site_admin, _params, session, socket),
+    do: require_persona(:site_admin, session, socket)
+
+  def on_mount(:require_agency_admin, _params, session, socket),
+    do: require_persona(:agency_admin, session, socket)
+
+  def on_mount(:require_salesperson, _params, session, socket),
+    do: require_persona(:salesperson, session, socket)
+
+  # Ensures the user is authenticated AND holds `persona`. On success the active
+  # membership (tenant + role) is put on the scope for authorization + tenant
+  # scoping; otherwise bounce to log-in (not authenticated) or the launcher (wrong
+  # workspace).
+  defp require_persona(persona, session, socket) do
+    socket = mount_current_scope(socket, session)
+    scope = socket.assigns.current_scope
+
+    cond do
+      is_nil(scope) || is_nil(scope.user) ->
+        {:halt,
+         socket
+         |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
+         |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")}
+
+      membership = Accounts.get_membership(scope.user, persona) ->
+        {:cont,
+         Phoenix.Component.assign(socket, :current_scope, Scope.put_active(scope, membership))}
+
+      true ->
+        {:halt,
+         socket
+         |> Phoenix.LiveView.put_flash(:error, "You don't have access to that workspace.")
+         |> Phoenix.LiveView.redirect(to: ~p"/launcher")}
+    end
+  end
+
   defp mount_current_scope(socket, session) do
     Phoenix.Component.assign_new(socket, :current_scope, fn ->
       {user, _} =
@@ -258,13 +294,12 @@ defmodule QuoteAssistWeb.UserAuth do
     end)
   end
 
-  @doc "Returns the path to redirect to after log in."
-  # the user was already logged in, redirect to settings
+  @doc "Returns the path to redirect to after log in — the persona launcher."
   def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
-    ~p"/users/settings"
+    ~p"/launcher"
   end
 
-  def signed_in_path(_), do: ~p"/"
+  def signed_in_path(_), do: ~p"/launcher"
 
   @doc """
   Plug for routes that require the user to be authenticated.

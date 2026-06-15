@@ -55,11 +55,38 @@ defmodule QuoteAssistWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{QuoteAssistWeb.UserAuth, :require_authenticated}] do
+      live "/launcher", LauncherLive, :index
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
 
     post "/users/update-password", UserSessionController, :update_password
+  end
+
+  # Persona workspaces — each live_session is guarded to its persona; the guard
+  # puts the active membership (tenant + role) on the scope.
+  scope "/admin", QuoteAssistWeb.Admin do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :admin, on_mount: [{QuoteAssistWeb.UserAuth, :require_site_admin}] do
+      live "/", DashboardLive, :index
+    end
+  end
+
+  scope "/agency", QuoteAssistWeb.Agency do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :agency, on_mount: [{QuoteAssistWeb.UserAuth, :require_agency_admin}] do
+      live "/", DashboardLive, :index
+    end
+  end
+
+  scope "/app", QuoteAssistWeb.App do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :app, on_mount: [{QuoteAssistWeb.UserAuth, :require_salesperson}] do
+      live "/", DashboardLive, :index
+    end
   end
 
   scope "/", QuoteAssistWeb do

@@ -102,7 +102,23 @@ features yet, but the whole pipeline works.
 **Deploy & verify** Register a user on staging, sign in, sign out.
 **Done when** auth works end-to-end and protected routes redirect to `/login`.
 
-### R2 · Tenancy + RBAC + launcher  `deployable`
+### R2 · Tenancy + RBAC + launcher  `deployable`  — ✅ done
+
+> **Implemented & verified.** Schemas/migration for `tenants`, `roles`,
+> `memberships` (binary_id, utc_datetime; site_admin = membership with NULL tenant).
+> `QuoteAssist.Tenancy.scope/2` constrains a query to the scope's tenant (raises if
+> none — fails loud on accidental cross-tenant reads). `QuoteAssist.Policy` holds
+> the system permission catalog + `can?/3`; `Accounts.Scope` extended with
+> `membership`/`tenant`/`persona`. Persona `on_mount` guards
+> (`:require_site_admin|agency_admin|salesperson`) load the membership onto the
+> scope or bounce (→ log-in / launcher). Persona launcher (`/launcher`, CC-01) shows
+> only the personas held; `/admin` · `/agency` · `/app` are guarded workspace shells
+> (`Layouts.workspace`). Post-login lands on `/launcher`. Seeds: Northwind tenant,
+> system roles, one confirmed user per persona (+ a multi-persona `demo` user), all
+> password `quoteassist-dev-1`. `mix check` + `mix dialyzer` clean; **138 tests**,
+> coverage 97.2%. Files: `lib/quote_assist/{tenancy,tenancy/tenant,policy}.ex`,
+> `lib/quote_assist/accounts/{membership,role,scope}.ex`,
+> `lib/quote_assist_web/live/{launcher_live,admin,agency,app}`, `Layouts.workspace`.
 
 **Ships** A signed-in user sees a persona launcher and lands in a tenant-scoped
 workspace shell.

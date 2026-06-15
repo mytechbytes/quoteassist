@@ -1,5 +1,8 @@
 import Config
 
+# Only in tests, remove the complexity from the password hashing algorithm
+config :bcrypt_elixir, :log_rounds, 1
+
 # Configure your database.
 #
 # In CI the database lives in a throwaway container, so DATABASE_URL is set and

@@ -1,6 +1,17 @@
 # Phase progress
 
-Living tracker of the R1 phased plan (§13 of the solution-design doc). Update this
+> ⚠️ **The `platform` app was rebuilt from scratch via `mix phx.new`.** Everything
+> described under Phases 0–2 below is from the **pre-rebuild** platform and is kept
+> only for historical context — that code (Tenancy/RBAC/JWT/config service/32 tests)
+> is **not** in the current tree. For the platform plane, the **live tracker is
+> [`platform_release_plan.md`](platform_release_plan.md)** (releases R0–R16).
+>
+> **Current platform state:** R0 ✅ (walking skeleton) · R1 ✅ (auth & accounts:
+> email+password + magic-link via `phx.gen.auth`, design-system styled, SSO seams).
+> Next up: **R2 — Tenancy + RBAC + launcher.** The AI service / add-in / infra
+> phases below remain the reference for those tracks.
+
+Living tracker of the original §13 phased plan (solution-design doc). Update this
 at the end of each working session so the next one has continuity.
 
 Legend: ✅ done · 🟡 partial · ⬜ not started

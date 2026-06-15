@@ -7,6 +7,19 @@
 # General application configuration
 import Config
 
+config :quote_assist, :scopes,
+  user: [
+    default: true,
+    module: QuoteAssist.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :binary_id,
+    schema_table: :users,
+    test_data_fixture: QuoteAssist.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :quote_assist,
   ecto_repos: [QuoteAssist.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]

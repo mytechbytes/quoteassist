@@ -2,11 +2,14 @@ name: quote-assist
 
 services:
   db:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pgvector:pg18
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: quote_assist_dev
+      # postgres:18 moved the default data dir; pin it to the classic path so the
+      # /var/lib/postgresql/data mount is used (avoids the "unused mount" exit).
+      PGDATA: /var/lib/postgresql/data
     ports: ["5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck:
@@ -15,7 +18,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     ports: ["6379:6379"]
 
   ai-service:

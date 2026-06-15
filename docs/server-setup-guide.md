@@ -1,8 +1,8 @@
 # QuoteAssist CI/CD on Oracle Cloud Infrastructure — Complete Setup Guide
 
-**Stack:** Elixir 1.18+ · OTP 29 · Phoenix 1.8 (platform) · Python 3.12 / FastAPI
-(ai-service) · PostgreSQL 16 **+ pgvector** · Redis 7 · Docker · Jenkins · Caddy ·
-Oracle Cloud Infrastructure (OCI)
+**Stack:** Elixir 1.18+ · OTP 29 · Phoenix 1.8 (platform) · Python 3.14 / FastAPI
+(ai-service) · PostgreSQL 18 **+ pgvector** · Redis 8 · Docker · Jenkins · Caddy ·
+Oracle Cloud Infrastructure (OCI). Latest-stable images throughout.
 
 **Architecture:**
 - **Jenkins Server** — Oracle Linux 9, ARM64 — builds, tests, pushes images.
@@ -12,8 +12,8 @@ Oracle Cloud Infrastructure (OCI)
   approval).
 
 **What deploys:** two app images from this monorepo —
-- `quote-assist-platform` (Elixir/Phoenix — web UI + API; **public**, behind Caddy)
-- `quote-assist-ai` (Python/FastAPI — extraction; **internal only**, no public route)
+- `quoteassist` (Elixir/Phoenix — web UI + API; **public**, behind Caddy)
+- `quoteassist-ai` (Python/FastAPI — extraction; **internal only**, no public route)
 
 plus `postgres` (pgvector) and `redis`. The platform reaches the AI service over the
 internal Docker network at `http://ai-service:8000`.
@@ -80,13 +80,16 @@ Container Registry → Create Repository), all in the **same compartment**:
 
 | Repository                 | Access  | Purpose                          |
 |----------------------------|---------|----------------------------------|
-| `quote-assist-platform`    | Private | Elixir/Phoenix app image         |
-| `quote-assist-ai`          | Private | Python/FastAPI AI service image  |
+| `quoteassist`              | Private | Elixir/Phoenix app image         |
+| `quoteassist-ai`           | Private | Python/FastAPI AI service image  |
 | `mytechbytes-elixir-ci`    | Private | Shared Elixir CI runner image    |
 
-> `mytechbytes-elixir-ci` is **shared across all your Elixir apps** (e.g. MangoCMS),
-> so it likely already exists — reuse it; only create it if it's missing. The
-> pipeline rebuilds/pushes it only when it's absent or `REBUILD_CI_IMAGE=true`.
+> `mytechbytes-elixir-ci` is **shared across all your Elixir apps** (MangoCMS,
+> QuoteAssist, MangoGST…). It has **one owner** — a single repo (or the MangoCMS
+> repo) holds the Dockerfile and builds/pushes the image. Every other app pipeline
+> only **pulls** the tag `mytechbytes-elixir-ci:otp-29` — they do not carry a copy
+> of the CI Dockerfile (that's how you avoid drift: change the toolchain once in
+> the owner, rebuild, and all apps pick it up on their next run).
 
 ---
 
@@ -248,12 +251,13 @@ services:
     depends_on: [platform]
 
   postgres:
-    image: pgvector/pgvector:pg16        # pgvector + citext + pgcrypto available
+    image: pgvector/pgvector:pg18        # pgvector + citext + pgcrypto available
     container_name: postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data   # postgres:18 needs this when mounting .../data
     volumes: [postgres-data:/var/lib/postgresql/data]
     networks: [backend-net]
     healthcheck:
@@ -364,13 +368,14 @@ Files live in the monorepo. The platform release files are under `projects/platf
 ### 5.1 Key files (already in this repo)
 
 - **`projects/platform/Dockerfile`** — multi-stage Elixir release (builder →
-  assets → release → runtime). Builder + runtime are both **Debian trixie**
-  (`glibc`/OpenSSL must match); `libsctp1` silences the Erlang SCTP boot warning;
-  runs as non-root `appuser` (UID/GID 1000). Pin `ELIXIR_IMAGE`/`RUNTIME_IMAGE`
-  build-args to match `.tool-versions` (OTP 29).
-- **`projects/platform/ci/Dockerfile`** — shared Elixir CI runner (Alpine). Rebuild
-  + repush when bumping Elixir/OTP (`REBUILD_CI_IMAGE=true`).
-- **`projects/ai-service/Dockerfile`** — Python 3.12 / FastAPI (uvicorn on 8000).
+  assets → release → runtime), built from the official `elixir:1.20.1-otp-29`
+  (Debian **trixie**) with a matching `debian:trixie-slim` runtime (`glibc`/OpenSSL
+  must match); `libsctp1` silences the Erlang SCTP boot warning; runs as non-root
+  `appuser` (UID/GID 1000).
+- **Shared CI runner** (`mytechbytes-elixir-ci`) — **not** in this repo. It's owned
+  by a single repo and this pipeline only pulls it (see §2.3). Base:
+  `elixir:1.20.1-otp-29-alpine`.
+- **`projects/ai-service/Dockerfile`** — Python 3.14 / FastAPI (uvicorn on 8000).
 - **`projects/platform/.tool-versions`** — must match the build images' OTP.
   Dialyzer embeds the OTP version in the PLT filename — a mismatch forces a rebuild.
 - **`projects/platform/coveralls.json`** — coverage config (skips release/app/core
@@ -397,18 +402,21 @@ Files live in the monorepo. The platform release files are under `projects/platf
 | other     | CI only   | skipped                | `pr-N`              |
 
 ### 6.2 Stages
-Configure (branch vars) → CI Image (build/push shared runner if missing/forced) →
-Platform CI (in the CI image, against a throwaway **pgvector** container:
-`mix deps.get · format --check · compile --warnings-as-errors · credo ·
-coveralls.json --minimum-coverage`) → Build & Push (**two** images,
-`docker buildx --platform linux/arm64`: `quote-assist-platform` from
-`projects/platform`, `quote-assist-ai` from `projects/ai-service`) → Approval
-(**main** only, 24h) → Deploy (SSH: bump `*_IMAGE_TAG` in `.env`, `compose pull` +
-`up -d`, run migrations) → Smoke Test (`GET /health/ready`, 5 tries).
+Configure (branch vars) → Platform CI (**pulls** the shared `mytechbytes-elixir-ci`
+runner, runs against a throwaway **pgvector** container:
+`mix deps.get · format --check · compile --warnings-as-errors · credo · test`) →
+Build & Push (`docker buildx --platform linux/arm64`: the `quoteassist` platform
+image from `projects/platform`; the `quoteassist-ai` image ships in its own release)
+→ Approval (**main** only, 24h) → Deploy (SSH: bump `QUOTEASSIST_IMAGE_TAG` in
+`.env`, `compose pull quoteassist` + `up -d quoteassist`, run migrations — touches
+**only** the quoteassist service) → Smoke Test (`GET /health/ready`, 5 tries).
+
+The shared CI runner is **not built here** — one owner repo builds/pushes
+`mytechbytes-elixir-ci:otp-29`; this pipeline only pulls it.
 
 ### 6.3 Parameters
 `PIPELINE_ACTION` (`BUILD_AND_DEPLOY` | `ROLLBACK`) · `ROLLBACK_TAG`
-(`prd-13`/`stg-13`) · `COVERAGE_THRESHOLD` (default 80) · `REBUILD_CI_IMAGE`.
+(`prd-13`/`stg-13`) · `COVERAGE_THRESHOLD` (default 80).
 
 Before first run, set `<OCI_NAMESPACE>`, `161.118.161.178` and the hostnames in the
 `Jenkinsfile` (Configure stage + `environment` block).
@@ -558,7 +566,7 @@ docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
 ### Key gotchas to never forget
 1. **docker-credential-pass** breaks `docker push` (403) silently — remove it on any
    new Jenkins/prod box.
-2. **pgvector image** — use `pgvector/pgvector:pg16`, not plain `postgres`, or the
+2. **pgvector image** — use `pgvector/pgvector:pg18`, not plain `postgres`, or the
    `vector(1536)` migration fails (`type "vector" does not exist`).
 3. **`eval` vs `rpc`** — `eval` starts a minimal VM (kernel/stdlib only); use `rpc`
    to run in the live node when you need config/env/SSL (e.g. SMTP test).
@@ -576,7 +584,8 @@ docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
 | `403` on push, login OK | federated user, or `credsStore: pass` | use local `jenkins-ci`; remove docker-credential-pass; reset config to `{}` |
 | `Allow group Administrators` no effect | Identity Domains needs qualified name | use `'Default'/'Administrators'` |
 | `403` push — repo missing | OCIR no auto-create | create repo in console first |
-| `type "vector" does not exist` | plain `postgres` image | switch to `pgvector/pgvector:pg16` |
+| `type "vector" does not exist` | plain `postgres` image | switch to `pgvector/pgvector:pg18` |
+| postgres:18 exits with "unused mount/volume" | pg18 changed the default data dir | set `PGDATA: /var/lib/postgresql/data` (or mount the volume at `/var/lib/postgresql`) |
 | `glibc version not found` at start | runtime OS ≠ builder | use `debian:trixie-slim` runtime |
 | `ESOCK WARNING: libsctp.so.1` | missing SCTP lib | add `libsctp1` to runtime (done) |
 | `groupadd: GID 1000 already exists` | base image default user | `userdel` UID 1000 before `groupadd` (done) |

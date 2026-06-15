@@ -16,16 +16,18 @@ pipeline {
     choice(name: 'PIPELINE_ACTION', choices: ['BUILD_AND_DEPLOY', 'ROLLBACK'], description: 'Action to perform')
     string(name: 'ROLLBACK_TAG', defaultValue: '', description: 'e.g. prd-13 (main) or stg-13 (develop)')
     string(name: 'COVERAGE_THRESHOLD', defaultValue: '80', description: 'Minimum coverage %')
-    booleanParam(name: 'REBUILD_CI_IMAGE', defaultValue: false, description: 'Force rebuild of the shared CI image')
   }
 
   environment {
     OCIR          = 'ap-mumbai-1.ocir.io'
     OCI_NAMESPACE = 'bmsedjmf13c1'
-    PLATFORM_IMAGE = "${OCIR}/${OCI_NAMESPACE}/quote-assist-platform"
-    AI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/quote-assist-ai"
-    CI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/mytechbytes-elixir-ci:1.18.4-otp-29"
-    PGVECTOR_IMAGE = 'pgvector/pgvector:pg16'
+    // Image repos match the shared-server .env / compose conventions.
+    PLATFORM_IMAGE = "${OCIR}/${OCI_NAMESPACE}/quoteassist"
+    AI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/quoteassist-ai"
+    // Shared CI runner — built & pushed by ONE owner repo (not here). This
+    // pipeline only pulls it. Bump the toolchain in the owner repo, not per-app.
+    CI_IMAGE       = "${OCIR}/${OCI_NAMESPACE}/mytechbytes-elixir-ci:otp-29"
+    PGVECTOR_IMAGE = 'pgvector/pgvector:pg18'
   }
 
   stages {
@@ -56,23 +58,13 @@ pipeline {
       }
     }
 
-    stage('CI Image') {
-      when { expression { params.PIPELINE_ACTION == 'BUILD_AND_DEPLOY' } }
-      steps {
-        sh '''
-          if [ "${REBUILD_CI_IMAGE}" = "true" ] || ! docker manifest inspect "${CI_IMAGE}" >/dev/null 2>&1; then
-            docker buildx build --platform linux/arm64 -t "${CI_IMAGE}" \
-              -f projects/platform/ci/Dockerfile --push projects/platform/ci
-          fi
-        '''
-      }
-    }
-
     stage('Platform CI') {
       when { expression { params.PIPELINE_ACTION == 'BUILD_AND_DEPLOY' } }
       steps {
         sh '''
           set -e
+          # Shared CI runner is owned/built by another repo — just pull the latest.
+          docker pull "${CI_IMAGE}"
           docker network create qa-ci-${BUILD_NUMBER} || true
           docker run -d --name qa-ci-db-${BUILD_NUMBER} --network qa-ci-${BUILD_NUMBER} \
             -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=quote_assist_test ${PGVECTOR_IMAGE}
@@ -108,9 +100,11 @@ pipeline {
           docker buildx build --platform linux/arm64 \
             -t "${PLATFORM_IMAGE}:${TAG}" -t "${PLATFORM_IMAGE}:${TAG_PREFIX}-latest" \
             --push projects/platform
-          docker buildx build --platform linux/arm64 \
-            -t "${AI_IMAGE}:${TAG}" -t "${AI_IMAGE}:${TAG_PREFIX}-latest" \
-            --push projects/ai-service
+          # ai-service image is built + deployed in its own release (Phase 5). Until
+          # then QuoteAssist is platform-only, so we don't build/ship it:
+          # docker buildx build --platform linux/arm64 \
+          #   -t "${AI_IMAGE}:${TAG}" -t "${AI_IMAGE}:${TAG_PREFIX}-latest" \
+          #   --push projects/ai-service
         '''
       }
     }
@@ -133,15 +127,16 @@ pipeline {
           // On rollback, deploy the requested tag instead of the freshly built one.
           def deployTag = params.PIPELINE_ACTION == 'ROLLBACK' ? params.ROLLBACK_TAG : env.TAG
           sshagent(credentials: [env.SSH_CRED]) {
+            // Shared multi-app server: touch ONLY the quoteassist service so
+            // MangoCMS / others are never restarted.
             sh """
               ssh -o StrictHostKeyChecking=no ${env.DEPLOY_HOST} '
                 set -e
                 cd ${env.COMPOSE_DIR}
-                sed -i "s/^PLATFORM_IMAGE_TAG=.*/PLATFORM_IMAGE_TAG=${deployTag}/" .env
-                sed -i "s/^AI_IMAGE_TAG=.*/AI_IMAGE_TAG=${deployTag}/" .env
-                docker compose pull platform ai-service
-                docker compose up -d
-                docker compose exec -T platform /app/bin/quote_assist eval "QuoteAssist.Release.migrate()"
+                sed -i "s/^QUOTEASSIST_IMAGE_TAG=.*/QUOTEASSIST_IMAGE_TAG=${deployTag}/" .env
+                docker compose pull quoteassist
+                docker compose up -d quoteassist
+                docker compose exec -T quoteassist /app/bin/quote_assist eval "QuoteAssist.Release.migrate()"
               '
             """
           }

@@ -1,10 +1,9 @@
 # Multi-stage production build for the QuoteAssist platform (Elixir/Phoenix release).
 #
-# Pin the build image to match .tool-versions (OTP 29, Elixir 1.18+ line). hexpm
-# images let you pin the exact Erlang/OTP patch. RUNTIME_IMAGE must be the SAME
-# Debian release as the builder (trixie), or the release fails at start with
-# "glibc version not found".
-ARG ELIXIR_IMAGE="hexpm/elixir:1.18.4-erlang-29.0.1-debian-trixie-20250630-slim"
+# Official elixir image — OTP 29 only ships on the 1.20.x line (1.20.1 satisfies
+# mix.exs `~> 1.18`). `elixir:1.20.1-otp-29` is Debian **trixie**, so RUNTIME_IMAGE
+# must also be trixie or the release fails at start with "glibc version not found".
+ARG ELIXIR_IMAGE="elixir:1.20.1-otp-29"
 ARG RUNTIME_IMAGE="debian:trixie-slim"
 
 # ── Builder ───────────────────────────────────────────────────────────────

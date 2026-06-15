@@ -59,8 +59,9 @@ Principles, every release:
 > migration applied; branded landing renders the design tokens; prod release
 > assembles (`bin/quote_assist`). Files: health controller + routes, extensions
 > migration, `assets/css/qa.css` + layout fonts/dark mode, `projects/platform/
-> Dockerfile` + `ci/Dockerfile` + `.tool-versions` + `lib/quote_assist/release.ex`,
-> `Jenkinsfile`, `.github/workflows/platform.yml` (format/compile/credo/test).
+> Dockerfile` + `.tool-versions` + `lib/quote_assist/release.ex`, `Jenkinsfile`
+> (pulls the shared `mytechbytes-elixir-ci` runner), `.github/workflows/platform.yml`
+> (format/compile/credo/test).
 
 **Ships** A running app that deploys to staging with a green health check — no
 features yet, but the whole pipeline works.

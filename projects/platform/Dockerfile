@@ -28,14 +28,18 @@ RUN mix deps.compile
 
 COPY priv priv
 COPY lib lib
-COPY assets assets
+COPY config/runtime.exs config/
 
-# Build + digest assets (tailwind/esbuild standalone binaries, no Node needed).
-RUN mix assets.setup
-RUN mix assets.deploy
+# Compile BEFORE assets: the phoenix_live_view compiler emits the colocated
+# CSS/JS (phoenix-colocated/...) into _build/$MIX_ENV that app.css imports, so
+# `mix assets.deploy` (tailwind) would fail to resolve them otherwise.
 RUN mix compile
 
-COPY config/runtime.exs config/
+# Then build + digest assets (tailwind/esbuild standalone binaries, no Node needed).
+COPY assets assets
+RUN mix assets.setup
+RUN mix assets.deploy
+
 RUN mix release
 
 # ── Runtime ───────────────────────────────────────────────────────────────

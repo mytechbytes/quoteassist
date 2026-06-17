@@ -1,5 +1,8 @@
 import Config
 
+# Only in tests, remove the complexity from the password hashing algorithm
+config :bcrypt_elixir, :log_rounds, 1
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
@@ -25,6 +28,15 @@ config :quote_assist, QuoteAssistWeb.Endpoint,
 
 # In test we don't send emails
 config :quote_assist, QuoteAssist.Mailer, adapter: Swoosh.Adapters.Test
+
+# Effectively disable the login throttle by default so generated auth tests
+# (which submit many logins) aren't rate-limited. The throttle's own test passes
+# explicit low limits via plug opts to exercise the limiting path.
+config :quote_assist, QuoteAssistWeb.Plugs.LoginThrottle,
+  ip_limit: 1_000_000,
+  email_limit: 1_000_000,
+  window_ms: 60_000,
+  redirect_to: "/login"
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

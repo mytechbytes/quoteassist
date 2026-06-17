@@ -682,3 +682,74 @@ body {
     color: var(--mc-text);
   }
 }
+
+/* ─ Auth screens (R1) ──────────────────────────────────────────────────────── */
+/* Split-screen sign-in (login.html) + centred confirmation (verify.html).        */
+/* Layout (grid/flex/spacing) is composed with plain Tailwind utilities in the     */
+/* markup; only the distinctive brand panel, card width, and OTP cell live here.   */
+
+/* Gradient brand panel on the left of the sign-in screen. Pair with Tailwind
+   `hidden lg:flex` in markup so it collapses on narrow viewports. */
+@utility mtb-auth-aside {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(140deg, var(--mc-grad-2) 0%, var(--mc-brand) 58%, var(--mc-grad-1) 100%);
+
+  /* Soft light bloom, top-right. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -20% -20% auto auto;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255 255 255 / 0.22) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Deeper teal bloom, bottom-left. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto -10% -20% -20%;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--mc-grad-2) 0%, transparent 60%);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+/* Centres the form column and caps its width. */
+@utility mtb-auth-card {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Single OTP / confirmation-code cell (verify.html). Render six in a row. */
+@utility mtb-otp {
+  width: 52px;
+  height: 60px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1;
+  border-radius: 12px;
+  border: 1px solid var(--mc-border-2);
+  background: var(--mc-surface);
+  color: var(--mc-text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    border-color: var(--mc-brand);
+    box-shadow: 0 0 0 3px var(--mc-brand-ring);
+  }
+
+  &[data-filled] {
+    border-color: var(--mc-brand);
+  }
+}

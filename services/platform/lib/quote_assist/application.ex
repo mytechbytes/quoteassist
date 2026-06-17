@@ -12,8 +12,8 @@ defmodule QuoteAssist.Application do
       QuoteAssist.Repo,
       {DNSCluster, query: Application.get_env(:quote_assist, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: QuoteAssist.PubSub},
-      # Start a worker by calling: QuoteAssist.Worker.start_link(arg)
-      # {QuoteAssist.Worker, arg},
+      # In-memory login throttle backend (QuoteAssistWeb.Plugs.LoginThrottle).
+      QuoteAssist.RateLimiter,
       # Start to serve requests, typically the last entry
       QuoteAssistWeb.Endpoint
     ]

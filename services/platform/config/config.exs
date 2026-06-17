@@ -7,6 +7,19 @@
 # General application configuration
 import Config
 
+config :quote_assist, :scopes,
+  user: [
+    default: true,
+    module: QuoteAssist.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :binary_id,
+    schema_table: :users,
+    test_data_fixture: QuoteAssist.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :quote_assist,
   ecto_repos: [QuoteAssist.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
@@ -37,6 +50,16 @@ config :quote_assist, QuoteAssistWeb.Endpoint,
 config :phoenix_live_view,
   # the attribute set on all root tags. Used for Phoenix.LiveView.ColocatedCSS.
   root_tag_attribute: "phx-r"
+
+# Login throttle (QuoteAssistWeb.Plugs.LoginThrottle / QuoteAssist.RateLimiter).
+# Per-IP and per-email fixed-window limits on the login POST. Tightened/loosened
+# per environment (tests relax these in config/test.exs). Reused by /admin/login
+# and /register in later releases.
+config :quote_assist, QuoteAssistWeb.Plugs.LoginThrottle,
+  ip_limit: 20,
+  email_limit: 10,
+  window_ms: 60_000,
+  redirect_to: "/login"
 
 # Configure the mailer
 #

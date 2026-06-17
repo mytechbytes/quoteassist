@@ -3,6 +3,7 @@ defmodule QuoteAssistWeb.UserSessionController do
 
   alias QuoteAssist.Accounts
   alias QuoteAssist.Audit
+  alias QuoteAssist.Tenants
   alias QuoteAssistWeb.UserAuth
 
   def create(conn, %{"_action" => "confirmed"} = params) do
@@ -13,35 +14,46 @@ defmodule QuoteAssistWeb.UserSessionController do
     create(conn, params, "Welcome back!")
   end
 
-  # magic link login
+  # magic link login — scoped to the resolved tenant. The membership is checked
+  # before the token is consumed, so a link submitted on the wrong tenant's host is
+  # rejected (with the generic error, no enumeration) without burning the token.
   defp create(conn, %{"user" => %{"token" => token} = user_params}, info) do
-    case Accounts.login_user_by_magic_link(token) do
-      {:ok, {user, tokens_to_disconnect}} ->
-        UserAuth.disconnect_sessions(tokens_to_disconnect)
+    tenant = conn.assigns[:current_tenant]
+    user = tenant && Accounts.get_user_by_magic_link_token(token)
 
-        conn
-        |> log_login(user, "magic_link")
-        |> put_flash(:info, info)
-        |> UserAuth.log_in_user(user, user_params)
+    if user && Tenants.member?(tenant, user) do
+      case Accounts.login_user_by_magic_link(token) do
+        {:ok, {user, tokens_to_disconnect}} ->
+          UserAuth.disconnect_sessions(tokens_to_disconnect)
 
-      _ ->
-        conn
-        |> put_flash(:error, "The link is invalid or it has expired.")
-        |> redirect(to: ~p"/login")
+          conn
+          |> log_login(user, "magic_link")
+          |> put_flash(:info, info)
+          |> UserAuth.log_in_user(user, user_params)
+
+        _ ->
+          invalid_link(conn)
+      end
+    else
+      invalid_link(conn)
     end
   end
 
-  # email + password login
+  # email + password login — scoped to the resolved tenant. A user can only sign in
+  # to a tenant they have a live membership for.
   defp create(conn, %{"user" => user_params}, info) do
     %{"email" => email, "password" => password} = user_params
+    tenant = conn.assigns[:current_tenant]
+    user = Accounts.get_user_by_email_and_password(email, password)
 
-    if user = Accounts.get_user_by_email_and_password(email, password) do
+    if user && tenant && Tenants.member?(tenant, user) do
       conn
       |> log_login(user, "password")
       |> put_flash(:info, info)
       |> UserAuth.log_in_user(user, user_params)
     else
-      # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
+      # Generic error — never reveal whether the email exists or belongs to another
+      # tenant (prevents cross-tenant user enumeration).
       conn
       |> put_flash(:error, "Invalid email or password")
       |> put_flash(:email, String.slice(email, 0, 160))
@@ -57,6 +69,12 @@ defmodule QuoteAssistWeb.UserSessionController do
     conn
     |> put_flash(:info, "Logged out successfully.")
     |> UserAuth.log_out_user()
+  end
+
+  defp invalid_link(conn) do
+    conn
+    |> put_flash(:error, "The link is invalid or it has expired.")
+    |> redirect(to: ~p"/login")
   end
 
   # Writes an append-only audit row for a successful login. Tenant id comes from the

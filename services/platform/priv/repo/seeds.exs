@@ -5,12 +5,12 @@
 # It also runs as part of `mix ecto.setup` / `mix ecto.reset`.
 #
 # ── R2 dev/staging seed ───────────────────────────────────────────────────────
-# One tenant (`acme`) reachable on its subdomain (http://acme.quoteassist.localhost:4000) with the
-# built-in role catalog seeded, plus a few members so you can exercise tenant-scoped
-# sign-in end to end: password login, the magic-link flow, and role-scoped access.
+# Several tenants, each reachable on its own subdomain with the built-in role
+# catalog seeded and its own members. Each user belongs to exactly one tenant, so
+# you can verify isolation: a user of one tenant cannot sign in to another.
 #
-# The magic-link handler stays silent for unknown emails (no user-enumeration), so
-# without seeded users no email is ever sent — seed first, then request a link and
+# The magic-link handler stays silent for unknown / non-member emails (no
+# enumeration), so request a link on the tenant subdomain the user belongs to and
 # read it at http://localhost:4000/dev/mailbox.
 #
 # Idempotent and guarded to dev/staging only. Password comes from DEV_USER_PASSWORD
@@ -24,30 +24,9 @@ alias QuoteAssist.Tenants
 deploy_env = Application.get_env(:quote_assist, :deploy_env, "dev")
 
 if deploy_env in ["dev", "staging"] do
-  password = System.get_env("DEV_USER_PASSWORD", "change-me-please")
-
-  # 1) Tenant + role catalog.
-  tenant =
-    case Tenants.get_tenant_by_slug("acme") do
-      nil ->
-        {:ok, tenant} = Tenants.create_tenant(%{name: "Acme Travel", slug: "acme"})
-        tenant
-
-      existing ->
-        existing
-    end
-
-  # Promote the dev tenant from trial → active via the guarded transition (writes an
-  # audit row). No-op on re-runs once it is already active.
-  tenant =
-    if tenant.status == :trial do
-      {:ok, active} = Tenants.transition_status(tenant, :active, :system)
-      active
-    else
-      tenant
-    end
-
-  Tenants.seed_default_roles(tenant)
+  password = System.get_env("DEV_USER_PASSWORD", "panther@2010")
+  scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "http")
+  base = Application.get_env(:quote_assist, :tenant_base_domain, "quoteassist.localhost:4000")
 
   ensure_user = fn email ->
     case Accounts.get_user_by_email(email) do
@@ -69,7 +48,31 @@ if deploy_env in ["dev", "staging"] do
     |> Repo.update!()
   end
 
-  ensure_member = fn %User{} = user, role_slug ->
+  ensure_tenant = fn slug, name ->
+    tenant =
+      case Tenants.get_tenant_by_slug(slug) do
+        nil ->
+          {:ok, tenant} = Tenants.create_tenant(%{name: name, slug: slug})
+          tenant
+
+        existing ->
+          existing
+      end
+
+    # Promote trial → active so the tenant resolves; no-op once already active.
+    tenant =
+      if tenant.status == :trial do
+        {:ok, active} = Tenants.transition_status(tenant, :active, :system)
+        active
+      else
+        tenant
+      end
+
+    Tenants.seed_default_roles(tenant)
+    tenant
+  end
+
+  ensure_member = fn tenant, %User{} = user, role_slug ->
     role = Tenants.get_role_by_slug(tenant, role_slug)
 
     case Tenants.get_active_membership(tenant, user) do
@@ -78,20 +81,63 @@ if deploy_env in ["dev", "staging"] do
     end
   end
 
-  # 2) Members — confirmed (password + magic link) and one unconfirmed.
-  "owner@acme.test" |> confirm_with_password.() |> ensure_member.("owner")
-  "agent@acme.test" |> confirm_with_password.() |> ensure_member.("agent")
+  # Each tenant + its members. `confirmed: false` exercises the magic-link confirm
+  # path (no password yet). Emails are tenant-specific so memberships never overlap.
+  specs = [
+    %{
+      slug: "acme",
+      name: "Acme Travel",
+      members: [
+        %{email: "owner@acme.test", role: "owner"},
+        %{email: "agent@acme.test", role: "agent"},
+        %{email: "newbie@acme.test", role: "viewer", confirmed: false}
+      ]
+    },
+    %{
+      slug: "globex",
+      name: "Globex Holidays",
+      members: [
+        %{email: "owner@globex.test", role: "owner"},
+        %{email: "agent@globex.test", role: "agent"}
+      ]
+    },
+    %{
+      slug: "umbrella",
+      name: "Umbrella Voyages",
+      members: [
+        %{email: "owner@umbrella.test", role: "owner"}
+      ]
+    }
+  ]
 
-  # Unconfirmed user — exercises the magic-link *confirmation* path; a viewer
-  # membership lets them reach the workspace once confirmed.
-  "newbie@acme.test" |> ensure_user.() |> ensure_member.("viewer")
+  for spec <- specs do
+    tenant = ensure_tenant.(spec.slug, spec.name)
+
+    for member <- spec.members do
+      user =
+        if Map.get(member, :confirmed, true) do
+          confirm_with_password.(member.email)
+        else
+          ensure_user.(member.email)
+        end
+
+      ensure_member.(tenant, user, member.role)
+    end
+  end
+
+  directory =
+    specs
+    |> Enum.map_join("\n", fn spec ->
+      emails = Enum.map_join(spec.members, ", ", & &1.email)
+      "    #{spec.name} → #{scheme}://#{spec.slug}.#{base}/login\n      members: #{emails}"
+    end)
 
   IO.puts("""
-  Seeded dev tenant + members (password = DEV_USER_PASSWORD, default "change-me-please"):
-    tenant:  acme (active)  →  http://acme.quoteassist.localhost:4000/login
-    owner@acme.test   (owner,  password + magic link)
-    agent@acme.test   (agent,  password + magic link)
-    newbie@acme.test  (viewer, unconfirmed — magic-link confirm)
+  Seeded dev tenants (password = DEV_USER_PASSWORD, default "change-me-please"):
+  #{directory}
+
+  Each user belongs to ONE tenant — signing in on another tenant's host is rejected.
+  Unconfirmed users (newbie@acme.test) use the magic-link confirm flow.
   Read dev emails at http://localhost:4000/dev/mailbox.
   """)
 else

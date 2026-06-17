@@ -40,7 +40,9 @@ defmodule QuoteAssist.MixProject do
         precommit: :test,
         coveralls: :test,
         "coveralls.json": :test,
-        "coveralls.html": :test
+        "coveralls.html": :test,
+        check: :test,
+        "ecto.check": :test
       ]
     ]
   end
@@ -105,6 +107,18 @@ defmodule QuoteAssist.MixProject do
         "tailwind quote_assist --minify",
         "esbuild quote_assist --minify",
         "phx.digest"
+      ],
+      check: [
+        "format",
+        "credo --strict",
+        "test",
+        "coveralls.json",
+        "run --no-start ci/check_coverage.exs"
+      ],
+      "ecto.check": [
+        "deps.get",
+        "ecto.reset",
+        "check"
       ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
     ]

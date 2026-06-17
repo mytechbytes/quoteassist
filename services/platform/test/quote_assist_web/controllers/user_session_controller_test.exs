@@ -6,64 +6,72 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
   import QuoteAssist.TenantsFixtures
 
   alias QuoteAssist.Accounts
+  alias QuoteAssist.Accounts.UserToken
   alias QuoteAssist.Audit.Log
   alias QuoteAssist.Repo
 
-  setup do
-    %{unconfirmed_user: unconfirmed_user_fixture(), user: user_fixture()}
+  # Login is tenant-scoped: requests run on a tenant host with a member user.
+  setup %{conn: conn} do
+    tenant = active_tenant_fixture(%{slug: "acme"})
+    {member, _membership} = member_fixture(tenant, "owner")
+    %{conn: put_tenant_host(conn, tenant), tenant: tenant, member: member}
   end
 
   describe "POST /login - email and password" do
-    test "logs the user in", %{conn: conn, user: user} do
-      user = set_password(user)
+    test "logs a member in", %{conn: conn, member: member} do
+      member = set_password(member)
 
       conn =
         post(conn, ~p"/login", %{
-          "user" => %{"email" => user.email, "password" => valid_user_password()}
+          "user" => %{"email" => member.email, "password" => valid_user_password()}
         })
 
       assert get_session(conn, :user_token)
-      # Workspace rendering now requires tenant membership (see AppHomeLiveTest); the
-      # session controller's job is the session + redirect.
       assert redirected_to(conn) == ~p"/app"
     end
 
-    test "writes an audit row on a successful login (email masked)", %{conn: conn, user: user} do
-      user = set_password(user)
+    test "writes an audit row scoped to the tenant (email masked)", %{
+      conn: conn,
+      tenant: tenant,
+      member: member
+    } do
+      member = set_password(member)
 
       post(conn, ~p"/login", %{
-        "user" => %{"email" => user.email, "password" => valid_user_password()}
+        "user" => %{"email" => member.email, "password" => valid_user_password()}
       })
 
       log = Repo.one!(from l in Log, where: l.action == "user.login")
       assert log.actor_type == :user
-      assert log.actor_id == user.id
+      assert log.actor_id == member.id
+      assert log.tenant_id == tenant.id
       assert log.metadata["method"] == "password"
       assert log.metadata["email"] =~ "***"
-      refute log.metadata["email"] == user.email
+      refute log.metadata["email"] == member.email
     end
 
-    test "scopes the audit row to the tenant resolved from the host", %{conn: conn, user: user} do
-      user = set_password(user)
-      tenant = active_tenant_fixture(%{slug: "acme"})
+    test "rejects a user who is not a member of this tenant (no enumeration)", %{conn: conn} do
+      other = active_tenant_fixture(%{slug: "globex"})
+      {stranger, _} = member_fixture(other, "owner")
+      stranger = set_password(stranger)
 
-      conn
-      |> put_tenant_host(tenant)
-      |> post(~p"/login", %{
-        "user" => %{"email" => user.email, "password" => valid_user_password()}
-      })
+      conn =
+        post(conn, ~p"/login", %{
+          "user" => %{"email" => stranger.email, "password" => valid_user_password()}
+        })
 
-      log = Repo.one!(from l in Log, where: l.action == "user.login")
-      assert log.tenant_id == tenant.id
+      refute get_session(conn, :user_token)
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
+      assert redirected_to(conn) == ~p"/login"
     end
 
-    test "logs the user in with remember me", %{conn: conn, user: user} do
-      user = set_password(user)
+    test "logs a member in with remember me", %{conn: conn, member: member} do
+      member = set_password(member)
 
       conn =
         post(conn, ~p"/login", %{
           "user" => %{
-            "email" => user.email,
+            "email" => member.email,
             "password" => valid_user_password(),
             "remember_me" => "true"
           }
@@ -73,27 +81,24 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
       assert redirected_to(conn) == ~p"/app"
     end
 
-    test "logs the user in with return to", %{conn: conn, user: user} do
-      user = set_password(user)
+    test "logs a member in with return to", %{conn: conn, member: member} do
+      member = set_password(member)
 
       conn =
         conn
         |> init_test_session(user_return_to: "/foo/bar")
         |> post(~p"/login", %{
-          "user" => %{
-            "email" => user.email,
-            "password" => valid_user_password()
-          }
+          "user" => %{"email" => member.email, "password" => valid_user_password()}
         })
 
       assert redirected_to(conn) == "/foo/bar"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Welcome back!"
     end
 
-    test "redirects to login page with invalid credentials", %{conn: conn, user: user} do
+    test "redirects to login page with invalid credentials", %{conn: conn, member: member} do
       conn =
         post(conn, ~p"/login", %{
-          "user" => %{"email" => user.email, "password" => "invalid_password"}
+          "user" => %{"email" => member.email, "password" => "invalid_password"}
         })
 
       assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
@@ -102,13 +107,10 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
   end
 
   describe "POST /login - magic link" do
-    test "logs the user in", %{conn: conn, user: user} do
-      {token, _hashed_token} = generate_user_magic_link_token(user)
+    test "logs a member in", %{conn: conn, member: member} do
+      {token, _hashed_token} = generate_user_magic_link_token(member)
 
-      conn =
-        post(conn, ~p"/login", %{
-          "user" => %{"token" => token}
-        })
+      conn = post(conn, ~p"/login", %{"user" => %{"token" => token}})
 
       assert get_session(conn, :user_token)
       assert redirected_to(conn) == ~p"/app"
@@ -117,28 +119,39 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
                "magic_link"
     end
 
-    test "confirms unconfirmed user", %{conn: conn, unconfirmed_user: user} do
+    test "confirms an unconfirmed member", %{conn: conn, tenant: tenant} do
+      user = unconfirmed_user_fixture()
+      membership_fixture(tenant, user, "viewer")
       {token, _hashed_token} = generate_user_magic_link_token(user)
       refute user.confirmed_at
 
-      conn =
-        post(conn, ~p"/login", %{
-          "user" => %{"token" => token},
-          "_action" => "confirmed"
-        })
+      conn = post(conn, ~p"/login", %{"user" => %{"token" => token}, "_action" => "confirmed"})
 
       assert get_session(conn, :user_token)
       assert redirected_to(conn) == ~p"/app"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "User confirmed successfully."
-
       assert Accounts.get_user!(user.id).confirmed_at
     end
 
+    test "rejects a magic link for a non-member without consuming the token", %{conn: conn} do
+      other = active_tenant_fixture(%{slug: "globex"})
+      {stranger, _} = member_fixture(other, "owner")
+      {token, hashed_token} = generate_user_magic_link_token(stranger)
+
+      conn = post(conn, ~p"/login", %{"user" => %{"token" => token}})
+
+      refute get_session(conn, :user_token)
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
+               "The link is invalid or it has expired."
+
+      assert redirected_to(conn) == ~p"/login"
+      # Token not burned — the stranger can still use it on their own tenant.
+      assert Repo.get_by(UserToken, token: hashed_token, context: "login")
+    end
+
     test "redirects to login page when magic link is invalid", %{conn: conn} do
-      conn =
-        post(conn, ~p"/login", %{
-          "user" => %{"token" => "invalid"}
-        })
+      conn = post(conn, ~p"/login", %{"user" => %{"token" => "invalid"}})
 
       assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
                "The link is invalid or it has expired."
@@ -147,9 +160,27 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
     end
   end
 
+  describe "platform host" do
+    test "POST /login is redirected to the directory (no tenant login there)", %{
+      conn: conn,
+      member: member
+    } do
+      member = set_password(member)
+      conn = %{conn | host: "www.example.com"}
+
+      conn =
+        post(conn, ~p"/login", %{
+          "user" => %{"email" => member.email, "password" => valid_user_password()}
+        })
+
+      refute get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/tenants"
+    end
+  end
+
   describe "DELETE /logout" do
-    test "logs the user out", %{conn: conn, user: user} do
-      conn = conn |> log_in_user(user) |> delete(~p"/logout")
+    test "logs the user out", %{conn: conn, member: member} do
+      conn = conn |> log_in_user(member) |> delete(~p"/logout")
       assert redirected_to(conn) == ~p"/"
       refute get_session(conn, :user_token)
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Logged out successfully"

@@ -4,8 +4,8 @@ defmodule QuoteAssistWeb.Plugs.TenantResolverTest do
   import QuoteAssist.TenantsFixtures
 
   alias QuoteAssistWeb.Plugs.TenantResolver
-  alias QuoteAssistWeb.TenantNotFoundError
 
+  # Direct plug call — used for the cases that only assign (no render).
   defp resolve(host, session \\ %{}) do
     build_conn()
     |> Map.put(:host, host)
@@ -13,7 +13,10 @@ defmodule QuoteAssistWeb.Plugs.TenantResolverTest do
     |> TenantResolver.call([])
   end
 
-  describe "call/2" do
+  # End-to-end dispatch — used for the not-found cases, which render the branded page.
+  defp get_on_host(host), do: build_conn() |> Map.put(:host, host) |> get(~p"/")
+
+  describe "call/2 — assigns" do
     test "platform host: no tenant, and clears a stale session tenant id" do
       conn = resolve("www.example.com", %{tenant_id: "stale-id"})
       assert conn.assigns.current_tenant == nil
@@ -36,22 +39,6 @@ defmodule QuoteAssistWeb.Plugs.TenantResolverTest do
       assert resolve("quotes.acme.test").assigns.current_tenant.id == tenant.id
     end
 
-    test "unknown subdomain raises (→ 404)" do
-      assert_raise TenantNotFoundError, fn -> resolve("nope.example.com") end
-    end
-
-    test "suspended tenant raises (→ 404)" do
-      tenant_with_status_fixture(:suspended, %{slug: "susp"})
-      assert_raise TenantNotFoundError, fn -> resolve("susp.example.com") end
-    end
-
-    test "unverified custom domain raises (→ 404)" do
-      active_tenant_fixture(%{slug: "pend"})
-      |> put_custom_domain!("pending.acme.test", :pending)
-
-      assert_raise TenantNotFoundError, fn -> resolve("pending.acme.test") end
-    end
-
     test "resolution is driven by host only — params cannot influence it" do
       tenant = active_tenant_fixture(%{slug: "acme"})
 
@@ -66,16 +53,32 @@ defmodule QuoteAssistWeb.Plugs.TenantResolverTest do
     end
   end
 
-  describe "TenantNotFoundError" do
-    test "is a 404 via the Plug.Exception protocol" do
-      assert Plug.Exception.status(%TenantNotFoundError{}) == 404
-      assert Plug.Exception.actions(%TenantNotFoundError{}) == []
+  describe "call/2 — unresolved hosts render the branded 404 page" do
+    test "unknown subdomain" do
+      conn = get_on_host("nope.example.com")
+
+      assert conn.status == 404
+      assert conn.halted
+      assert conn.resp_body =~ "WORKSPACE"
+      assert conn.resp_body =~ "nope.example.com"
     end
 
-    test "end to end: an unknown tenant host returns 404" do
-      assert_error_sent 404, fn ->
-        build_conn() |> Map.put(:host, "ghost.example.com") |> get(~p"/")
-      end
+    test "suspended tenant" do
+      tenant_with_status_fixture(:suspended, %{slug: "susp"})
+      conn = get_on_host("susp.example.com")
+
+      assert conn.status == 404
+      assert conn.resp_body =~ "susp.example.com"
+    end
+
+    test "unverified (pending) custom domain" do
+      active_tenant_fixture(%{slug: "pend"})
+      |> put_custom_domain!("pending.acme.test", :pending)
+
+      conn = get_on_host("pending.acme.test")
+
+      assert conn.status == 404
+      assert conn.resp_body =~ "pending.acme.test"
     end
   end
 end

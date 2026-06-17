@@ -21,6 +21,7 @@
     "lib/quote_assist_web/components/layouts.ex",
     "lib/quote_assist_web/controllers/error_html.ex",
     "lib/quote_assist_web/controllers/error_json.ex",
-    "lib/quote_assist_web/controllers/page_html.ex"
+    "lib/quote_assist_web/controllers/page_html.ex",
+    "lib/quote_assist_web/controllers/tenant_error_html.ex"
   ]
 }

@@ -27,6 +27,12 @@ defmodule QuoteAssistWeb.Router do
     plug QuoteAssistWeb.Plugs.LoginThrottle
   end
 
+  # Tenant login lives only on a resolved tenant host. On the platform host this
+  # redirects to the public directory (no tenant login there; admins use /admin/login).
+  pipeline :require_tenant do
+    plug QuoteAssistWeb.Plugs.RequireTenant
+  end
+
   scope "/", QuoteAssistWeb do
     pipe_through :browser
 
@@ -79,21 +85,28 @@ defmodule QuoteAssistWeb.Router do
     end
   end
 
+  # Tenant login — only on a resolved tenant host (:require_tenant bounces the
+  # platform host to the directory).
   scope "/", QuoteAssistWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :require_tenant]
 
     live_session :current_user,
       on_mount: [{QuoteAssistWeb.UserAuth, :mount_current_scope}] do
       live "/login", UserLive.Login, :new
       live "/login/:token", UserLive.Confirmation, :new
     end
+  end
+
+  # Logout is host-agnostic — it only clears the current session.
+  scope "/", QuoteAssistWeb do
+    pipe_through [:browser]
 
     delete "/logout", UserSessionController, :delete
   end
 
-  # The credential POST runs through the login throttle.
+  # The credential POST: tenant host + login throttle.
   scope "/", QuoteAssistWeb do
-    pipe_through [:browser, :login_throttle]
+    pipe_through [:browser, :require_tenant, :login_throttle]
 
     post "/login", UserSessionController, :create
   end

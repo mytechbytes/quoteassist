@@ -2,6 +2,7 @@ defmodule QuoteAssistWeb.UserLive.Login do
   use QuoteAssistWeb, :live_view
 
   alias QuoteAssist.Accounts
+  alias QuoteAssist.Tenants
   alias QuoteAssistWeb.Plugs.LoginThrottle
 
   @impl true
@@ -220,14 +221,30 @@ defmodule QuoteAssistWeb.UserLive.Login do
   end
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
     email =
       Phoenix.Flash.get(socket.assigns.flash, :email) ||
         get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:email)])
 
     form = to_form(%{"email" => email}, as: "user")
 
-    {:ok, assign(socket, form: form, trigger_submit: false)}
+    socket =
+      assign(socket,
+        form: form,
+        trigger_submit: false,
+        request_uri: nil,
+        tenant: Tenants.fetch_live_tenant(session["tenant_id"])
+      )
+
+    {:ok, socket}
+  end
+
+  @impl true
+  # Capture the request URL so the magic link is built on the *same* host the user
+  # is on (their tenant subdomain / custom domain). Cookies are host-scoped, so the
+  # whole magic-link flow must stay on that host for the session to be valid at /app.
+  def handle_params(_params, uri, socket) do
+    {:noreply, assign(socket, :request_uri, uri)}
   end
 
   @impl true
@@ -240,8 +257,13 @@ defmodule QuoteAssistWeb.UserLive.Login do
       {:noreply,
        put_flash(socket, :error, "Too many attempts. Please wait a minute and try again.")}
     else
-      if user = Accounts.get_user_by_email(email) do
-        Accounts.deliver_login_instructions(user, &url(~p"/login/#{&1}"))
+      # Only send to a member of the resolved tenant — a user of another tenant gets
+      # the same neutral response (no cross-tenant enumeration), and no link.
+      tenant = socket.assigns.tenant
+      user = Accounts.get_user_by_email(email)
+
+      if tenant && user && Tenants.member?(tenant, user) do
+        Accounts.deliver_login_instructions(user, &magic_link_url(socket.assigns.request_uri, &1))
       end
 
       info =
@@ -253,6 +275,19 @@ defmodule QuoteAssistWeb.UserLive.Login do
        |> push_navigate(to: ~p"/login")}
     end
   end
+
+  @doc """
+  Builds the magic-link URL for `token` on the host of `request_uri` (the tenant
+  subdomain or custom domain the user is on), so the emailed link returns them to
+  the same host. Falls back to the endpoint-configured host when no request URI is
+  available. Public so it can be unit-tested without sending an email.
+  """
+  def magic_link_url(request_uri, token) when is_binary(request_uri) do
+    %URI{URI.parse(request_uri) | path: ~p"/login/#{token}", query: nil, fragment: nil}
+    |> URI.to_string()
+  end
+
+  def magic_link_url(_request_uri, token), do: url(~p"/login/#{token}")
 
   defp local_mail_adapter? do
     Application.get_env(:quote_assist, QuoteAssist.Mailer)[:adapter] == Swoosh.Adapters.Local

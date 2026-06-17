@@ -5,11 +5,14 @@ defmodule QuoteAssistWeb.LoginThrottleRouteTest do
 
   import Phoenix.LiveViewTest
   import QuoteAssist.AccountsFixtures
+  import QuoteAssist.TenantsFixtures
 
   alias QuoteAssist.RateLimiter
   alias QuoteAssistWeb.Plugs.LoginThrottle
 
-  setup do
+  # Login is tenant-scoped, so the throttle (which runs after :require_tenant) is
+  # only reachable on a tenant host.
+  setup %{conn: conn} do
     original = Application.get_env(:quote_assist, LoginThrottle)
 
     on_exit(fn ->
@@ -18,7 +21,8 @@ defmodule QuoteAssistWeb.LoginThrottleRouteTest do
     end)
 
     RateLimiter.reset()
-    :ok
+    tenant = active_tenant_fixture(%{slug: "acme"})
+    %{conn: put_tenant_host(conn, tenant), tenant: tenant}
   end
 
   test "throttles repeated login POSTs from the same IP", %{conn: conn} do

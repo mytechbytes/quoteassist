@@ -1,23 +1,11 @@
-defmodule QuoteAssistWeb.TenantNotFoundError do
-  @moduledoc """
-  Raised when a tenant host (subdomain or custom domain) doesn't resolve to a live
-  tenant. Rendered as a 404 via the `Plug.Exception` implementation below.
-  """
-  defexception message: "tenant not found"
-
-  defimpl Plug.Exception do
-    def status(_exception), do: 404
-    def actions(_exception), do: []
-  end
-end
-
 defmodule QuoteAssistWeb.Plugs.TenantResolver do
   @moduledoc """
   Resolves the tenant from the request **host** (never params) and assigns it to the
   conn as `:current_tenant`. On a tenant host it also writes the resolved tenant id
   into the host-scoped session, so LiveView mounts can reload it; on the platform
   host it clears that key. A tenant host that doesn't resolve to a live tenant
-  (unknown / suspended / deleted) raises `QuoteAssistWeb.TenantNotFoundError` → 404.
+  (unknown / suspended / deleted) renders a branded "workspace not registered" page
+  with status 404 and halts (see `QuoteAssistWeb.TenantErrorHTML`).
 
   Cookies stay scoped to the exact resolved host: the endpoint session sets no
   `:domain`, so a session never leaks across tenants, nor between a tenant's
@@ -26,6 +14,7 @@ defmodule QuoteAssistWeb.Plugs.TenantResolver do
   @behaviour Plug
 
   import Plug.Conn
+  import Phoenix.Controller, only: [put_view: 2, put_format: 2, render: 3]
 
   alias QuoteAssist.Tenants
 
@@ -46,7 +35,30 @@ defmodule QuoteAssistWeb.Plugs.TenantResolver do
         |> put_session(:tenant_id, tenant.id)
 
       :not_found ->
-        raise QuoteAssistWeb.TenantNotFoundError
+        render_not_found(conn)
     end
+  end
+
+  # Renders the standalone branded 404 page. Sets the format explicitly so this
+  # works even when the surrounding pipeline's `:accepts` hasn't run (e.g. unit
+  # tests calling the plug directly). No layout is applied — the template is a
+  # complete document, since the root layout isn't set this early in the pipeline.
+  defp render_not_found(conn) do
+    conn
+    |> put_status(:not_found)
+    |> put_format("html")
+    |> put_view(html: QuoteAssistWeb.TenantErrorHTML)
+    |> render(:tenant_not_found,
+      host: conn.host,
+      platform_url: platform_url("/"),
+      directory_url: platform_url("/tenants")
+    )
+    |> halt()
+  end
+
+  defp platform_url(path) do
+    scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "https")
+    base = Application.get_env(:quote_assist, :tenant_base_domain, "quoteassist.mytechbytes.in")
+    "#{scheme}://#{base}#{path}"
   end
 end

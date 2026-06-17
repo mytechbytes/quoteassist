@@ -92,6 +92,25 @@ defmodule QuoteAssist.Tenants do
   end
 
   @doc """
+  Live tenants with their live memberships (user + role) preloaded, ordered by name.
+  Backs the dev-only credentials view on `/tenants`; not for production use.
+  """
+  def list_live_tenants_with_members do
+    members =
+      from m in Membership,
+        where: is_nil(m.deleted_at),
+        order_by: [asc: m.inserted_at],
+        preload: [:user, :role]
+
+    Repo.all(
+      from t in Tenant,
+        where: is_nil(t.deleted_at),
+        order_by: [asc: t.name],
+        preload: [memberships: ^members]
+    )
+  end
+
+  @doc """
   Fetches a live, resolvable tenant by id — used to reload the tenant from the
   session on every LiveView mount, so a tenant suspended or deleted mid-session is
   caught at the next mount.
@@ -208,6 +227,17 @@ defmodule QuoteAssist.Tenants do
   end
 
   # ── Memberships ──────────────────────────────────────────────────────────────────
+
+  @doc """
+  Whether the user has a live membership for the tenant. A lean existence check used
+  to gate login (you can only sign in to a tenant you belong to).
+  """
+  def member?(%Tenant{} = tenant, %User{} = user) do
+    Repo.exists?(
+      from m in Membership,
+        where: m.tenant_id == ^tenant.id and m.user_id == ^user.id and is_nil(m.deleted_at)
+    )
+  end
 
   @doc """
   The user's live membership for a tenant, with role preloaded — or nil. This is the

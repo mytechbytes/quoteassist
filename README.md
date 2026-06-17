@@ -91,9 +91,55 @@ in R0.
 | `mix phx.server`                       | run Phoenix on :4000                  |
 | `mix test`                             | run the test suite                    |
 | `mix format`                           | format code                           |
-| `mix compile --warnings-as-errors`    | compile clean (part of the gate)      |
+| `mix compile --warnings-as-errors`     | compile clean (part of the gate)      |
 
-"Green before done": `mix format`, `mix compile --warnings-as-errors`, and
+## Phoenix and Elixir Command Reference
+
+### 📋 Setup & Linting (Phase 1)
+Commands used to download libraries, format your code, and check for code smells before anything runs.
+
+| Command                            | What it does                                         |
+| :--------------------------------- | :--------------------------------------------------- |
+| `mix deps.get`                     | Fetch project dependencies                           |
+| `mix format`                       | Format code style automatically                      |
+| `mix credo --strict`               | Run strict static code analysis / linting            |
+| `mix compile --warnings-as-errors` | Compile clean (fails if there are compiler warnings) |
+
+
+### 🗄️ Database Management (Phase 2)
+Commands used to build, alter, destroy, or seed your database tables.
+
+| Command                       | What it does                                      |
+| :---------------------------- | :------------------------------------------------ |
+| `mix ecto.drop`               | Drop the database for the current environment     |
+| `mix ecto.create`             | Create the database for the current environment   |
+| `mix ecto.migrate`            | Run database migrations                           |
+| `mix run priv/repo/seeds.exs` | Insert seed data into the database                |
+| `mix ecto.setup`              | Create + migrate + seed the DB in one step        |
+| `mix ecto.reset`              | Drop + create + migrate + seed the DB in one step |
+
+### 🧪 Testing & Quality Gates (Phase 3)
+Commands used to verify your business logic and ensure test coverage metrics are met.
+
+| Command                                    | What it does                                         |
+| :----------------------------------------- | :--------------------------------------------------- |
+| `mix test`                                 | Run the test suite                                   |
+| `mix coveralls.json`                       | Run tests and generate coverage metrics in JSON      |
+| `mix run --no-start ci/check_coverage.exs` | Run custom script to validate the coverage threshold |
+
+### 🚀 Build & Execution (Phase 4)
+Commands used to prepare front-end assets and boot up the application web server.
+
+| Command             | What it does                                        |
+| :------------------ | :-------------------------------------------------- |
+| `mix assets.deploy` | Build and minify frontend assets for production     |
+| `mix phx.server`    | Run the Phoenix local development server on `:4000` |
+
+## 💡 Quick Tips
+
+* **Redundancy:** Remember that `mix ecto.reset` completely handles running `ecto.drop`, `ecto.create`, `ecto.migrate`, and the `seeds.exs` script for you.
+* **Mix Setup:** If you are adding these remaining individual descriptions to your `mix.exs` file, make sure all of them are registered under the correct environments.
+* **Green before done:** `mix format`, `mix compile --warnings-as-errors`, and
 `mix test` must all pass.
 
 ## CI

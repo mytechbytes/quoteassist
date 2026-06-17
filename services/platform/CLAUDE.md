@@ -95,6 +95,13 @@ mix format && mix compile --warnings-as-errors   # part of "green before done"
 - Dev: `*.quoteassist.localhost:4000` for subdomains (`acme.quoteassist.localhost:4000`).
 - `on_mount :require_tenant_member` guards all `/app/*` LiveViews; verifies a
   live membership for the resolved tenant.
+- **Login is tenant-scoped.** The `RequireTenant` plug keeps `/login`, `/login/:token`,
+  and the credential POST on tenant hosts only — the platform host redirects to the
+  directory (admins use `/admin/login`, R3). Login also requires a live membership for
+  the host's tenant (`Tenants.member?/2`): a user of one tenant can't sign in to
+  another (password + magic link both reject non-members with the generic error, no
+  enumeration). Magic links are built on the request host so the flow stays on the
+  tenant (cookies are host-scoped).
 
 ## RBAC & audit
 

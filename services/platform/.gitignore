@@ -35,3 +35,7 @@ quote_assist-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Dialyzer PLT files (cached; the priv/plts dir is kept via .gitkeep).
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
+

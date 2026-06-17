@@ -35,37 +35,26 @@ defmodule QuoteAssistWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://phoenix.hexdocs.pm/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
+    <header class="mtb-topbar px-6">
+      <a href="/" class="flex items-center gap-3 no-underline" style="color:var(--mc-text)">
+        <span
+          class="mtb-logo"
+          style="width:32px;height:32px;font-size:13px;letter-spacing:-0.04em;color:white"
+        >
+          QA
+        </span>
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:-0.02em">
+          QuoteAssist
+        </span>
+      </a>
+
+      <div class="ml-auto flex items-center gap-3">
+        <.theme_toggle />
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
-      </div>
+    <main class="px-6 py-8">
+      {render_slot(@inner_block)}
     </main>
 
     <.flash_group flash={@flash} />
@@ -128,31 +117,45 @@ defmodule QuoteAssistWeb.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
+    <div
+      class="relative flex flex-row items-center rounded-full"
+      style="background:var(--mc-surface-2);border:1px solid var(--mc-border);padding:3px;gap:2px"
+    >
+      <%# Sliding indicator — positioned by JS-set data-theme on <html> %>
+      <div
+        class="absolute h-[calc(100%-6px)] rounded-full transition-[left]"
+        style="width:calc(33.33% - 2px);top:3px;left:3px;background:var(--mc-surface);box-shadow:0 1px 3px rgb(0 0 0 / 0.10);
+               [[data-theme=light]_&]:left-[calc(33.33%+1px)];[[data-theme=dark]_&]:left-[calc(66.66%-1px)]"
+      />
 
       <button
-        class="flex p-2 cursor-pointer w-1/3"
+        class="flex p-1.5 cursor-pointer rounded-full relative z-10"
+        style="color:var(--mc-text-3)"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="system"
+        title="System theme"
       >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name="hero-computer-desktop-micro" class="size-4" />
       </button>
 
       <button
-        class="flex p-2 cursor-pointer w-1/3"
+        class="flex p-1.5 cursor-pointer rounded-full relative z-10"
+        style="color:var(--mc-text-3)"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="light"
+        title="Light theme"
       >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name="hero-sun-micro" class="size-4" />
       </button>
 
       <button
-        class="flex p-2 cursor-pointer w-1/3"
+        class="flex p-1.5 cursor-pointer rounded-full relative z-10"
+        style="color:var(--mc-text-3)"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="dark"
+        title="Dark theme"
       >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name="hero-moon-micro" class="size-4" />
       </button>
     </div>
     """

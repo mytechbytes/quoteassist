@@ -8,12 +8,12 @@ defmodule QuoteAssistWeb.CoreComponents do
   with doc strings and declarative assigns. You may customize and style
   them in any way you want, based on your application growth and needs.
 
-  The foundation for styling is Tailwind CSS, a utility-first CSS framework,
-  augmented with daisyUI, a Tailwind CSS plugin that provides UI components
-  and themes. Here are useful references:
+  The foundation for styling is the QuoteAssist design system (mtb-* classes
+  in assets/css/mtb.css, Tailwind v4 @theme tokens from designs/quoteassist/qa.css)
+  together with plain Tailwind v4 utilities. Here are useful references:
 
-    * [daisyUI](https://daisyui.com/docs/intro/) - a good place to get
-      started and see the available components.
+    * [QuoteAssist design system](../../designs/quoteassist/qa.css) - design tokens and
+      reference components.
 
     * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
       we build on. You will use it for layout, sizing, flexbox, grid, and
@@ -63,23 +63,40 @@ defmodule QuoteAssistWeb.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      class="fixed top-4 right-4 z-50 w-80 sm:w-96"
       {@rest}
     >
-      <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
-      ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
-        <div>
+      <div
+        class="mtb-card flex items-start gap-3 p-4 text-sm"
+        style={
+          if @kind == :info,
+            do: "border-color:color-mix(in oklch,var(--mc-info) 40%,transparent);background:color-mix(in oklch,var(--mc-info) 8%,var(--mc-surface))",
+            else: "border-color:color-mix(in oklch,var(--mc-error) 40%,transparent);background:color-mix(in oklch,var(--mc-error) 8%,var(--mc-surface))"
+        }
+      >
+        <.icon
+          :if={@kind == :info}
+          name="hero-information-circle"
+          class="size-5 shrink-0 mt-0.5"
+          style="color:var(--mc-info)"
+        />
+        <.icon
+          :if={@kind == :error}
+          name="hero-exclamation-circle"
+          class="size-5 shrink-0 mt-0.5"
+          style="color:var(--mc-error)"
+        />
+        <div class="flex-1" style="color:var(--mc-text)">
           <p :if={@title} class="font-semibold">{@title}</p>
           <p>{msg}</p>
         </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
-          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
+        <button
+          type="button"
+          class="self-start cursor-pointer shrink-0"
+          style="color:var(--mc-text-3)"
+          aria-label={gettext("close")}
+        >
+          <.icon name="hero-x-mark" class="size-5" />
         </button>
       </div>
     </div>
@@ -101,11 +118,11 @@ defmodule QuoteAssistWeb.CoreComponents do
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    variants = %{"primary" => "mtb-btn-primary", nil => "mtb-btn-primary"}
 
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        ["mtb-btn", Map.fetch!(variants, assigns[:variant])]
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
@@ -212,8 +229,8 @@ defmodule QuoteAssistWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
+    <div class="mb-4">
+      <label for={@id} class="flex items-center gap-2 cursor-pointer">
         <input
           type="hidden"
           name={@name}
@@ -221,17 +238,16 @@ defmodule QuoteAssistWeb.CoreComponents do
           disabled={@rest[:disabled]}
           form={@rest[:form]}
         />
-        <span class="label">
-          <input
-            type="checkbox"
-            id={@id}
-            name={@name}
-            value="true"
-            checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
-            {@rest}
-          />{@label}
-        </span>
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          class={@class || "size-4 rounded accent-[var(--mc-brand)]"}
+          {@rest}
+        />
+        <span class="text-sm" style="color:var(--mc-text)">{@label}</span>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -240,13 +256,16 @@ defmodule QuoteAssistWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="mtb-label">{@label}</span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            @class || "mtb-input mtb-select",
+            @errors != [] && (@error_class || "border-[var(--mc-error)]!")
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -261,15 +280,15 @@ defmodule QuoteAssistWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="mtb-label">{@label}</span>
         <textarea
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            @class || "mtb-input mtb-textarea",
+            @errors != [] && (@error_class || "border-[var(--mc-error)]!")
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -282,17 +301,17 @@ defmodule QuoteAssistWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="mtb-label">{@label}</span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            @class || "mtb-input",
+            @errors != [] && (@error_class || "border-[var(--mc-error)]!")
           ]}
           {@rest}
         />
@@ -305,8 +324,8 @@ defmodule QuoteAssistWeb.CoreComponents do
   # Helper used by inputs to generate form errors
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
-      <.icon name="hero-exclamation-circle" class="size-5" />
+    <p class="mt-1.5 flex gap-2 items-center text-sm" style="color:var(--mc-error)">
+      <.icon name="hero-exclamation-circle" class="size-5 shrink-0" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -326,7 +345,7 @@ defmodule QuoteAssistWeb.CoreComponents do
         <h1 class="text-lg font-semibold leading-8">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
+        <p :if={@subtitle != []} class="text-sm" style="color:var(--mc-text-2)">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -367,34 +386,52 @@ defmodule QuoteAssistWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
-      <thead>
-        <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
-          <th :if={@action != []}>
-            <span class="sr-only">{gettext("Actions")}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
-          <td
-            :for={col <- @col}
-            phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
+    <div class="mtb-card overflow-hidden">
+      <table class="mtb-table">
+        <thead>
+          <tr>
+            <th
+              :for={col <- @col}
+              class="text-left font-bold text-[10.5px] uppercase tracking-[0.06em] px-3.5 py-3"
+              style="color:var(--mc-text-3);background:var(--mc-surface-2);border-bottom:1px solid var(--mc-border)"
+            >
+              {col[:label]}
+            </th>
+            <th
+              :if={@action != []}
+              class="px-3.5 py-3"
+              style="background:var(--mc-surface-2);border-bottom:1px solid var(--mc-border)"
+            >
+              <span class="sr-only">{gettext("Actions")}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
+          <tr
+            :for={row <- @rows}
+            id={@row_id && @row_id.(row)}
+            style="border-bottom:1px solid var(--mc-border)"
+            class="last:border-b-0 hover:bg-[var(--mc-surface-2)]"
           >
-            {render_slot(col, @row_item.(row))}
-          </td>
-          <td :if={@action != []} class="w-0 font-semibold">
-            <div class="flex gap-4">
-              <%= for action <- @action do %>
-                {render_slot(action, @row_item.(row))}
-              <% end %>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <td
+              :for={col <- @col}
+              phx-click={@row_click && @row_click.(row)}
+              class={["px-3.5 py-3 text-sm", @row_click && "cursor-pointer"]}
+              style="color:var(--mc-text)"
+            >
+              {render_slot(col, @row_item.(row))}
+            </td>
+            <td :if={@action != []} class="px-3.5 py-3 w-0 font-semibold">
+              <div class="flex gap-4">
+                <%= for action <- @action do %>
+                  {render_slot(action, @row_item.(row))}
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     """
   end
 
@@ -414,11 +451,15 @@ defmodule QuoteAssistWeb.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
+    <ul>
+      <li
+        :for={item <- @item}
+        class="flex items-start gap-3 py-3"
+        style="border-bottom:1px solid var(--mc-border)"
+      >
+        <div class="flex-1">
+          <div class="font-semibold text-sm" style="color:var(--mc-text)">{item.title}</div>
+          <div class="text-sm mt-0.5" style="color:var(--mc-text-2)">{render_slot(item)}</div>
         </div>
       </li>
     </ul>

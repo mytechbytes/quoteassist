@@ -6,9 +6,12 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
-Fresh `phx.new` scaffold. App is `:quote_assist` (`QuoteAssist` /
-`QuoteAssistWeb`). **R0 is not done yet** — no `/health`, tenancy, auth, or
-`mtb.css`. Build in the order below; keep `mix test` green after each slice.
+**R0 complete.** Walking skeleton: `/health` + `/health/ready`, Dockerfile,
+`docker-compose`, `.env.example`, `assets/css/mtb.css` (design tokens +
+`mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
+Fonts + dark mode, `citext` migration.
+
+**Next: R0a** — platform home `/` (release-status table) + `/tenants` list.
 
 ## How to run
 

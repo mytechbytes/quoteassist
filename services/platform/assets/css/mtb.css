@@ -1,0 +1,633 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   QuoteAssist design system — Tailwind v4 @theme tokens + mtb-* component
+   utilities. Tokens ported from designs/quoteassist/qa.css (mc-*/qa-* → mtb-*,
+   prefix-only rename). Imported by assets/css/app.css.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Tailwind design tokens ────────────────────────────────────────────────── */
+
+@theme {
+  /* Teal accent scale */
+  --color-teal-50:  oklch(96% 0.03 188);
+  --color-teal-100: oklch(92% 0.055 188);
+  --color-teal-200: oklch(86% 0.085 188);
+  --color-teal-300: oklch(80% 0.115 188);
+  --color-teal-400: oklch(72% 0.13 188);
+  --color-teal-500: oklch(64% 0.12 190);
+  --color-teal-600: oklch(57% 0.115 192);
+  --color-teal-650: oklch(50% 0.105 192);
+  --color-teal-700: oklch(49% 0.10 193);
+  --color-teal-800: oklch(40% 0.09 193);
+  --color-teal-900: oklch(30% 0.07 193);
+
+  /* Mist neutral scale */
+  --color-mist-50:  oklch(98.7% 0.002 197.1);
+  --color-mist-100: oklch(96.3% 0.002 197.1);
+  --color-mist-200: oklch(92.5% 0.005 214.3);
+  --color-mist-300: oklch(87.2% 0.007 219.6);
+  --color-mist-400: oklch(72.3% 0.014 214.4);
+  --color-mist-500: oklch(56% 0.021 213.5);
+  --color-mist-600: oklch(45% 0.017 213.2);
+  --color-mist-700: oklch(37.8% 0.015 216);
+  --color-mist-800: oklch(27.5% 0.011 216.9);
+  --color-mist-900: oklch(21.8% 0.008 223.9);
+  --color-mist-950: oklch(14.8% 0.004 228.8);
+
+  /* Semantic colours */
+  --color-success: oklch(62% 0.14 150);
+  --color-warning: oklch(70% 0.15 85);
+  --color-error:   oklch(60% 0.17 25);
+  --color-info:    oklch(64% 0.13 240);
+
+  /* Typography */
+  --font-sans:    "Inter", system-ui, sans-serif;
+  --font-display: "Familjen Grotesk", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ── CSS custom properties (light mode — default) ──────────────────────────── */
+
+:root {
+  --mc-bg:        oklch(96.3% 0.002 197.1);    /* mist-100 */
+  --mc-surface:   #fff;
+  --mc-surface-2: oklch(98.7% 0.002 197.1);    /* mist-50  */
+  --mc-border:    oklch(92.5% 0.005 214.3);    /* mist-200 */
+  --mc-border-2:  oklch(87.2% 0.007 219.6);    /* mist-300 */
+  --mc-text:      oklch(21.8% 0.008 223.9);    /* mist-900 */
+  --mc-text-2:    oklch(45% 0.017 213.2);      /* mist-600 */
+  --mc-text-3:    oklch(56% 0.021 213.5);      /* mist-500 */
+
+  /* Accent — teal */
+  --mc-brand:       oklch(57% 0.115 192);      /* teal-600 */
+  --mc-brand-hover: oklch(49% 0.10 193);       /* teal-700 */
+  --mc-brand-soft:  oklch(96% 0.03 188);       /* teal-50  */
+  --mc-brand-ring:  oklch(57% 0.115 192 / 0.20);
+  --mc-grad-1:      oklch(72% 0.13 188);       /* teal-400 */
+  --mc-grad-2:      oklch(50% 0.105 192);      /* teal-650 */
+
+  --mc-success: oklch(62% 0.14 150);
+  --mc-warning: oklch(70% 0.15 85);
+  --mc-error:   oklch(60% 0.17 25);
+  --mc-info:    oklch(64% 0.13 240);
+
+  /* Radii */
+  --mc-r-input: 10px;
+  --mc-r-btn:   10px;
+  --mc-r-card:  16px;
+  --mc-r-modal: 20px;
+  --mc-r-pill:  99px;
+
+  /* Elevation */
+  --mc-lift: 0 12px 32px -8px rgb(0 0 0 / 0.10);
+  --mc-pop:  0 24px 60px -12px rgb(0 0 0 / 0.28);
+}
+
+/* ── Dark mode tokens — via [data-theme="dark"] on <html> ───────────────────── */
+
+[data-theme="dark"] {
+  --mc-bg:        oklch(14.8% 0.004 228.8);    /* mist-950 */
+  --mc-surface:   oklch(21.8% 0.008 223.9);    /* mist-900 */
+  --mc-surface-2: oklch(27.5% 0.011 216.9);    /* mist-800 */
+  --mc-border:    oklch(27.5% 0.011 216.9);
+  --mc-border-2:  oklch(37.8% 0.015 216);      /* mist-700 */
+  --mc-text:      oklch(96.3% 0.002 197.1);
+  --mc-text-2:    oklch(72.3% 0.014 214.4);
+  --mc-text-3:    oklch(56% 0.021 213.5);
+  --mc-brand:       oklch(74% 0.13 188);       /* teal-400 — luminous on dark */
+  --mc-brand-hover: oklch(80% 0.11 188);
+  --mc-brand-soft:  oklch(27.5% 0.011 216.9);
+  --mc-grad-1:      oklch(80% 0.12 186);
+  --mc-grad-2:      oklch(60% 0.13 191);
+}
+
+/* ── Base HTML/body ─────────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+
+body {
+  font-family: var(--font-sans);
+  color: var(--mc-text);
+  background: var(--mc-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Component utilities (mtb-*) ───────────────────────────────────────────── */
+/* One @utility block per component. Tailwind tree-shakes unused ones.         */
+
+/* ─ Buttons ─────────────────────────────────────────────────────────────────── */
+
+@utility mtb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--mc-r-btn);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:focus-visible {
+    outline: 2px solid var(--mc-brand-ring);
+    outline-offset: 2px;
+  }
+}
+
+@utility mtb-btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  gap: 6px;
+  border-radius: calc(var(--mc-r-btn) - 2px);
+}
+
+@utility mtb-btn-lg {
+  height: 48px;
+  padding: 0 22px;
+  font-size: 15px;
+  border-radius: calc(var(--mc-r-btn) + 2px);
+}
+
+@utility mtb-btn-icon {
+  width: 40px;
+  padding: 0;
+}
+
+@utility mtb-btn-primary {
+  background: var(--mc-brand);
+  color: #fff;
+
+  &:hover { background: var(--mc-brand-hover); }
+
+  [data-theme="dark"] & { color: oklch(18% 0.02 200); }
+}
+
+@utility mtb-btn-secondary {
+  background: var(--mc-surface);
+  color: var(--mc-text);
+  border-color: var(--mc-border);
+
+  &:hover { background: var(--mc-surface-2); }
+}
+
+@utility mtb-btn-ghost {
+  background: transparent;
+  color: var(--mc-text-2);
+
+  &:hover {
+    background: var(--mc-surface-2);
+    color: var(--mc-text);
+  }
+}
+
+@utility mtb-btn-dark {
+  background: var(--mc-text);
+  color: var(--mc-surface);
+
+  &:hover { background: var(--mc-text-2); }
+}
+
+@utility mtb-btn-danger {
+  background: var(--mc-error);
+  color: #fff;
+}
+
+@utility mtb-btn-danger-outline {
+  background: transparent;
+  color: var(--mc-error);
+  border-color: color-mix(in oklch, var(--mc-error) 35%, transparent);
+
+  &:hover { background: color-mix(in oklch, var(--mc-error) 8%, transparent); }
+}
+
+/* ─ Card ─────────────────────────────────────────────────────────────────────── */
+
+@utility mtb-card {
+  background: var(--mc-surface);
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-r-card);
+}
+
+/* ─ Forms ───────────────────────────────────────────────────────────────────── */
+
+@utility mtb-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--mc-text-2);
+  margin-bottom: 6px;
+}
+
+@utility mtb-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--mc-r-input);
+  border: 1px solid var(--mc-border-2);
+  background: var(--mc-surface);
+  color: var(--mc-text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &::placeholder { color: var(--mc-text-3); }
+
+  &:focus {
+    border-color: var(--mc-brand);
+    box-shadow: 0 0 0 3px var(--mc-brand-ring);
+  }
+}
+
+@utility mtb-input-lg {
+  height: 48px;
+  font-size: 15px;
+  padding: 0 14px;
+}
+
+@utility mtb-textarea {
+  height: auto;
+  padding: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+@utility mtb-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* ─ Badges ───────────────────────────────────────────────────────────────────── */
+
+@utility mtb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@utility mtb-badge-neutral {
+  background: var(--mc-surface-2);
+  color: var(--mc-text-2);
+  border: 1px solid var(--mc-border);
+}
+
+@utility mtb-badge-brand {
+  background: var(--mc-brand-soft);
+  color: var(--mc-brand);
+}
+
+@utility mtb-badge-success {
+  background: color-mix(in oklch, var(--mc-success) 14%, transparent);
+  color: var(--mc-success);
+}
+
+@utility mtb-badge-warning {
+  background: color-mix(in oklch, var(--mc-warning) 16%, transparent);
+  color: color-mix(in oklch, var(--mc-warning) 80%, black 20%);
+
+  [data-theme="dark"] & { color: var(--mc-warning); }
+}
+
+@utility mtb-badge-error {
+  background: color-mix(in oklch, var(--mc-error) 12%, transparent);
+  color: var(--mc-error);
+}
+
+@utility mtb-badge-info {
+  background: color-mix(in oklch, var(--mc-info) 13%, transparent);
+  color: var(--mc-info);
+}
+
+/* Status dot badge */
+@utility mtb-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--mc-text-2);
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 99px;
+    background: var(--mc-text-3);
+  }
+}
+
+@utility mtb-status-live {
+  &::before {
+    background: var(--mc-success);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--mc-success) 18%, transparent);
+  }
+}
+
+@utility mtb-status-draft {
+  &::before { background: var(--mc-text-3); }
+}
+
+@utility mtb-status-build {
+  &::before {
+    background: var(--mc-warning);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--mc-warning) 18%, transparent);
+  }
+}
+
+@utility mtb-status-error {
+  &::before { background: var(--mc-error); }
+}
+
+@utility mtb-status-info {
+  &::before {
+    background: var(--mc-info);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--mc-info) 18%, transparent);
+  }
+}
+
+/* ─ Layout shell ─────────────────────────────────────────────────────────────── */
+
+@utility mtb-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  transition: grid-template-columns 0.2s ease;
+}
+
+@utility mtb-shell-collapsed {
+  grid-template-columns: 72px 1fr;
+}
+
+@utility mtb-side {
+  background: var(--mc-surface);
+  border-right: 1px solid var(--mc-border);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--mc-border-2);
+    border-radius: 99px;
+  }
+}
+
+@utility mtb-side-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 14px 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--mc-border);
+}
+
+@utility mtb-side-section {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 10.5px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mc-text-3);
+  padding: 14px 12px 6px;
+}
+
+@utility mtb-side-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--mc-text-2);
+  text-decoration: none;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  width: 100%;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: var(--mc-surface-2);
+    color: var(--mc-text);
+  }
+}
+
+@utility mtb-side-item-active {
+  background: var(--mc-brand-soft);
+  color: var(--mc-brand);
+  font-weight: 600;
+}
+
+@utility mtb-side-footer {
+  margin-top: auto;
+  padding: 12px 8px 4px;
+  border-top: 1px solid var(--mc-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@utility mtb-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 64px;
+  background: color-mix(in oklch, var(--mc-surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--mc-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+}
+
+/* ─ Table ────────────────────────────────────────────────────────────────────── */
+
+@utility mtb-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ─ Modal ────────────────────────────────────────────────────────────────────── */
+
+@utility mtb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 50;
+
+  [data-theme="dark"] & { background: rgb(0 0 0 / 0.6); }
+}
+
+@utility mtb-modal {
+  background: var(--mc-surface);
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-r-modal);
+  box-shadow: var(--mc-pop);
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@utility mtb-modal-head {
+  padding: 22px 24px 14px;
+  border-bottom: 1px solid var(--mc-border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+@utility mtb-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+@utility mtb-modal-foot {
+  padding: 14px 24px;
+  border-top: 1px solid var(--mc-border);
+  background: var(--mc-surface-2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ─ Misc ─────────────────────────────────────────────────────────────────────── */
+
+@utility mtb-divider {
+  height: 1px;
+  background: var(--mc-border);
+}
+
+@utility mtb-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid var(--mc-border-2);
+  background: var(--mc-surface-2);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 10.5px;
+  line-height: 1;
+  color: var(--mc-text-3);
+}
+
+@utility mtb-grad-text {
+  background: linear-gradient(135deg, var(--mc-grad-2), var(--mc-grad-1));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Logo mark */
+@utility mtb-logo {
+  display: inline-grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: white;
+  border-radius: 10px;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--mc-grad-1), var(--mc-grad-2));
+}
+
+/* App tag pill */
+@utility mtb-app-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 99px;
+  background: var(--mc-brand-soft);
+  color: var(--mc-brand);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 9.5px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+/* KPI tile */
+@utility mtb-kpi {
+  background: var(--mc-surface);
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-r-card);
+  padding: 18px 20px;
+}
+
+/* Activity feed / timeline */
+@utility mtb-feed {
+  position: relative;
+  padding-left: 26px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--mc-border);
+  }
+}
+
+@utility mtb-feed-dot {
+  position: absolute;
+  left: -22px;
+  top: 1px;
+  width: 18px;
+  height: 18px;
+  border-radius: 99px;
+  display: grid;
+  place-items: center;
+  background: var(--mc-surface);
+  border: 2px solid var(--mc-border-2);
+}

@@ -7,7 +7,7 @@
 // Key differences from MangoCMS, all deliberate:
 //   * The shared CI runner `mytechbytes-elixir-ci` is OWNED/built by MangoCMS.
 //     QuoteAssist only PULLS it (no "CI Image" build stage).
-//   * Monorepo: the Elixir app lives in projects/platform (mount/build context).
+//   * Monorepo: the Elixir app lives in services/platform (mount/build context).
 //   * Shared multi-app server: deploy/rollback touch ONLY the quoteassist service
 //     (`--no-deps`) so MangoCMS / MangoGST are never restarted.
 //   * CI Postgres uses pgvector/pgvector:pg18 (the platform needs the vector ext).
@@ -50,7 +50,7 @@ pipeline {
     // cache deps/_build/hex/mix and the dialyzer PLT across builds; the workspace
     // is bind-mounted so coverage artifacts (cover/) land back in the workspace.
     DOCKER_RUN = "docker run --rm" +
-      " -v ${WORKSPACE}/projects/platform:/app" +
+      " -v ${WORKSPACE}/services/platform:/app" +
       " -v quoteassist-deps:/app/deps" +
       " -v quoteassist-build:/app/_build" +
       " -v quoteassist-plts:/app/priv/plts" +
@@ -204,7 +204,7 @@ pipeline {
       }
       post {
         always {
-          archiveArtifacts artifacts: 'projects/platform/cover/*.json', allowEmptyArchive: true, fingerprint: true
+          archiveArtifacts artifacts: 'services/platform/cover/*.json', allowEmptyArchive: true, fingerprint: true
         }
       }
     }
@@ -228,12 +228,12 @@ pipeline {
               --label "build.branch=${BRANCH_NAME}" \
               -t "${PLATFORM_IMAGE}:${TAG}" \
               -t "${PLATFORM_IMAGE}:${IMAGE_LATEST}" \
-              --push projects/platform
+              --push services/platform
             docker logout "${OCIR}"
             # ai-service ships in its own release (Phase 5); until then platform-only:
             # docker buildx build --platform linux/arm64 \
             #   -t "${AI_IMAGE}:${TAG}" -t "${AI_IMAGE}:${IMAGE_LATEST}" \
-            #   --push projects/ai-service
+            #   --push services/ai-service
           '''
         }
       }
@@ -353,7 +353,7 @@ ENDSSH
       sh '''
         docker rm -f "${CI_DB}" 2>/dev/null || true
         docker network rm "${CI_NETWORK}" 2>/dev/null || true
-        docker run --rm -v "${WORKSPACE}/projects/platform":/app -w /app "${CI_IMAGE}" rm -rf cover 2>/dev/null || true
+        docker run --rm -v "${WORKSPACE}/services/platform":/app -w /app "${CI_IMAGE}" rm -rf cover 2>/dev/null || true
         docker logout "${OCIR}" 2>/dev/null || true
       '''
     }

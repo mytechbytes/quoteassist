@@ -71,6 +71,47 @@ defmodule QuoteAssistWeb.ConnCase do
     |> Plug.Conn.put_session(:user_token, token)
   end
 
+  @doc """
+  Setup helper that creates an active tenant (built-in roles seeded), a member with
+  the given role (`:role` tag, default `"owner"`), logs them in, and points the conn
+  at the tenant's subdomain host.
+
+      setup :register_and_log_in_member
+
+  Stores `:conn`, `:user`, `:tenant`, and `:membership` in the test context.
+  """
+  def register_and_log_in_member(%{conn: conn} = context) do
+    tenant = QuoteAssist.TenantsFixtures.active_tenant_fixture(%{name: "Acme", slug: "acme"})
+
+    {user, membership} =
+      QuoteAssist.TenantsFixtures.member_fixture(tenant, context[:role] || "owner")
+
+    %{
+      conn: log_in_member(conn, user, tenant),
+      user: user,
+      tenant: tenant,
+      membership: membership
+    }
+  end
+
+  @doc """
+  Logs `user` into `conn` and scopes the request to `tenant`: writes the session
+  token + resolved tenant id and sets the conn host to the tenant's subdomain so the
+  `TenantResolver` plug resolves the same tenant.
+  """
+  def log_in_member(conn, user, tenant) do
+    token = QuoteAssist.Accounts.generate_user_session_token(user)
+
+    conn
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:user_token, token)
+    |> Plug.Conn.put_session(:tenant_id, tenant.id)
+    |> put_tenant_host(tenant)
+  end
+
+  @doc "Sets the conn host to the tenant's subdomain under the test base domain."
+  def put_tenant_host(conn, tenant), do: %{conn | host: "#{tenant.slug}.example.com"}
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do

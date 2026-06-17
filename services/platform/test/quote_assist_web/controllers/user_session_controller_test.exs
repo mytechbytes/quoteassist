@@ -1,8 +1,13 @@
 defmodule QuoteAssistWeb.UserSessionControllerTest do
   use QuoteAssistWeb.ConnCase, async: true
 
+  import Ecto.Query
   import QuoteAssist.AccountsFixtures
+  import QuoteAssist.TenantsFixtures
+
   alias QuoteAssist.Accounts
+  alias QuoteAssist.Audit.Log
+  alias QuoteAssist.Repo
 
   setup do
     %{unconfirmed_user: unconfirmed_user_fixture(), user: user_fixture()}
@@ -18,13 +23,38 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
+      # Workspace rendering now requires tenant membership (see AppHomeLiveTest); the
+      # session controller's job is the session + redirect.
       assert redirected_to(conn) == ~p"/app"
+    end
 
-      # Now do a logged-in request and assert on the authenticated topbar.
-      conn = get(conn, ~p"/app")
-      response = html_response(conn, 200)
-      assert response =~ user.email
-      assert response =~ ~p"/logout"
+    test "writes an audit row on a successful login (email masked)", %{conn: conn, user: user} do
+      user = set_password(user)
+
+      post(conn, ~p"/login", %{
+        "user" => %{"email" => user.email, "password" => valid_user_password()}
+      })
+
+      log = Repo.one!(from l in Log, where: l.action == "user.login")
+      assert log.actor_type == :user
+      assert log.actor_id == user.id
+      assert log.metadata["method"] == "password"
+      assert log.metadata["email"] =~ "***"
+      refute log.metadata["email"] == user.email
+    end
+
+    test "scopes the audit row to the tenant resolved from the host", %{conn: conn, user: user} do
+      user = set_password(user)
+      tenant = active_tenant_fixture(%{slug: "acme"})
+
+      conn
+      |> put_tenant_host(tenant)
+      |> post(~p"/login", %{
+        "user" => %{"email" => user.email, "password" => valid_user_password()}
+      })
+
+      log = Repo.one!(from l in Log, where: l.action == "user.login")
+      assert log.tenant_id == tenant.id
     end
 
     test "logs the user in with remember me", %{conn: conn, user: user} do
@@ -83,11 +113,8 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
       assert get_session(conn, :user_token)
       assert redirected_to(conn) == ~p"/app"
 
-      # Now do a logged-in request and assert on the authenticated topbar.
-      conn = get(conn, ~p"/app")
-      response = html_response(conn, 200)
-      assert response =~ user.email
-      assert response =~ ~p"/logout"
+      assert Repo.one!(from l in Log, where: l.action == "user.login").metadata["method"] ==
+               "magic_link"
     end
 
     test "confirms unconfirmed user", %{conn: conn, unconfirmed_user: user} do
@@ -105,12 +132,6 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "User confirmed successfully."
 
       assert Accounts.get_user!(user.id).confirmed_at
-
-      # Now do a logged-in request and assert on the authenticated topbar.
-      conn = get(conn, ~p"/app")
-      response = html_response(conn, 200)
-      assert response =~ user.email
-      assert response =~ ~p"/logout"
     end
 
     test "redirects to login page when magic link is invalid", %{conn: conn} do

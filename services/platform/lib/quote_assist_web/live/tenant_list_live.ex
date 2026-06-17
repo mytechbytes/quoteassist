@@ -3,18 +3,16 @@ defmodule QuoteAssistWeb.TenantListLive do
   Public tenant directory (`/tenants`) — lists live tenants, each linking out to
   its own subdomain login. No auth; served on the platform host only.
 
-  R0a ships this page with an empty directory: the `Tenant` schema and `tenants`
-  table land in R2. When they do, replace the empty `tenants` assign in `mount/3`
-  with the live-tenants query (`deleted_at IS NULL`, ordered by name). The
-  `directory/1` component below already renders rows, so no template change is
-  needed then.
+  Lists every live tenant (`deleted_at IS NULL`, ordered by name) via
+  `QuoteAssist.Tenants.list_live_tenants/0`. Public; served on the platform host.
   """
   use QuoteAssistWeb, :live_view
 
+  alias QuoteAssist.Tenants
+
   @impl true
   def mount(_params, _session, socket) do
-    # R2: tenants = QuoteAssist.Tenants.list_live_tenants() — name, slug, status.
-    {:ok, assign(socket, page_title: "Tenants", tenants: [])}
+    {:ok, assign(socket, page_title: "Tenants", tenants: Tenants.list_live_tenants())}
   end
 
   @impl true

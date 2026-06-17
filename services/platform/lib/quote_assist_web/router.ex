@@ -6,6 +6,10 @@ defmodule QuoteAssistWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    # Resolve the tenant from the host before anything else touches it: assigns
+    # :current_tenant, writes the tenant id into the host-scoped session, and 404s
+    # unknown/suspended/deleted tenant hosts. Never reads params.
+    plug QuoteAssistWeb.Plugs.TenantResolver
     plug :fetch_live_flash
     plug :put_root_layout, html: {QuoteAssistWeb.Layouts, :root}
     plug :protect_from_forgery
@@ -66,10 +70,11 @@ defmodule QuoteAssistWeb.Router do
   scope "/", QuoteAssistWeb do
     pipe_through [:browser, :require_authenticated_user]
 
-    live_session :require_authenticated_user,
-      on_mount: [{QuoteAssistWeb.UserAuth, :require_authenticated}] do
-      # Minimal authenticated landing. Tenant scoping + the real workspace shell
-      # arrive in R2 (:require_tenant_member, /app/*).
+    # /app/* is the tenant workspace: requires a logged-in user with a live
+    # membership for the tenant resolved from the host. The on_mount reloads the
+    # tenant from the session each mount, so suspended/deleted tenants are caught.
+    live_session :require_tenant_member,
+      on_mount: [{QuoteAssistWeb.UserAuth, :require_tenant_member}] do
       live "/app", AppHomeLive, :index
     end
   end

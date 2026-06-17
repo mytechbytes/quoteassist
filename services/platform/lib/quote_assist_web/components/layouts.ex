@@ -88,6 +88,143 @@ defmodule QuoteAssistWeb.Layouts do
   end
 
   @doc """
+  The tenant workspace shell (`/app/*`): sidebar + topbar chrome ported from
+  `designs/quoteassist/` (`mc-*`/`qa-*` → `mtb-*`). R2 ships the empty shell; later
+  releases render their content into the slot and light up the matching nav item
+  (the future links use plain `href`s until their routes exist). Always rendered
+  behind `on_mount :require_tenant_member`, so `current_scope` carries a tenant,
+  membership, and role.
+  """
+  attr :flash, :map, required: true
+  attr :current_scope, :map, required: true, doc: "scope with tenant + membership"
+  attr :active, :string, default: "overview", doc: "active sidebar key"
+  attr :breadcrumb, :string, default: "Overview"
+  slot :inner_block, required: true
+
+  def workspace(assigns) do
+    ~H"""
+    <div class="mtb-shell">
+      <aside class="mtb-side">
+        <div class="mtb-side-header">
+          <a
+            href={~p"/app"}
+            class="flex min-w-0 items-center gap-2.5 no-underline"
+            style="color:var(--mc-text)"
+          >
+            <span class="mtb-logo" style="width:30px;height:30px;font-size:14px;flex-shrink:0">
+              QA
+            </span>
+            <span style="font-family:var(--font-display);font-weight:700;font-size:1rem">
+              QuoteAssist
+            </span>
+          </a>
+        </div>
+
+        <div class="mtb-side-section">Workspace</div>
+        <.nav_item
+          active={@active}
+          key="overview"
+          label="Overview"
+          icon="hero-squares-2x2"
+          href={~p"/app"}
+        />
+        <%!-- R7 · quote request CRUD --%>
+        <.nav_item
+          active={@active}
+          key="quotes"
+          label="Quotes"
+          icon="hero-document-text"
+          href="/app/quotes"
+        />
+
+        <div class="mtb-side-section">Account</div>
+        <%!-- R5 · users, roles, permissions --%>
+        <.nav_item active={@active} key="team" label="Team" icon="hero-users" href="/app/team" />
+        <%!-- R6 · account flows / settings --%>
+        <.nav_item
+          active={@active}
+          key="settings"
+          label="Settings"
+          icon="hero-cog-6-tooth"
+          href="/app/settings"
+        />
+
+        <div class="mtb-side-footer">
+          <div
+            class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full text-xs font-bold text-white"
+            style="background:linear-gradient(135deg, var(--mc-grad-1), var(--mc-grad-2))"
+          >
+            {initials(@current_scope.user.email)}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="truncate text-sm font-semibold leading-tight">
+              {@current_scope.user.email}
+            </div>
+            <div class="truncate text-[11px]" style="color:var(--mc-text-3)">
+              {@current_scope.tenant.name} · {@current_scope.membership.role.name}
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="min-w-0">
+        <header class="mtb-topbar">
+          <div class="flex items-center gap-2 text-sm">
+            <span class="font-medium" style="color:var(--mc-text-3)">
+              {@current_scope.tenant.name}
+            </span>
+            <.icon name="hero-chevron-right-micro" class="size-3.5" style="color:var(--mc-text-3)" />
+            <span class="font-semibold" style="color:var(--mc-text)">{@breadcrumb}</span>
+          </div>
+
+          <div class="ml-auto flex items-center gap-2 sm:gap-3">
+            <span class="hidden text-sm sm:inline" style="color:var(--mc-text-2)">
+              {@current_scope.user.email}
+            </span>
+            <.link href={~p"/logout"} method="delete" class="mtb-btn mtb-btn-secondary mtb-btn-sm">
+              Log out
+            </.link>
+            <.theme_toggle />
+          </div>
+        </header>
+
+        <main class="p-6 sm:p-8">
+          {render_slot(@inner_block)}
+        </main>
+      </div>
+    </div>
+
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  attr :active, :string, required: true
+  attr :key, :string, required: true
+  attr :label, :string, required: true
+  attr :icon, :string, required: true
+  attr :href, :string, required: true
+
+  def nav_item(assigns) do
+    ~H"""
+    <a href={@href} class={["mtb-side-item", @active == @key && "mtb-side-item-active"]}>
+      <.icon name={@icon} class="size-[17px]" />
+      <span>{@label}</span>
+    </a>
+    """
+  end
+
+  # First two alphanumeric characters of the email local part, uppercased — the
+  # sidebar avatar monogram.
+  defp initials(email) when is_binary(email) do
+    email
+    |> String.split("@")
+    |> List.first()
+    |> String.replace(~r/[^a-zA-Z0-9]/, "")
+    |> String.slice(0..1)
+    |> String.upcase()
+  end
+
+  @doc """
   Application version string for the footer, e.g. `"0.1.0"`.
 
   Falls back to `"dev"` when the app spec has no version (e.g. not yet loaded).

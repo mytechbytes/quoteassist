@@ -6,6 +6,8 @@ defmodule QuoteAssistWeb.UserAuth do
 
   alias QuoteAssist.Accounts
   alias QuoteAssist.Accounts.Scope
+  alias QuoteAssist.Authz.Policy
+  alias QuoteAssist.Tenants
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
@@ -193,6 +195,13 @@ defmodule QuoteAssistWeb.UserAuth do
       on user_token.
       Redirects to login page if there's no logged user.
 
+    * `:require_tenant_member` - Guards all tenant-scoped LiveViews (e.g., `/app/*`).
+      Requires both a logged-in user and an active membership for the tenant resolved
+      from the host. The tenant is reloaded from the database on every mount using
+      the session ID written by the `TenantResolver` plug. A tenant suspended or
+      deleted mid-session will be caught here. On success, the tenant, membership,
+      and permissions are layered onto `current_scope`.
+
   ## Examples
 
   Use the `on_mount` lifecycle macro in LiveViews to mount or authenticate
@@ -243,6 +252,40 @@ defmodule QuoteAssistWeb.UserAuth do
 
       {:halt, socket}
     end
+  end
+
+  def on_mount(:require_tenant_member, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+    scope = socket.assigns.current_scope
+    tenant = tenant_from_session(session)
+
+    cond do
+      is_nil(scope) or is_nil(scope.user) ->
+        {:halt, redirect_to_login(socket, "You must log in to access this page.")}
+
+      is_nil(tenant) ->
+        {:halt,
+         redirect_to_login(socket, "Open your workspace from your organisation's web address.")}
+
+      true ->
+        case Tenants.get_active_membership(tenant, scope.user) do
+          nil ->
+            {:halt, redirect_to_login(socket, "You don't have access to this workspace.")}
+
+          membership ->
+            permissions = Policy.permissions_for_membership(membership)
+            scope = Scope.put_tenant(scope, tenant, membership, permissions)
+            {:cont, Phoenix.Component.assign(socket, :current_scope, scope)}
+        end
+    end
+  end
+
+  defp tenant_from_session(session), do: Tenants.fetch_live_tenant(session["tenant_id"])
+
+  defp redirect_to_login(socket, message) do
+    socket
+    |> Phoenix.LiveView.put_flash(:error, message)
+    |> Phoenix.LiveView.redirect(to: ~p"/login")
   end
 
   defp mount_current_scope(socket, session) do

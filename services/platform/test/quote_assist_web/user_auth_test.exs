@@ -7,6 +7,7 @@ defmodule QuoteAssistWeb.UserAuthTest do
   alias QuoteAssistWeb.UserAuth
 
   import QuoteAssist.AccountsFixtures
+  import QuoteAssist.TenantsFixtures
 
   @remember_me_cookie "_quote_assist_web_user_remember_me"
   @remember_me_cookie_max_age 60 * 60 * 24 * 14
@@ -389,5 +390,66 @@ defmodule QuoteAssistWeb.UserAuthTest do
         topic: "users_sessions:dG9rZW4y"
       }
     end
+  end
+
+  describe "on_mount :require_tenant_member" do
+    test "cont: layers tenant, membership, and permissions onto the scope", %{conn: conn} do
+      tenant = active_tenant_fixture(%{slug: "acme"})
+      {user, _membership} = member_fixture(tenant, "owner")
+      token = Accounts.generate_user_session_token(user)
+
+      session =
+        conn
+        |> put_session(:user_token, token)
+        |> put_session(:tenant_id, tenant.id)
+        |> get_session()
+
+      {:cont, socket} =
+        UserAuth.on_mount(:require_tenant_member, %{}, session, %LiveView.Socket{})
+
+      assert socket.assigns.current_scope.tenant.id == tenant.id
+      assert socket.assigns.current_scope.membership.role.slug == "owner"
+      assert "quotes.view" in socket.assigns.current_scope.permissions
+    end
+
+    test "halt when not logged in", %{conn: conn} do
+      tenant = active_tenant_fixture(%{slug: "acme"})
+      session = conn |> put_session(:tenant_id, tenant.id) |> get_session()
+
+      {:halt, socket} = UserAuth.on_mount(:require_tenant_member, %{}, session, halt_socket())
+      assert socket.assigns.current_scope == nil
+    end
+
+    test "halt when no tenant is in the session", %{conn: conn} do
+      user = user_fixture()
+      token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, token) |> get_session()
+
+      assert {:halt, _socket} =
+               UserAuth.on_mount(:require_tenant_member, %{}, session, halt_socket())
+    end
+
+    test "halt when authenticated but not a member", %{conn: conn} do
+      tenant = active_tenant_fixture(%{slug: "acme"})
+      user = user_fixture()
+      token = Accounts.generate_user_session_token(user)
+
+      session =
+        conn
+        |> put_session(:user_token, token)
+        |> put_session(:tenant_id, tenant.id)
+        |> get_session()
+
+      assert {:halt, _socket} =
+               UserAuth.on_mount(:require_tenant_member, %{}, session, halt_socket())
+    end
+  end
+
+  # A bare connected socket with the assigns on_mount needs to put a flash + redirect.
+  defp halt_socket do
+    %Phoenix.LiveView.Socket{
+      endpoint: QuoteAssistWeb.Endpoint,
+      assigns: %{__changed__: %{}, flash: %{}}
+    }
   end
 end

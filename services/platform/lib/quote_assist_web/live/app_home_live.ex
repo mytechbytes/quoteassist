@@ -1,12 +1,10 @@
 defmodule QuoteAssistWeb.AppHomeLive do
   @moduledoc """
-  Minimal authenticated landing for signed-in users (`/app`).
-
-  R1 ships this as a placeholder that proves authentication works end to end: the
-  route is guarded by `on_mount {QuoteAssistWeb.UserAuth, :require_authenticated}`,
-  so reaching it requires a logged-in user and everyone else is redirected to
-  `/login`. Tenant scoping (`:require_tenant_member`) and the real workspace shell
-  arrive in R2.
+  Tenant workspace landing (`/app`). Guarded by `on_mount :require_tenant_member`:
+  reaching it requires a logged-in user with a live membership for the tenant
+  resolved from the host, so `current_scope` always carries a tenant, membership,
+  and role. R2 ships the empty shell; quote requests (R7), the AI reply hook (R8),
+  and team/roles (R5) render into it later.
   """
   use QuoteAssistWeb, :live_view
 
@@ -18,28 +16,31 @@ defmodule QuoteAssistWeb.AppHomeLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-3xl">
-        <span class="mtb-badge mtb-badge-success">Signed in</span>
+    <Layouts.workspace flash={@flash} current_scope={@current_scope} active="overview">
+      <div class="mb-7">
+        <div class="text-xs font-bold uppercase tracking-widest" style="color:var(--mc-text-3)">
+          Workspace · Overview
+        </div>
         <h1
-          class="mt-3 text-2xl font-bold tracking-tight"
+          class="mt-1.5 text-2xl font-bold tracking-tight"
           style="font-family:var(--font-display);color:var(--mc-text)"
         >
-          Welcome back
+          {@current_scope.tenant.name}
         </h1>
-        <p class="mt-1.5 text-sm" style="color:var(--mc-text-2)">
-          You're signed in as <span class="font-medium" style="color:var(--mc-text)">{@current_scope.user.email}</span>.
-          This is a placeholder workspace — your tenant dashboard lands in R2.
+        <p class="mt-1.5 flex flex-wrap items-center gap-2 text-sm" style="color:var(--mc-text-2)">
+          Signed in as
+          <span class="font-medium" style="color:var(--mc-text)">{@current_scope.user.email}</span>
+          <span class="mtb-badge mtb-badge-brand">{@current_scope.membership.role.name}</span>
         </p>
-
-        <div class="mtb-card mt-6 px-6 py-8">
-          <p class="text-sm" style="color:var(--mc-text-2)">
-            Nothing here yet. Tenant resolution and role-scoped access arrive in R2;
-            quote requests and the AI reply hook follow in R7–R8.
-          </p>
-        </div>
       </div>
-    </Layouts.app>
+
+      <div class="mtb-card px-6 py-8">
+        <p class="text-sm" style="color:var(--mc-text-2)">
+          Your workspace is ready and scoped to <span class="font-medium" style="color:var(--mc-text)">{@current_scope.tenant.name}</span>.
+          Team and roles arrive in R5; quote requests and the AI reply hook follow in R7–R8.
+        </p>
+      </div>
+    </Layouts.workspace>
     """
   end
 end

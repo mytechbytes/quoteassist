@@ -6,7 +6,25 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
-**R1 complete / next R2.** Auth — tenant users sign in and out. `phx.gen.auth`
+**R2 complete / next R3.** Tenancy + RBAC. Tenants resolve from the request
+**host** via the `TenantResolver` plug (platform host → no tenant; `*.<base>` →
+`slug`; any other host → verified `custom_domain`; unknown/suspended/deleted →
+404), and the resolved tenant id is written to the host-scoped session. The
+LiveView learns the tenant from that session and reloads it from the DB on every
+mount (`on_mount :require_tenant_member`), so suspended/deleted tenants are caught.
+`QuoteAssist.Tenancy.scope/2` constrains every tenant-owned query and raises
+without a tenant. RBAC: a code-owned permission catalog (`Authz.Permissions`, keys
+mirroring the design) consumed by `Authz.Policy.can?/3`; tenant-scoped `roles`
+(five built-ins seeded per tenant) referenced by `memberships.role_id`.
+`tenant.status` is a hand-rolled state machine (`Tenant.can_transition?/2`, audited
+via `Tenants.transition_status/3`). Append-only `audit_logs` + `Audit.log/1`, wired
+into the login path. `/app` is the workspace shell (`Layouts.workspace`, ported
+`mtb-shell`/`mtb-side` chrome) behind the membership guard. `/tenants` now lists
+live tenants; `priv/repo/seeds.exs` seeds the `acme` tenant + roles + owner/agent/
+newbie members (dev/staging, `DEV_USER_PASSWORD`). Reach it at
+`http://acme.lvh.me:4000`.
+
+**R1 complete.** Auth — tenant users sign in and out. `phx.gen.auth`
 (scope-based; magic-link + opt-in password) adapted to the design system: login
 at `/login` (split-screen ported from `login.html`, password reveal + magic-link
 request, theme toggle — all via `Phoenix.LiveView.JS`), magic-link confirm at
@@ -38,9 +56,9 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R2** — tenancy + RBAC: `TenantResolver` (host → tenant), `Tenancy.scope/2`,
-`Policy.can?/3` + the permission catalog, `audit_logs` + `Audit.log/1`, and the
-real `/app/*` workspace behind `:require_tenant_member`.
+**Next: R3** — admin identity (separate `admins` table + `/admin/login`), tenant
+CRUD, and the 15-day trial. Reuse the existing `RateLimiter`/`LoginThrottle` on
+`/admin/login`; the tenant status state machine + audit log from R2 carry over.
 
 ## How to run
 

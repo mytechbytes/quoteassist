@@ -21,12 +21,12 @@ defmodule QuoteAssistWeb.PageHTML do
        [
          %{id: "R0", desc: "Walking skeleton — app deploys, /health green", status: :done},
          %{id: "R0a", desc: "Platform home + tenant directory (/tenants)", status: :done},
-         %{id: "R1", desc: "Auth — tenant users sign in / out", status: :in_progress},
-         %{id: "R2", desc: "Tenancy + RBAC (subdomain + custom domain)", status: :pending}
+         %{id: "R1", desc: "Auth — tenant users sign in / out", status: :done},
+         %{id: "R2", desc: "Tenancy + RBAC (subdomain + custom domain)", status: :done}
        ]},
       {"Site Admin",
        [
-         %{id: "R3", desc: "Admin identity + tenant CRUD + 15-day trial", status: :pending},
+         %{id: "R3", desc: "Admin identity + tenant CRUD + 15-day trial", status: :in_progress},
          %{id: "R4", desc: "Self-registration (trial onboarding)", status: :pending}
        ]},
       {"Tenant Basics",

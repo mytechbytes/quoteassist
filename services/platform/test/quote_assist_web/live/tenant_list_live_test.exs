@@ -2,6 +2,7 @@ defmodule QuoteAssistWeb.TenantListLiveTest do
   use QuoteAssistWeb.ConnCase
 
   import Phoenix.LiveViewTest
+  import QuoteAssist.TenantsFixtures
 
   alias QuoteAssistWeb.TenantListLive
 
@@ -15,6 +16,15 @@ defmodule QuoteAssistWeb.TenantListLiveTest do
     assert html =~ "Admin login"
   end
 
+  test "lists live tenants from the database", %{conn: conn} do
+    tenant_fixture(%{name: "Globex", slug: "globex"})
+
+    {:ok, _live, html} = live(conn, ~p"/tenants")
+
+    assert html =~ "Globex"
+    refute html =~ "No tenants yet"
+  end
+
   test "directory lists each tenant with a link to its subdomain login" do
     tenants = [%{name: "Acme Co", slug: "acme", status: :active}]
 
@@ -22,8 +32,8 @@ defmodule QuoteAssistWeb.TenantListLiveTest do
 
     assert html =~ "Acme Co"
     assert html =~ "active"
-    # Login link targets the tenant subdomain (prod scheme/host in the test env).
-    assert html =~ ~s|href="https://acme.quoteassist.mytechbytes.in/login"|
+    # Login link targets the tenant subdomain (test scheme/base from config/test.exs).
+    assert html =~ ~s|href="http://acme.example.com/login"|
     refute html =~ "No tenants yet"
   end
 end

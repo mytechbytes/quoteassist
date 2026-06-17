@@ -54,3 +54,11 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# Tenant base domain for tests. With base "example.com", the default test host
+# (www.example.com) is the platform host and "acme.example.com" is a tenant
+# subdomain — so TenantResolver treats existing platform-host tests as platform and
+# tenancy tests set the host explicitly. Scheme is http to match the dev convention.
+config :quote_assist,
+  tenant_base_domain: "example.com",
+  tenant_url_scheme: "http"

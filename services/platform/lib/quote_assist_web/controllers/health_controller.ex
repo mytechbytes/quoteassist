@@ -22,10 +22,13 @@ defmodule QuoteAssistWeb.HealthController do
       :ok ->
         json(conn, %{status: "ready"})
 
+      # coveralls-ignore-start — DB-down path is verified in deployment (smoke
+      # test), not unit-tested; no deterministic way to drop the DB mid-test.
       {:error, reason} ->
         conn
         |> put_status(:service_unavailable)
         |> json(%{status: "unavailable", reason: inspect(reason)})
+        # coveralls-ignore-stop
     end
   end
 
@@ -35,6 +38,8 @@ defmodule QuoteAssistWeb.HealthController do
     QuoteAssist.Repo.query!("SELECT 1")
     :ok
   rescue
+    # coveralls-ignore-start — failure path requires the DB to be unreachable.
     error -> {:error, error}
+    # coveralls-ignore-stop
   end
 end

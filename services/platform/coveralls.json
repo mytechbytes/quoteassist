@@ -1,0 +1,25 @@
+{
+  "comment": "ExCoveralls config. skip_files holds files that don't need unit coverage (framework-generated, boilerplate, infra wiring, and test support). The 70% threshold is enforced by ci/check_coverage.exs, not here, so minimum_coverage stays 0.",
+  "coverage_options": {
+    "treat_no_relevant_lines_as_covered": true,
+    "minimum_coverage": 0
+  },
+  "skip_files": [
+    "test/",
+    "lib/quote_assist/application.ex",
+    "lib/quote_assist/mailer.ex",
+    "lib/quote_assist/release.ex",
+    "lib/quote_assist/repo.ex",
+    "lib/quote_assist.ex",
+    "lib/quote_assist_web.ex",
+    "lib/quote_assist_web/endpoint.ex",
+    "lib/quote_assist_web/gettext.ex",
+    "lib/quote_assist_web/telemetry.ex",
+    "lib/quote_assist_web/router.ex",
+    "lib/quote_assist_web/components/core_components.ex",
+    "lib/quote_assist_web/components/layouts.ex",
+    "lib/quote_assist_web/controllers/error_html.ex",
+    "lib/quote_assist_web/controllers/error_json.ex",
+    "lib/quote_assist_web/controllers/page_html.ex"
+  ]
+}

@@ -1,105 +1,106 @@
 # QuoteAssist
 
-AI-assisted, multi-tenant, multi-vertical **lead-to-quote platform**. Omni-channel
-lead intake → auto-assignment → AI requirement capture → pricing → drafted reply →
-salesperson approval → send. R1 targets Airline/Travel end-to-end with
-multi-tenancy baked in from day one; auto-send is disabled (human-in-the-loop).
+A **multi-tenant AI-powered quote assistant**. Each tenant (organisation) gets
+an isolated workspace on its own subdomain (and, optionally, a custom domain).
+A quote request is a lead; the reply — manual now, AI-generated later — is the
+quote. Built in thin vertical slices, every release independently deployable.
 
-Full requirements & solution design:
-[`docs/QuoteAssist-Unified-Requirements-and-Solution-Design-v1.md`](docs/QuoteAssist-Unified-Requirements-and-Solution-Design-v1.md).
+The authoritative build plan is
+[`services/platform/docs/RELEASE_PLAN.md`](services/platform/docs/RELEASE_PLAN.md).
+Working guidance for contributors (and Claude) lives in
+[`CLAUDE.md`](CLAUDE.md) and [`services/platform/CLAUDE.md`](services/platform/CLAUDE.md).
 
-## Architecture at a glance (§8)
+## Architecture
 
-Two cooperating runtimes plus an embeddable add-in:
+Two cooperating runtimes:
 
-- **Platform plane — Elixir / Phoenix** (`projects/platform`): orchestration,
-  tenancy, RBAC, pricing/approval/quoting, **and the LiveView web UI**.
-- **AI plane — Python / FastAPI** (`projects/ai-service`): extraction, model
-  routing, RAG, confidence — behind a versioned `extract / embed / classify`
-  contract.
-- **Outlook add-in — Office.js** (`projects/outlook-plugin`): same flow against a
-  selected email (Phase 2).
+- **Platform plane — Elixir / Phoenix** (`services/platform`): tenancy, RBAC,
+  quoting, and the **Phoenix LiveView** web UI. This is the focus of the current
+  releases.
+- **AI plane — Python / FastAPI** (`services/ai-service`): prompt, model, and
+  response generation behind a thin HTTP contract. Slots in at R8 without
+  changing any screens; stubbed until then.
 
-> The web UI is **Phoenix LiveView** (server-rendered, `Phoenix.LiveView.JS` for
-> client interactions) using the design system in `designs/`. This supersedes the
-> React web app named in the original design doc; see
-> [`CLAUDE.md`](CLAUDE.md) for the rationale.
+The web UI is **Phoenix LiveView** (server-rendered, `Phoenix.LiveView.JS` for
+client interactions) using the design system in `designs/`.
 
 ## Repository layout
 
 ```
 quote-assist/
-├── projects/
-│   ├── platform/        # Elixir/Phoenix — orchestration + LiveView UI + API
-│   ├── ai-service/      # Python/FastAPI — extraction/embed/classify
-│   ├── outlook-plugin/  # Office.js add-in (Phase 2 stub)
-│   └── shared/contracts # JSON-schema service-boundary contracts
-├── designs/             # design tokens + screens (Claude design output)
-├── infrastructure/      # Terraform (authored Phase 0, applied Phase 13)
-├── docs/                # requirements & solution design, phase progress
-├── docker-compose.yml   # db (pgvector) · redis · ai-service · platform
-└── Makefile             # one-command dev helpers
+├── services/
+│   ├── platform/        # Elixir/Phoenix — tenancy, RBAC, quoting + LiveView UI
+│   │   └── docs/        # RELEASE_PLAN.md (authoritative build plan)
+│   └── ai-service/      # Python/FastAPI — prompt/model/response (later)
+├── designs/             # design tokens + reference screens (mc-*/qa-* → mtb-*)
+├── docker-compose.yml   # db (Postgres/pgvector) · redis · ai-service · platform
+└── Jenkinsfile          # CI pipeline
 ```
+
+## Tenancy model
+
+- Platform host: `quoteassist.mytechbytes.in` — public home, tenant directory,
+  and admin.
+- Tenants live on `*.quoteassist.mytechbytes.in` (e.g.
+  `acme.quoteassist.mytechbytes.in`); the subdomain label is the tenant `slug`.
+- A tenant may also add a verified **custom domain** (e.g. `quotes.acme.com`);
+  the subdomain keeps working as a permanent fallback.
+- Resolution is by request **host** via the `TenantResolver` plug — never from
+  params. Dev uses `*.lvh.me:4000` for subdomains.
 
 ## Prerequisites
 
-- **Erlang/OTP 29** and **Elixir 1.18+** (1.19.x is installed/used because 1.18
-  predates OTP 29; `mix.exs` requires `~> 1.18`). See `.tool-versions`; `asdf install`.
-- **Docker** (for Postgres + Redis), or a local Postgres 16 with the `pgvector`
-  and `citext` extensions available.
-- **Python 3.12** (for the AI service).
+- **Elixir 1.15+** / recent Erlang/OTP, **Phoenix 1.8**, **Phoenix LiveView 1.2**.
+- **Docker** (for Postgres + Redis), or a local Postgres with the `citext`
+  (and, for the AI plane later, `pgvector`) extensions.
+- **Python 3.12** — only needed once the AI service is implemented.
 
 ## Quick start (local)
 
-```sh
-# 1. Start datastores (Postgres w/ pgvector + Redis)
-make db
-
-# 2. Set up the platform: deps, create DB, migrate, seed, build assets
-make setup
-
-# 3. Run the platform (web UI + API + LiveView) on http://localhost:4000
-make platform
-```
-
-Or run the whole stack in containers:
+Run the platform on the host with hot reload:
 
 ```sh
-cp .env.example .env     # no real secrets needed for local
-make up                  # db, redis, ai-service, platform
+# 1. Start datastores
+docker compose up -d db redis
+
+# 2. Set up the platform: deps, create DB, migrate, seed
+cd services/platform
+mix deps.get && mix ecto.setup
+
+# 3. Run Phoenix (web UI + LiveView) on http://localhost:4000
+mix phx.server
 ```
 
-### Demo logins (seeded; dev password `quoteassist-dev-pw`)
+Or run the production-like stack in containers (the platform image is a
+production release, not `mix phx.server`):
 
-| Email                    | Persona              |
-| ------------------------ | -------------------- |
-| `admin@quoteassist.dev`  | Site admin           |
-| `daniel@skyline.dev`     | Agency admin         |
-| `rana@skyline.dev`       | Salesperson (senior) |
+```sh
+docker compose up        # db, redis, ai-service, platform
+```
 
-Health probes: `GET /health` (liveness), `GET /health/ready` (readiness).
+Health probes: `GET /health` (liveness), `GET /health/ready` (readiness) — land
+in R0.
 
-## Common commands
+## Common commands (from `services/platform`)
 
-| Command        | What it does                                            |
-| -------------- | ------------------------------------------------------- |
-| `make db`      | start Postgres (pgvector) + Redis                       |
-| `make setup`   | deps + create/migrate/seed DB + build assets            |
-| `make platform`| run Phoenix on :4000                                    |
-| `make ai`      | run the FastAPI AI service on :8000                     |
-| `make migrate` | run Ecto migrations                                     |
-| `make seed`    | (re)run seed data (idempotent)                          |
-| `make check`   | platform quality gate (format, compile, credo, test)   |
-| `make test`    | platform tests                                          |
+| Command                                | What it does                          |
+| -------------------------------------- | ------------------------------------- |
+| `mix deps.get`                         | fetch dependencies                    |
+| `mix ecto.setup`                       | create + migrate + seed the DB        |
+| `mix phx.server`                       | run Phoenix on :4000                  |
+| `mix test`                             | run the test suite                    |
+| `mix format`                           | format code                           |
+| `mix compile --warnings-as-errors`    | compile clean (part of the gate)      |
+
+"Green before done": `mix format`, `mix compile --warnings-as-errors`, and
+`mix test` must all pass.
 
 ## CI
 
-Per-package GitHub Actions (`.github/workflows/`): `platform` (format/credo/
-dialyzer/test), `ai-service` (ruff/mypy/pytest), `outlook-plugin` (lint/typecheck/
-build), `infra-plan` (terraform fmt/validate — **no apply**).
+Continuous integration runs through the [`Jenkinsfile`](Jenkinsfile) pipeline.
 
 ## Status
 
-Phases **0 (setup) and 1 (platform foundation)** are complete. See
-[`docs/PHASE_PROGRESS.md`](docs/PHASE_PROGRESS.md) for the per-phase checklist and
-what's next.
+Phoenix scaffold in place; **R0 (walking skeleton) is the next release**. See
+[`services/platform/docs/RELEASE_PLAN.md`](services/platform/docs/RELEASE_PLAN.md)
+for the R0–R8 build order and per-release detail.

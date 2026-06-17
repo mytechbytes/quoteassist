@@ -28,7 +28,7 @@ pipeline {
   parameters {
     choice(name: 'PIPELINE_ACTION', choices: ['BUILD_AND_DEPLOY', 'ROLLBACK'], description: 'Action to perform')
     string(name: 'ROLLBACK_TAG', defaultValue: '', description: 'Image tag to roll back to, e.g. prd-13 (main) or stg-13 (develop)')
-    string(name: 'COVERAGE_THRESHOLD', defaultValue: '70', description: 'Minimum line coverage %% (raise toward 80+ as the app matures)')
+    string(name: 'COVERAGE_THRESHOLD', defaultValue: '80', description: 'Minimum line coverage %% (currently 80; raise as the app matures)')
   }
 
   environment {

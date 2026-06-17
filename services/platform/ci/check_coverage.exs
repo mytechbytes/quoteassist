@@ -1,10 +1,10 @@
 # Enforces a minimum total line-coverage threshold from the ExCoveralls report.
 #
 #   mix coveralls.json                         # writes cover/excoveralls.json
-#   mix run --no-start ci/check_coverage.exs 70
+#   mix run --no-start ci/check_coverage.exs 80
 #
 # Exits non-zero if total covered/relevant line coverage is below the threshold
-# (default 70). Files excluded via coveralls.json `skip_files` never appear in the
+# (default 80). Files excluded via coveralls.json `skip_files` never appear in the
 # report, so they don't affect this calculation.
 
 threshold =
@@ -12,11 +12,11 @@ threshold =
     [arg | _] ->
       case Float.parse(arg) do
         {value, _} -> value
-        :error -> 70.0
+        :error -> 80.0
       end
 
     [] ->
-      70.0
+      80.0
   end
 
 report = "cover/excoveralls.json"

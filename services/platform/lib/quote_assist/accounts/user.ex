@@ -8,6 +8,7 @@ defmodule QuoteAssist.Accounts.User do
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
+    field :display_name, :string
     field :confirmed_at, :utc_datetime
     field :deleted_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
@@ -77,6 +78,24 @@ defmodule QuoteAssist.Accounts.User do
   def password_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:password])
+    |> validate_confirmation(:password, message: "does not match password")
+    |> validate_password(opts)
+  end
+
+  @doc """
+  Changeset for first-time owner onboarding (R3): set a display name and an initial
+  password together. Reuses the password validation/hashing below.
+
+  ## Options
+
+    * `:hash_password` - hash + clear the virtual password (default `true`). Pass
+      `false` for live form validation.
+  """
+  def onboarding_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:display_name, :password])
+    |> validate_required([:display_name])
+    |> validate_length(:display_name, min: 1, max: 80)
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
   end

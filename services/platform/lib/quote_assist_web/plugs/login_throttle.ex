@@ -83,7 +83,8 @@ defmodule QuoteAssistWeb.Plugs.LoginThrottle do
   # "email" for the magic-link request form. Downcased so casing can't dodge the
   # per-email limit (emails are citext / case-insensitive anyway).
   defp email_param(conn) do
-    case get_in(conn.params, ["user", "email"]) || conn.params["email"] do
+    case get_in(conn.params, ["user", "email"]) || get_in(conn.params, ["admin", "email"]) ||
+           conn.params["email"] do
       email when is_binary(email) and email != "" -> normalize(email)
       _ -> nil
     end

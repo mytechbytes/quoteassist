@@ -61,8 +61,9 @@ defmodule QuoteAssistWeb.Layouts do
             <.link navigate={~p"/tenants"} class="mtb-btn mtb-btn-ghost mtb-btn-sm">
               Tenants
             </.link>
-            <%!-- /admin/login lands in R3 — plain href avoids a verified-route warning until then. --%>
-            <a href="/admin/login" class="mtb-btn mtb-btn-secondary mtb-btn-sm">Admin login</a>
+            <.link href={~p"/admin/login"} class="mtb-btn mtb-btn-secondary mtb-btn-sm">
+              Admin login
+            </.link>
           <% end %>
           <.theme_toggle />
         </nav>
@@ -182,6 +183,126 @@ defmodule QuoteAssistWeb.Layouts do
               {@current_scope.user.email}
             </span>
             <.link href={~p"/logout"} method="delete" class="mtb-btn mtb-btn-secondary mtb-btn-sm">
+              Log out
+            </.link>
+            <.theme_toggle />
+          </div>
+        </header>
+
+        <main class="p-6 sm:p-8">
+          {render_slot(@inner_block)}
+        </main>
+      </div>
+    </div>
+
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
+  The site-admin console shell (`/admin/*`): sidebar + topbar chrome ported from
+  `designs/quoteassist/admin-*.html` (`mc-*` → `mtb-*`). Mirrors `workspace/1` but is
+  driven by `current_admin` (a separate identity) rather than `current_scope`, and is
+  only ever rendered behind `on_mount :require_admin` on the platform host.
+  """
+  attr :flash, :map, required: true
+  attr :current_admin, :map, required: true, doc: "the signed-in admin"
+  attr :active, :string, default: "overview", doc: "active sidebar key"
+  attr :breadcrumb, :string, default: "Overview"
+  slot :inner_block, required: true
+
+  def admin(assigns) do
+    ~H"""
+    <div class="mtb-shell">
+      <aside class="mtb-side">
+        <div class="mtb-side-header">
+          <a
+            href={~p"/admin"}
+            class="flex min-w-0 items-center gap-2.5 no-underline"
+            style="color:var(--mc-text)"
+          >
+            <span class="mtb-logo" style="width:30px;height:30px;font-size:14px;flex-shrink:0">
+              QA
+            </span>
+            <span style="font-family:var(--font-display);font-weight:700;font-size:1rem">
+              QuoteAssist
+            </span>
+            <span class="mtb-app-tag">Admin</span>
+          </a>
+        </div>
+
+        <div class="mtb-side-section">Platform</div>
+        <.nav_item
+          active={@active}
+          key="overview"
+          label="Overview"
+          icon="hero-squares-2x2"
+          href={~p"/admin"}
+        />
+        <.nav_item
+          active={@active}
+          key="tenants"
+          label="Agencies"
+          icon="hero-building-office-2"
+          href={~p"/admin/tenants"}
+        />
+        <.nav_item
+          active={@active}
+          key="plans"
+          label="Plans"
+          icon="hero-credit-card"
+          href={~p"/admin/plans"}
+        />
+        <.nav_item
+          active={@active}
+          key="admins"
+          label="Admins"
+          icon="hero-shield-check"
+          href={~p"/admin/admins"}
+        />
+        <.nav_item
+          active={@active}
+          key="activity"
+          label="Activity"
+          icon="hero-clock"
+          href={~p"/admin/activity"}
+        />
+
+        <div class="mtb-side-footer">
+          <div
+            class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full text-xs font-bold text-white"
+            style="background:linear-gradient(135deg, var(--mc-grad-1), var(--mc-grad-2))"
+          >
+            {initials(@current_admin.email)}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="truncate text-sm font-semibold leading-tight">
+              {@current_admin.email}
+            </div>
+            <div class="truncate text-[11px]" style="color:var(--mc-text-3)">
+              Site administrator
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="min-w-0">
+        <header class="mtb-topbar">
+          <div class="flex items-center gap-2 text-sm">
+            <span class="font-medium" style="color:var(--mc-text-3)">Platform</span>
+            <.icon name="hero-chevron-right-micro" class="size-3.5" style="color:var(--mc-text-3)" />
+            <span class="font-semibold" style="color:var(--mc-text)">{@breadcrumb}</span>
+          </div>
+
+          <div class="ml-auto flex items-center gap-2 sm:gap-3">
+            <span class="hidden text-sm sm:inline" style="color:var(--mc-text-2)">
+              {@current_admin.email}
+            </span>
+            <.link
+              href={~p"/admin/logout"}
+              method="delete"
+              class="mtb-btn mtb-btn-secondary mtb-btn-sm"
+            >
               Log out
             </.link>
             <.theme_toggle />

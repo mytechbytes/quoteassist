@@ -6,7 +6,7 @@ defmodule QuoteAssist.Accounts do
   import Ecto.Query, warn: false
   alias QuoteAssist.Repo
 
-  alias QuoteAssist.Accounts.{User, UserNotifier, UserToken}
+  alias QuoteAssist.Accounts.{Admin, AdminToken, User, UserNotifier, UserToken}
 
   ## Database getters
 
@@ -167,6 +167,25 @@ defmodule QuoteAssist.Accounts do
     |> update_user_and_delete_all_tokens()
   end
 
+  ## Onboarding
+
+  @doc """
+  Changeset for the owner onboarding form (display name + initial password). Defaults
+  to `hash_password: false` so live validation doesn't hash on every keystroke.
+  """
+  def change_user_onboarding(%User{} = user, attrs \\ %{}, opts \\ []) do
+    User.onboarding_changeset(user, attrs, Keyword.put_new(opts, :hash_password, false))
+  end
+
+  @doc """
+  Completes owner onboarding: sets the display name + initial password in one update.
+  Keeps the current session (the owner just authenticated via their invite link); the
+  full profile + password-reset flows arrive in R6.
+  """
+  def onboard_user(%User{} = user, attrs) do
+    user |> User.onboarding_changeset(attrs) |> Repo.update()
+  end
+
   ## Session
 
   @doc """
@@ -278,6 +297,79 @@ defmodule QuoteAssist.Accounts do
   """
   def delete_user_session_token(token) do
     Repo.delete_all(from(UserToken, where: [token: ^token, context: "session"]))
+    :ok
+  end
+
+  ## Site admin identity
+  #
+  # Admins are a fully separate identity (own table + tokens). These functions never
+  # touch `users`/`memberships`. `register_admin/1` is the ONLY way to create an admin
+  # — there is no HTTP route, seed, or env-var path (see RELEASE_PLAN.md).
+
+  @doc "Gets a live admin by email, or nil."
+  def get_admin_by_email(email) when is_binary(email) do
+    Repo.one(from a in Admin, where: a.email == ^email and is_nil(a.deleted_at))
+  end
+
+  @doc "Gets a live admin by email + password, or nil. Constant-time on a miss."
+  def get_admin_by_email_and_password(email, password)
+      when is_binary(email) and is_binary(password) do
+    admin = Repo.one(from a in Admin, where: a.email == ^email and is_nil(a.deleted_at))
+    if Admin.valid_password?(admin, password), do: admin
+  end
+
+  @doc "Gets a live admin by id, raising if missing."
+  def get_admin!(id), do: Repo.one!(from a in Admin, where: a.id == ^id and is_nil(a.deleted_at))
+
+  @doc "All live admins, ordered by email (for the admin console list)."
+  def list_admins do
+    Repo.all(from a in Admin, where: is_nil(a.deleted_at), order_by: [asc: a.email])
+  end
+
+  @doc "Fetches a live admin by id, or nil. Safe for untrusted ids (bad UUID -> nil)."
+  def get_admin(id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} -> Repo.one(from a in Admin, where: a.id == ^uuid and is_nil(a.deleted_at))
+      :error -> nil
+    end
+  end
+
+  @doc """
+  Registers an admin. The single creation path for an admin identity — called from a
+  Mix task (`mix qa.create_admin`) or an `iex` session, never over HTTP.
+  """
+  def register_admin(attrs) do
+    %Admin{} |> Admin.registration_changeset(attrs) |> Repo.insert()
+  end
+
+  @doc "Resets an admin's password (used by `mix qa.create_admin` for idempotency)."
+  def update_admin_password(%Admin{} = admin, attrs) do
+    admin |> Admin.password_changeset(attrs) |> Repo.update()
+  end
+
+  @doc "Stamps `last_sign_in_at` on a successful admin login."
+  def update_admin_last_sign_in(%Admin{} = admin) do
+    admin
+    |> Ecto.Changeset.change(last_sign_in_at: DateTime.utc_now(:second))
+    |> Repo.update()
+  end
+
+  @doc "Generates and stores an admin session token."
+  def generate_admin_session_token(%Admin{} = admin) do
+    {token, admin_token} = AdminToken.build_session_token(admin)
+    Repo.insert!(admin_token)
+    token
+  end
+
+  @doc "Gets the admin for a valid session token, or nil."
+  def get_admin_by_session_token(token) do
+    {:ok, query} = AdminToken.verify_session_token_query(token)
+    Repo.one(query)
+  end
+
+  @doc "Deletes an admin session token (logout)."
+  def delete_admin_session_token(token) do
+    Repo.delete_all(from(AdminToken, where: [token: ^token, context: "session"]))
     :ok
   end
 

@@ -112,6 +112,26 @@ defmodule QuoteAssistWeb.ConnCase do
   @doc "Sets the conn host to the tenant's subdomain under the test base domain."
   def put_tenant_host(conn, tenant), do: %{conn | host: "#{tenant.slug}.example.com"}
 
+  @doc """
+  Setup helper that registers a site admin and logs them in (platform host). Stores
+  `:conn` and `:admin` in the test context.
+
+      setup :register_and_log_in_admin
+  """
+  def register_and_log_in_admin(%{conn: conn}) do
+    admin = QuoteAssist.AccountsFixtures.admin_fixture()
+    %{conn: log_in_admin(conn, admin), admin: admin}
+  end
+
+  @doc "Logs `admin` into `conn` by writing the `admin_token` session key."
+  def log_in_admin(conn, admin) do
+    token = QuoteAssist.Accounts.generate_admin_session_token(admin)
+
+    conn
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:admin_token, token)
+  end
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do

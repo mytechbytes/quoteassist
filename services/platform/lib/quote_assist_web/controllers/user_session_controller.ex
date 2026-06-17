@@ -21,21 +21,15 @@ defmodule QuoteAssistWeb.UserSessionController do
     tenant = conn.assigns[:current_tenant]
     user = tenant && Accounts.get_user_by_magic_link_token(token)
 
-    if user && Tenants.member?(tenant, user) do
-      case Accounts.login_user_by_magic_link(token) do
-        {:ok, {user, tokens_to_disconnect}} ->
-          UserAuth.disconnect_sessions(tokens_to_disconnect)
+    cond do
+      is_nil(user) or not Tenants.member?(tenant, user) ->
+        invalid_link(conn)
 
-          conn
-          |> log_login(user, "magic_link")
-          |> put_flash(:info, info)
-          |> UserAuth.log_in_user(user, user_params)
+      Tenants.enforce_trial_expiry(tenant) == :expired ->
+        deny_expired_trial(conn)
 
-        _ ->
-          invalid_link(conn)
-      end
-    else
-      invalid_link(conn)
+      true ->
+        consume_magic_link(conn, token, user_params, info)
     end
   end
 
@@ -47,10 +41,16 @@ defmodule QuoteAssistWeb.UserSessionController do
     user = Accounts.get_user_by_email_and_password(email, password)
 
     if user && tenant && Tenants.member?(tenant, user) do
-      conn
-      |> log_login(user, "password")
-      |> put_flash(:info, info)
-      |> UserAuth.log_in_user(user, user_params)
+      case Tenants.enforce_trial_expiry(tenant) do
+        :ok ->
+          conn
+          |> log_login(user, "password")
+          |> put_flash(:info, info)
+          |> UserAuth.log_in_user(user, user_params)
+
+        :expired ->
+          deny_expired_trial(conn)
+      end
     else
       # Generic error — never reveal whether the email exists or belongs to another
       # tenant (prevents cross-tenant user enumeration).
@@ -58,6 +58,23 @@ defmodule QuoteAssistWeb.UserSessionController do
       |> put_flash(:error, "Invalid email or password")
       |> put_flash(:email, String.slice(email, 0, 160))
       |> redirect(to: ~p"/login")
+    end
+  end
+
+  # Consumes a verified, in-tenant magic-link token and logs the user in. Split out of
+  # create/3 to keep nesting shallow (membership + trial are checked by the caller).
+  defp consume_magic_link(conn, token, user_params, info) do
+    case Accounts.login_user_by_magic_link(token) do
+      {:ok, {user, tokens_to_disconnect}} ->
+        UserAuth.disconnect_sessions(tokens_to_disconnect)
+
+        conn
+        |> log_login(user, "magic_link")
+        |> put_flash(:info, info)
+        |> UserAuth.log_in_user(user, user_params)
+
+      _ ->
+        invalid_link(conn)
     end
   end
 
@@ -74,6 +91,15 @@ defmodule QuoteAssistWeb.UserSessionController do
   defp invalid_link(conn) do
     conn
     |> put_flash(:error, "The link is invalid or it has expired.")
+    |> redirect(to: ~p"/login")
+  end
+
+  # Trial lapsed: Tenants.enforce_trial_expiry/1 has just auto-suspended the tenant
+  # (audited). Deny the login; the redirect to /login then hits the now-suspended host
+  # and renders the branded "workspace not registered" 404.
+  defp deny_expired_trial(conn) do
+    conn
+    |> put_flash(:error, "This workspace's trial has ended. Contact your administrator.")
     |> redirect(to: ~p"/login")
   end
 

@@ -18,15 +18,25 @@
 
 alias QuoteAssist.Accounts
 alias QuoteAssist.Accounts.User
+alias QuoteAssist.Plans
 alias QuoteAssist.Repo
 alias QuoteAssist.Tenants
 
 deploy_env = Application.get_env(:quote_assist, :deploy_env, "dev")
 
+# Plans are platform data the admin picks from when creating a tenant, so seed them in
+# dev/staging/prod (idempotent). Skipped under test — the suite builds its own plan
+# fixtures and a clean table. Admins themselves are never seeded — use `mix qa.create_admin`.
+unless deploy_env == "test" do
+  Plans.seed_plans()
+  IO.puts("Seeded plans: #{Enum.map_join(Plans.list_plans(), ", ", & &1.name)}")
+end
+
 if deploy_env in ["dev", "staging"] do
   password = System.get_env("DEV_USER_PASSWORD", "panther@2010")
   scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "http")
   base = Application.get_env(:quote_assist, :tenant_base_domain, "quoteassist.localhost:4000")
+  growth = Plans.get_plan_by_slug("growth")
 
   ensure_user = fn email ->
     case Accounts.get_user_by_email(email) do
@@ -52,7 +62,7 @@ if deploy_env in ["dev", "staging"] do
     tenant =
       case Tenants.get_tenant_by_slug(slug) do
         nil ->
-          {:ok, tenant} = Tenants.create_tenant(%{name: name, slug: slug})
+          {:ok, tenant} = Tenants.create_tenant(%{name: name, slug: slug, plan_id: growth.id})
           tenant
 
         existing ->
@@ -139,6 +149,10 @@ if deploy_env in ["dev", "staging"] do
   Each user belongs to ONE tenant — signing in on another tenant's host is rejected.
   Unconfirmed users (newbie@acme.test) use the magic-link confirm flow.
   Read dev emails at http://localhost:4000/dev/mailbox.
+
+  Site admins are NEVER seeded. Create one (works in every environment) with:
+    mix qa.create_admin --email you@example.com --password "your-strong-password"
+  Then sign in at http://localhost:4000/admin/login.
   """)
 else
   IO.puts("Skipping dev seed (deploy_env=#{deploy_env}).")

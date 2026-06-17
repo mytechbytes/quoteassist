@@ -14,6 +14,8 @@ defmodule QuoteAssist.Audit do
         metadata: %{"method" => "password"}
       })
   """
+  import Ecto.Query
+
   alias QuoteAssist.Audit.Log
   alias QuoteAssist.Repo
 
@@ -25,5 +27,30 @@ defmodule QuoteAssist.Audit do
   @doc "Like `log/1`, but raises on invalid input."
   def log!(attrs) do
     %Log{} |> Log.changeset(attrs) |> Repo.insert!()
+  end
+
+  @doc "Recent audit rows for a tenant, newest first (for the tenant detail timeline)."
+  def list_for_tenant(tenant_id, limit \\ 50) do
+    Repo.all(
+      from l in Log,
+        where: l.tenant_id == ^tenant_id,
+        order_by: [desc: l.inserted_at, desc: l.id],
+        limit: ^limit
+    )
+  end
+
+  @doc "Recent audit rows across the whole platform, newest first (the activity view)."
+  def list_recent(limit \\ 50) do
+    Repo.all(from l in Log, order_by: [desc: l.inserted_at, desc: l.id], limit: ^limit)
+  end
+
+  @doc "Recent audit rows for a specific admin actor, newest first (the admin detail page)."
+  def list_for_admin(admin_id, limit \\ 50) do
+    Repo.all(
+      from l in Log,
+        where: l.actor_type == :admin and l.actor_id == ^admin_id,
+        order_by: [desc: l.inserted_at, desc: l.id],
+        limit: ^limit
+    )
   end
 end

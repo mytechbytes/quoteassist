@@ -7,6 +7,7 @@
   "skip_files": [
     "test/",
     "lib/mix/tasks/qa.create_user.ex",
+    "lib/mix/tasks/qa.create_admin.ex",
     "lib/quote_assist/application.ex",
     "lib/quote_assist/mailer.ex",
     "lib/quote_assist/release.ex",

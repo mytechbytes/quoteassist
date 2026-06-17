@@ -17,6 +17,25 @@ defmodule QuoteAssistWeb.AppHomeLive do
   def render(assigns) do
     ~H"""
     <Layouts.workspace flash={@flash} current_scope={@current_scope} active="overview">
+      <div
+        :if={is_nil(@current_scope.user.hashed_password)}
+        class="mtb-card mb-6 flex items-start gap-3 px-5 py-4"
+        style="border-color:color-mix(in oklch,var(--mc-warning) 40%,transparent);background:color-mix(in oklch,var(--mc-warning) 10%,var(--mc-surface))"
+      >
+        <.icon name="hero-sparkles" class="mt-0.5 size-5 shrink-0" style="color:var(--mc-warning)" />
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold" style="color:var(--mc-text)">
+            Finish setting up your account
+          </p>
+          <p class="mt-0.5 text-sm" style="color:var(--mc-text-2)">
+            Set your name and a password so you can sign in without a magic link.
+          </p>
+          <.link navigate={~p"/app/welcome"} class="mtb-btn mtb-btn-primary mtb-btn-sm mt-3">
+            Set up account <span aria-hidden="true">→</span>
+          </.link>
+        </div>
+      </div>
+
       <div class="mb-7">
         <div class="text-xs font-bold uppercase tracking-widest" style="color:var(--mc-text-3)">
           Workspace · Overview

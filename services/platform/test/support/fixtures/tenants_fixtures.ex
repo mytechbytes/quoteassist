@@ -46,6 +46,16 @@ defmodule QuoteAssist.TenantsFixtures do
     tenant
   end
 
+  @doc "A trial tenant whose `trial_expires_at` is in the past (still status `trial`)."
+  def expired_trial_tenant_fixture(attrs \\ %{}) do
+    past = DateTime.utc_now(:second) |> DateTime.add(-1, :day)
+
+    attrs
+    |> tenant_fixture()
+    |> Ecto.Changeset.change(trial_expires_at: past)
+    |> QuoteAssist.Repo.update!()
+  end
+
   @doc "A custom (non-builtin) tenant-scoped role."
   def role_fixture(%Tenant{} = tenant, attrs \\ %{}) do
     attrs =

@@ -193,4 +193,43 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Logged out successfully"
     end
   end
+
+  describe "POST /login - expired trial" do
+    test "blocks an expired-trial member and auto-suspends the tenant (audited)", %{conn: conn} do
+      tenant = expired_trial_tenant_fixture(%{slug: "expired"})
+      {member, _membership} = member_fixture(tenant, "owner")
+      member = set_password(member)
+
+      conn =
+        conn
+        |> put_tenant_host(tenant)
+        |> post(~p"/login", %{
+          "user" => %{"email" => member.email, "password" => valid_user_password()}
+        })
+
+      refute get_session(conn, :user_token)
+      assert Repo.reload(tenant).status == :suspended
+
+      log =
+        Repo.one!(
+          from l in Log,
+            where: l.action == "tenant.status_changed" and l.tenant_id == ^tenant.id
+        )
+
+      assert log.metadata == %{"from" => "trial", "to" => "suspended"}
+      assert log.actor_type == :system
+    end
+
+    test "an active tenant member still logs in", %{conn: conn, member: member} do
+      member = set_password(member)
+
+      conn =
+        post(conn, ~p"/login", %{
+          "user" => %{"email" => member.email, "password" => valid_user_password()}
+        })
+
+      assert get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/app"
+    end
+  end
 end

@@ -8,7 +8,9 @@ defmodule QuoteAssist.Tenants do
   """
   import Ecto.Query
 
-  alias QuoteAssist.Accounts.User
+  alias Ecto.Multi
+  alias QuoteAssist.Accounts
+  alias QuoteAssist.Accounts.{Admin, User}
   alias QuoteAssist.Audit
   alias QuoteAssist.Authz.Permissions
   alias QuoteAssist.Repo
@@ -258,11 +260,244 @@ defmodule QuoteAssist.Tenants do
     |> Repo.insert()
   end
 
+  # ── Admin tenant console (R3) ─────────────────────────────────────────────────────
+
+  @trial_days 15
+
+  @doc """
+  All live tenants (any status) for the admin console, ordered by name, with plan +
+  live memberships (user + role) preloaded. Soft-deleted tenants are excluded.
+  """
+  def list_tenants_for_admin do
+    Repo.all(
+      from t in Tenant,
+        where: is_nil(t.deleted_at),
+        order_by: [asc: t.name],
+        preload: [:plan, memberships: ^admin_members_query()]
+    )
+  end
+
+  @doc "A single live tenant (any status) for the admin console, or nil (safe for untrusted ids)."
+  def get_tenant_for_admin(id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        Repo.one(
+          from t in Tenant,
+            where: t.id == ^uuid and is_nil(t.deleted_at),
+            preload: [:plan, memberships: ^admin_members_query()]
+        )
+
+      :error ->
+        nil
+    end
+  end
+
+  defp admin_members_query do
+    from m in Membership, where: is_nil(m.deleted_at), preload: [:user, :role]
+  end
+
+  @doc "The owner's email for a tenant (the live `owner`-role membership), or nil."
+  def owner_email(%Tenant{memberships: memberships}) when is_list(memberships) do
+    Enum.find_value(memberships, fn m ->
+      if m.role && m.role.slug == "owner", do: m.user.email
+    end)
+  end
+
+  def owner_email(_tenant), do: nil
+
+  @doc "Live tenants on a given plan, ordered by name (for the plan detail page)."
+  def list_tenants_for_plan(plan_id) do
+    Repo.all(
+      from t in Tenant,
+        where: t.plan_id == ^plan_id and is_nil(t.deleted_at),
+        order_by: [asc: t.name]
+    )
+  end
+
+  @doc "Map of `plan_id => live tenant count` (for the plans list)."
+  def tenant_count_by_plan do
+    from(t in Tenant,
+      where: is_nil(t.deleted_at) and not is_nil(t.plan_id),
+      group_by: t.plan_id,
+      select: {t.plan_id, count(t.id)}
+    )
+    |> Repo.all()
+    |> Map.new()
+  end
+
+  @doc "Changeset backing the admin create-tenant form (includes the virtual owner_email)."
+  def change_tenant_creation(attrs \\ %{}) do
+    Tenant.admin_create_changeset(%Tenant{}, attrs)
+  end
+
+  @doc "Changeset backing the admin edit-tenant form (name + plan only)."
+  def change_tenant(%Tenant{} = tenant, attrs \\ %{}) do
+    Tenant.admin_update_changeset(tenant, attrs)
+  end
+
+  @doc """
+  Admin-creates a tenant and its owner, atomically (`Ecto.Multi`):
+
+    * tenant — status `trial`, `trial_expires_at = now + 15 days`, chosen plan;
+    * the built-in role set (`seed_default_roles/1`);
+    * owner `User` — reuses the existing global row if the email is already known,
+      else registers a new (unconfirmed) user;
+    * owner `Membership` (role `owner`);
+    * an audit row (actor = admin).
+
+  On success an invite email (a magic link built on the tenant's own host) is sent to
+  the owner and `{:ok, tenant}` is returned. Any failed step rolls the whole thing
+  back; an invalid form or a taken slug comes back as `{:error, changeset}`.
+  """
+  def create_tenant_with_owner(%Admin{} = admin, attrs) do
+    changeset = Tenant.admin_create_changeset(%Tenant{}, attrs)
+
+    if changeset.valid? do
+      owner_email = Ecto.Changeset.get_field(changeset, :owner_email)
+      expires_at = DateTime.add(DateTime.utc_now(:second), @trial_days, :day)
+      insert_changeset = Ecto.Changeset.put_change(changeset, :trial_expires_at, expires_at)
+
+      multi =
+        Multi.new()
+        |> Multi.insert(:tenant, insert_changeset)
+        |> Multi.run(:roles, fn _repo, %{tenant: tenant} ->
+          {:ok, seed_default_roles(tenant)}
+        end)
+        |> Multi.run(:owner, fn _repo, _changes -> ensure_owner_user(owner_email) end)
+        |> Multi.run(:membership, fn _repo, %{tenant: tenant, owner: owner} ->
+          create_membership(tenant, owner, get_role_by_slug(tenant, "owner"))
+        end)
+        |> Multi.run(:audit, fn _repo, %{tenant: tenant, owner: owner} ->
+          Audit.log(%{
+            actor_type: :admin,
+            actor_id: admin.id,
+            tenant_id: tenant.id,
+            action: "tenant.created",
+            target_type: "tenant",
+            target_id: tenant.id,
+            metadata: %{"slug" => tenant.slug, "owner_email" => mask_email(owner.email)}
+          })
+        end)
+
+      case Repo.transaction(multi) do
+        {:ok, %{tenant: tenant, owner: owner}} ->
+          deliver_owner_invite(owner, tenant)
+          {:ok, tenant}
+
+        {:error, :tenant, %Ecto.Changeset{} = failed, _changes} ->
+          {:error, failed}
+
+        {:error, _step, _reason, _changes} ->
+          {:error, %{changeset | action: :insert}}
+      end
+    else
+      {:error, %{changeset | action: :insert}}
+    end
+  end
+
+  @doc "Admin-edits a tenant's name + plan (status changes go through `transition_status/3`)."
+  def update_tenant(%Admin{} = admin, %Tenant{} = tenant, attrs) do
+    Repo.transact(fn ->
+      with {:ok, updated} <- tenant |> Tenant.admin_update_changeset(attrs) |> Repo.update() do
+        Audit.log!(%{
+          actor_type: actor_type(admin),
+          actor_id: actor_id(admin),
+          tenant_id: tenant.id,
+          action: "tenant.updated",
+          target_type: "tenant",
+          target_id: tenant.id,
+          metadata: %{"slug" => updated.slug}
+        })
+
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc """
+  Soft-deletes a tenant (sets `deleted_at`) and audits it. Hard purge is a separate,
+  later, explicit action — not this.
+  """
+  def soft_delete_tenant(%Admin{} = admin, %Tenant{} = tenant) do
+    now = DateTime.utc_now(:second)
+
+    Repo.transact(fn ->
+      with {:ok, deleted} <- tenant |> Ecto.Changeset.change(deleted_at: now) |> Repo.update() do
+        Audit.log!(%{
+          actor_type: actor_type(admin),
+          actor_id: actor_id(admin),
+          tenant_id: tenant.id,
+          action: "tenant.deleted",
+          target_type: "tenant",
+          target_id: tenant.id,
+          metadata: %{"slug" => tenant.slug}
+        })
+
+        {:ok, deleted}
+      end
+    end)
+  end
+
+  # ── Trial expiry ──────────────────────────────────────────────────────────────────
+
+  @doc "Whether a tenant's trial has lapsed (still `trial`, and the deadline has passed)."
+  def trial_expired?(%Tenant{status: :trial, trial_expires_at: %DateTime{} = expires_at}) do
+    DateTime.after?(DateTime.utc_now(), expires_at)
+  end
+
+  def trial_expired?(_tenant), do: false
+
+  @doc """
+  Enforces trial expiry at login. If the trial has lapsed, auto-transitions the tenant
+  `trial → suspended` (audited, actor `:system`) and returns `:expired`; otherwise
+  `:ok`. Once suspended, `TenantResolver` 404s the host on the next request.
+  """
+  def enforce_trial_expiry(%Tenant{} = tenant) do
+    if trial_expired?(tenant) do
+      {:ok, _suspended} = transition_status(tenant, :suspended, :system)
+      :expired
+    else
+      :ok
+    end
+  end
+
+  # ── Owner-invite helpers ────────────────────────────────────────────────────────
+
+  defp ensure_owner_user(email) do
+    case Accounts.get_user_by_email(email) do
+      %User{} = user -> {:ok, user}
+      nil -> Accounts.register_user(%{email: email})
+    end
+  end
+
+  # Sends the owner a magic-link invite built on the tenant's OWN host (subdomain),
+  # since cookies are host-scoped — the whole login flow must stay on that host.
+  defp deliver_owner_invite(%User{} = owner, %Tenant{} = tenant) do
+    Accounts.deliver_login_instructions(owner, fn token ->
+      tenant_url(tenant, "/login/#{token}")
+    end)
+  end
+
+  defp tenant_url(%Tenant{slug: slug}, path) do
+    scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "https")
+    base = Application.get_env(:quote_assist, :tenant_base_domain, "quoteassist.mytechbytes.in")
+    "#{scheme}://#{slug}.#{base}#{path}"
+  end
+
+  defp mask_email(email) when is_binary(email) do
+    case String.split(email, "@", parts: 2) do
+      [local, domain] -> "#{String.first(local)}***@#{domain}"
+      _ -> "***"
+    end
+  end
+
   # ── Audit actor helpers ───────────────────────────────────────────────────────────
 
   defp actor_type(%User{}), do: :user
+  defp actor_type(%Admin{}), do: :admin
   defp actor_type(_), do: :system
 
   defp actor_id(%User{id: id}), do: id
+  defp actor_id(%Admin{id: id}), do: id
   defp actor_id(_), do: nil
 end

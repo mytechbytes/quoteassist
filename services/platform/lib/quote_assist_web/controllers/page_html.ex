@@ -26,8 +26,8 @@ defmodule QuoteAssistWeb.PageHTML do
        ]},
       {"Site Admin",
        [
-         %{id: "R3", desc: "Admin identity + tenant CRUD + 15-day trial", status: :in_progress},
-         %{id: "R4", desc: "Self-registration (trial onboarding)", status: :pending}
+         %{id: "R3", desc: "Admin identity + tenant CRUD + 15-day trial", status: :done},
+         %{id: "R4", desc: "Self-registration (trial onboarding)", status: :in_progress}
        ]},
       {"Tenant Basics",
        [

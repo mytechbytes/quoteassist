@@ -2,6 +2,7 @@ defmodule QuoteAssistWeb.Router do
   use QuoteAssistWeb, :router
 
   import QuoteAssistWeb.UserAuth
+  import QuoteAssistWeb.AdminAuth
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -31,6 +32,27 @@ defmodule QuoteAssistWeb.Router do
   # redirects to the public directory (no tenant login there; admins use /admin/login).
   pipeline :require_tenant do
     plug QuoteAssistWeb.Plugs.RequireTenant
+  end
+
+  # Admin lives only on the platform host. RequirePlatform is the inverse of
+  # RequireTenant — it 404s tenant hosts, so /admin is invisible on subdomains /
+  # custom domains. `:admin` loads current_admin; `:require_admin_session` gates the
+  # authenticated console. Admin auth is a fully separate identity from UserAuth.
+  pipeline :require_platform do
+    plug QuoteAssistWeb.Plugs.RequirePlatform
+  end
+
+  pipeline :admin do
+    plug :fetch_current_admin
+  end
+
+  pipeline :require_admin_session do
+    plug :require_authenticated_admin
+  end
+
+  # Reuses the R1 throttle, but bounces back to the admin login on the limit.
+  pipeline :admin_login_throttle do
+    plug QuoteAssistWeb.Plugs.LoginThrottle, redirect_to: "/admin/login"
   end
 
   scope "/", QuoteAssistWeb do
@@ -82,6 +104,8 @@ defmodule QuoteAssistWeb.Router do
     live_session :require_tenant_member,
       on_mount: [{QuoteAssistWeb.UserAuth, :require_tenant_member}] do
       live "/app", AppHomeLive, :index
+      # Owner onboarding (set name + password) after accepting the invite.
+      live "/app/welcome", OnboardingLive, :index
     end
   end
 
@@ -109,6 +133,45 @@ defmodule QuoteAssistWeb.Router do
     pipe_through [:browser, :require_tenant, :login_throttle]
 
     post "/login", UserSessionController, :create
+  end
+
+  # ── Site admin (R3) — platform host only ──────────────────────────────────────
+  # RequirePlatform 404s these on tenant hosts. Admin auth is a separate identity
+  # (admin_token session); :require_admin guards every authenticated route + LiveView.
+  scope "/admin", QuoteAssistWeb do
+    pipe_through [:browser, :require_platform, :admin]
+
+    # Logout clears only the admin session.
+    delete "/logout", AdminSessionController, :delete
+
+    live_session :admin_unauthenticated,
+      on_mount: [{QuoteAssistWeb.AdminAuth, :mount_current_admin}] do
+      live "/login", Admin.LoginLive, :new
+    end
+  end
+
+  # Admin credential POST — platform host + throttle (bounces to /admin/login).
+  scope "/admin", QuoteAssistWeb do
+    pipe_through [:browser, :require_platform, :admin, :admin_login_throttle]
+
+    post "/login", AdminSessionController, :create
+  end
+
+  # Authenticated admin console.
+  scope "/admin", QuoteAssistWeb do
+    pipe_through [:browser, :require_platform, :admin, :require_admin_session]
+
+    live_session :admin_authenticated,
+      on_mount: [{QuoteAssistWeb.AdminAuth, :require_admin}] do
+      live "/", Admin.DashboardLive, :index
+      live "/tenants", Admin.TenantLive.Index, :index
+      live "/tenants/:id", Admin.TenantLive.Show, :show
+      live "/plans", Admin.PlanLive.Index, :index
+      live "/plans/:id", Admin.PlanLive.Show, :show
+      live "/admins", Admin.AdminLive.Index, :index
+      live "/admins/:id", Admin.AdminLive.Show, :show
+      live "/activity", Admin.ActivityLive, :index
+    end
   end
 
   # NOTE: self-registration (/register) lands in R4; the settings screen and

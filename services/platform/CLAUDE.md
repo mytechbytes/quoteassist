@@ -6,7 +6,23 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
-**R2 complete / next R3.** Tenancy + RBAC. Tenants resolve from the request
+**R3 complete / next R4.** Site admin. A separate `admins` identity (own table +
+`admins_tokens`, `Accounts.Admin`/`AdminToken`, `Accounts.register_admin/1`) with its
+own auth pipeline (`QuoteAssistWeb.AdminAuth`: `admin_token` session, `current_admin`
+assign, `on_mount :require_admin`) — independent of `UserAuth`/`Scope`. `/admin/*` is
+platform-host only via `RequirePlatform` (the inverse of `RequireTenant`); login at
+`/admin/login` reuses the R1 throttle and is audited. Admins are created only via
+`mix qa.create_admin` (all environments — no HTTP/seed/env path). Tenant CRUD at
+`/admin/tenants`: create runs an `Ecto.Multi` (tenant on a 15-day trial + owner `User`
+reused-or-registered + owner `Membership` + audit, then a magic-link invite built on
+the tenant's host); edit name/plan; suspend/reactivate/cancel via the status FSM;
+soft-delete — each audited (actor = admin). A `plans` table (Starter + Growth, seeded
+in every env) backs `tenant.plan_id`. Expired trials are blocked at tenant login and
+auto-transition `trial → suspended` (audited), after which `TenantResolver` 404s the
+host. Owner onboarding (`/app/welcome`) sets a display name + password (reuses the
+magic-link invite); `users.display_name` was pulled forward from R6.
+
+**R2 complete.** Tenancy + RBAC. Tenants resolve from the request
 **host** via the `TenantResolver` plug (platform host → no tenant; `*.<base>` →
 `slug`; any other host → verified `custom_domain`; unknown/suspended/deleted →
 404), and the resolved tenant id is written to the host-scoped session. The
@@ -56,9 +72,10 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R3** — admin identity (separate `admins` table + `/admin/login`), tenant
-CRUD, and the 15-day trial. Reuse the existing `RateLimiter`/`LoginThrottle` on
-`/admin/login`; the tenant status state machine + audit log from R2 carry over.
+**Next: R4** — self-registration (trial onboarding): a public `/register`, email
+verification → set password, and admin review/approval of pending tenants at
+`/admin/registrations`. Reuse the R3 admin console, the `Tenants` create-with-owner
+multi, and the audit log.
 
 ## How to run
 

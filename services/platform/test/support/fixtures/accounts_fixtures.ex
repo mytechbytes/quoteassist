@@ -12,6 +12,22 @@ defmodule QuoteAssist.AccountsFixtures do
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
 
+  ## Site admins
+
+  def unique_admin_email, do: "admin#{System.unique_integer([:positive])}@example.com"
+  def valid_admin_password, do: "admin password 123"
+
+  def admin_fixture(attrs \\ %{}) do
+    attrs =
+      Enum.into(attrs, %{
+        email: unique_admin_email(),
+        password: valid_admin_password()
+      })
+
+    {:ok, admin} = Accounts.register_admin(attrs)
+    admin
+  end
+
   def valid_user_attributes(attrs \\ %{}) do
     Enum.into(attrs, %{
       email: unique_user_email()

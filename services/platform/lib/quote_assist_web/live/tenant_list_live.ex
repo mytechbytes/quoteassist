@@ -102,7 +102,7 @@ defmodule QuoteAssistWeb.TenantListLive do
   end
 
   # Per-tenant subdomain login URL, e.g.
-  # `https://acme.quoteassist.mytechbytes.in/login` (dev: `http://acme.lvh.me:4000/login`).
+  # `https://acme.quoteassist.mytechbytes.in/login` (dev: `http://acme.quoteassist.localhost:4000/login`).
   # Scheme + base host come from config (config/config.exs, overridden in config/dev.exs).
   defp tenant_login_url(slug) do
     scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "https")

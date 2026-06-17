@@ -65,7 +65,7 @@ between a tenant's subdomain and its custom domain.
 - A custom domain is unique across all tenants (DB unique constraint).
 
 **Environments:**
-- **Dev:** `*.lvh.me` for subdomains (`acme.lvh.me:4000`); custom-domain logic
+- **Dev:** `*.quoteassist.localhost` for subdomains (`acme.quoteassist.localhost:4000`); custom-domain logic
   testable by mapping a hosts-file entry.
 - **Prod:** wildcard DNS `*.quoteassist.mytechbytes.in` + Caddy wildcard TLS for
   subdomains; Caddy on-demand TLS for verified custom domains.
@@ -239,7 +239,7 @@ login page.
    - Simple list/table of all live tenants: name, status badge, "Login →" link.
    - "Login →" points at the tenant's **subdomain** login:
      `https://:slug.quoteassist.mytechbytes.in/login`
-     (dev: `http://:slug.lvh.me:4000/login`).
+     (dev: `http://:slug.quoteassist.localhost:4000/login`).
    - Query: `Repo.all(Tenant)` (live only, `deleted_at` is null) ordered by
      name — public directory; shows name + status only, no sensitive data.
 
@@ -317,7 +317,7 @@ that tenant; signed-in users are scoped to it; cross-tenant access is impossible
 **Seeds** One dev tenant (`acme`) + one dev user (password from
 `DEV_USER_PASSWORD` env var, dev/staging only).
 
-**Done when** `acme.lvh.me:4000` resolves the Acme tenant; its user reaches
+**Done when** `acme.quoteassist.localhost:4000` resolves the Acme tenant; its user reaches
 `/app`; an unknown subdomain 404s; `Tenancy.scope/2` raises without a tenant;
 a user from tenant A cannot see tenant B data; the login writes an audit row.
 *(Custom-domain entry + verification ships in R-CD; the resolver already

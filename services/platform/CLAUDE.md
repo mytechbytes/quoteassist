@@ -22,7 +22,7 @@ into the login path. `/app` is the workspace shell (`Layouts.workspace`, ported
 `mtb-shell`/`mtb-side` chrome) behind the membership guard. `/tenants` now lists
 live tenants; `priv/repo/seeds.exs` seeds the `acme` tenant + roles + owner/agent/
 newbie members (dev/staging, `DEV_USER_PASSWORD`). Reach it at
-`http://acme.lvh.me:4000`.
+`http://acme.quoteassist.localhost:4000`.
 
 **R1 complete.** Auth — tenant users sign in and out. `phx.gen.auth`
 (scope-based; magic-link + opt-in password) adapted to the design system: login
@@ -48,7 +48,7 @@ that shows an empty state until the `Tenant` schema lands in R2 — the
 live-tenants `Repo.all` query is the only wiring left (`mount/3` has the hook;
 the row markup is already in place). Config adds `:deploy_env` (footer tag,
 overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
-`:tenant_url_scheme` (per-tenant subdomain login links; dev → `lvh.me:4000`).
+`:tenant_url_scheme` (per-tenant subdomain login links; dev → `quoteassist.localhost:4000`).
 `/admin/login` is a plain `href` (route lands in R3).
 
 **R0 complete.** Walking skeleton: `/health` + `/health/ready`, Dockerfile,
@@ -92,7 +92,7 @@ mix format && mix compile --warnings-as-errors   # part of "green before done"
   4. unknown / suspended / deleted → 404.
 - Cookies scoped to the **exact resolved host** (never `.quoteassist...`), so
   sessions never leak across tenants or between a subdomain and its custom domain.
-- Dev: `*.lvh.me:4000` for subdomains (`acme.lvh.me:4000`).
+- Dev: `*.quoteassist.localhost:4000` for subdomains (`acme.quoteassist.localhost:4000`).
 - `on_mount :require_tenant_member` guards all `/app/*` LiveViews; verifies a
   live membership for the resolved tenant.
 

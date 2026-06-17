@@ -5,7 +5,7 @@
 # It also runs as part of `mix ecto.setup` / `mix ecto.reset`.
 #
 # ── R2 dev/staging seed ───────────────────────────────────────────────────────
-# One tenant (`acme`) reachable on its subdomain (http://acme.lvh.me:4000) with the
+# One tenant (`acme`) reachable on its subdomain (http://acme.quoteassist.localhost:4000) with the
 # built-in role catalog seeded, plus a few members so you can exercise tenant-scoped
 # sign-in end to end: password login, the magic-link flow, and role-scoped access.
 #
@@ -88,7 +88,7 @@ if deploy_env in ["dev", "staging"] do
 
   IO.puts("""
   Seeded dev tenant + members (password = DEV_USER_PASSWORD, default "change-me-please"):
-    tenant:  acme (active)  →  http://acme.lvh.me:4000/login
+    tenant:  acme (active)  →  http://acme.quoteassist.localhost:4000/login
     owner@acme.test   (owner,  password + magic link)
     agent@acme.test   (agent,  password + magic link)
     newbie@acme.test  (viewer, unconfirmed — magic-link confirm)

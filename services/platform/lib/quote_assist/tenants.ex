@@ -75,7 +75,7 @@ defmodule QuoteAssist.Tenants do
   end
 
   # Host part of the configured base domain (config carries scheme/port for URL
-  # building; conn.host carries neither). dev → "lvh.me", prod →
+  # building; conn.host carries neither). dev → "quoteassist.localhost", prod →
   # "quoteassist.mytechbytes.in".
   defp base_host do
     :quote_assist

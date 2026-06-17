@@ -91,8 +91,12 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# In dev, tenant subdomains resolve under *.lvh.me:4000, so the public tenant
-# directory links to `http://<slug>.lvh.me:4000/login`.
+# In dev, tenants resolve under *.quoteassist.localhost:4000 (mirroring the prod
+# *.quoteassist.mytechbytes.in layout); the public tenant directory links to
+# `http://<slug>.quoteassist.localhost:4000/login`. The platform host is
+# quoteassist.localhost:4000 (also localhost / 127.0.0.1). Chrome and Firefox
+# resolve any *.localhost host to 127.0.0.1 automatically; on Safari, add the
+# subdomains you use (e.g. acme.quoteassist.localhost) to /etc/hosts.
 config :quote_assist,
-  tenant_base_domain: "lvh.me:4000",
+  tenant_base_domain: "quoteassist.localhost:4000",
   tenant_url_scheme: "http"

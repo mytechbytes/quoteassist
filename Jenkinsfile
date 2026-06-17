@@ -49,14 +49,18 @@ pipeline {
     // Reusable "run a mix task in the shared CI image" command. Named volumes
     // cache deps/_build/hex/mix and the dialyzer PLT across builds; the workspace
     // is bind-mounted so coverage artifacts (cover/) land back in the workspace.
+    // The PLT cache is mounted OUTSIDE /app (at /plts) so the root-owned volume
+    // dir never lands inside the bind-mounted workspace and breaks SCM checkout;
+    // mix.exs reads DIALYZER_PLT_PATH to point dialyzer there.
     DOCKER_RUN = "docker run --rm" +
       " -v ${WORKSPACE}/services/platform:/app" +
       " -v quoteassist-deps:/app/deps" +
       " -v quoteassist-build:/app/_build" +
-      " -v quoteassist-plts:/app/priv/plts" +
+      " -v quoteassist-plts:/plts" +
       " -v quoteassist-hex:/root/.hex" +
       " -v quoteassist-mix:/root/.mix" +
       " -w /app -e MIX_ENV=test" +
+      " -e DIALYZER_PLT_PATH=/plts" +
       " -e DATABASE_URL=ecto://postgres:postgres@${CI_DB}:5432/quote_assist_test" +
       " -e SECRET_KEY_BASE=ci-only-secret-key-base-not-used-for-anything-real-0123456789abcdef" +
       " --network ${CI_NETWORK} ${CI_IMAGE}"

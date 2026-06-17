@@ -12,10 +12,12 @@ defmodule QuoteAssist.MixProject do
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
-      # PLT cached by the Jenkins `quoteassist-plts` volume (priv/plts).
+      # PLT path is env-driven: local dev uses priv/plts (gitignored); CI sets
+      # DIALYZER_PLT_PATH=/plts so the cache volume lives outside the bind-mounted
+      # workspace (a root-owned dir inside /app would break SCM checkout).
       dialyzer: [
-        plt_local_path: "priv/plts",
-        plt_core_path: "priv/plts",
+        plt_local_path: System.get_env("DIALYZER_PLT_PATH", "priv/plts"),
+        plt_core_path: System.get_env("DIALYZER_PLT_PATH", "priv/plts"),
         plt_add_apps: [:ex_unit, :mix]
       ]
     ]

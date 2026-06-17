@@ -118,7 +118,7 @@ defmodule QuoteAssistWeb.Layouts do
   def theme_toggle(assigns) do
     ~H"""
     <div class="mtb-theme-toggle">
-      <%# Sliding indicator — positioned via mtb.css from data-theme/-source on <html> %>
+      <%!-- Sliding indicator — positioned via mtb.css from data-theme/-source on <html> --%>
       <div class="mtb-theme-slider" aria-hidden="true"></div>
 
       <button

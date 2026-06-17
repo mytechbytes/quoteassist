@@ -46,7 +46,8 @@ quote-assist/
 - A tenant may also add a verified **custom domain** (e.g. `quotes.acme.com`);
   the subdomain keeps working as a permanent fallback.
 - Resolution is by request **host** via the `TenantResolver` plug — never from
-  params. Dev uses `*.lvh.me:4000` for subdomains.
+  params. Dev uses `*.quoteassist.localhost:4000` for subdomains
+  (platform host: `quoteassist.localhost:4000`).
 
 ## Prerequisites
 

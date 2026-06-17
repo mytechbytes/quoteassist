@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — AI-assisted travel quotation automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--mc-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--mc-border) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 60% 70% at 50% 30%, black 30%, transparent 80%);
+  }
+  .step-line::after { content:''; position:absolute; top: 23px; left: calc(50% + 28px); right: calc(-50% + 28px); height: 2px; background: var(--mc-border); }
+  .step:last-child .step-line::after { display: none; }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Home">
+
+<!-- NAV -->
+<header class="sticky top-0 z-30 backdrop-blur" style="background: color-mix(in oklch, var(--mc-bg) 80%, transparent); border-bottom: 1px solid var(--mc-border);">
+  <div class="max-w-[1280px] mx-auto h-16 px-6 flex items-center gap-8">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <span class="mc-logo" style="width:32px; height:32px; font-size:13px;">QA</span>
+      <span class="font-display font-bold text-lg">QuoteAssist</span>
+    </a>
+    <nav class="hidden lg:flex items-center gap-6 text-sm font-medium" style="color: var(--mc-text-2);">
+      <a href="#how" class="hover:text-[color:var(--mc-text)]">How it works</a>
+      <a href="#capabilities" class="hover:text-[color:var(--mc-text)]">Capabilities</a>
+      <a href="#roadmap" class="hover:text-[color:var(--mc-text)]">Roadmap</a>
+      <a href="#pricing" class="hover:text-[color:var(--mc-text)]">Pricing</a>
+      <a href="dashboard.html" class="hover:text-[color:var(--mc-text)]">Dashboard demo</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-2">
+      <button class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="login.html" class="mc-btn mc-btn-sm mc-btn-ghost">Sign in</a>
+      <a href="register.html" class="mc-btn mc-btn-sm mc-btn-primary">Get started</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0 grid-bg opacity-60"></div>
+  <div class="mc-glow"></div>
+  <div class="max-w-[1280px] mx-auto px-6 pt-24 pb-16 relative text-center">
+    <div class="mc-badge mc-badge-brand inline-flex mb-6">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6L21 9l-5 4 1.6 7L12 16l-5.6 4L8 13 3 9l6.6-1z"/></svg>
+      Phase 2 · MVP — paste an email, send a quote
+    </div>
+    <h1 id="hero-headline" class="font-display font-bold tracking-[-0.03em] mx-auto" style="font-size: 80px; line-height: 0.98; max-width: 940px;">
+      Turn a customer email<br/>into a quote <span class="mc-grad-text">in seconds.</span>
+    </h1>
+    <p class="mt-7 text-lg mx-auto" style="color: var(--mc-text-2); max-width: 640px; line-height: 1.55;">
+      Paste the inbound email. QuoteAssist extracts the trip requirements, flags what's missing, pulls live pricing, applies your fare policy, and writes a professional draft reply — all in the browser, before your coffee's cold.
+    </p>
+    <div class="flex justify-center gap-3 mt-9">
+      <a href="get-quote.html" class="mc-btn mc-btn-lg mc-btn-primary">
+        Try Get Quote
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+      <a href="dashboard.html" class="mc-btn mc-btn-lg mc-btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20"/></svg>
+        See the dashboard
+      </a>
+    </div>
+    <div class="flex flex-wrap justify-center gap-x-7 gap-y-2 mt-7 text-xs font-medium" style="color: var(--mc-text-3);">
+      <span class="flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-success);"><polyline points="20 6 9 17 4 12"/></svg> No copy-paste between tools</span>
+      <span class="flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-success);"><polyline points="20 6 9 17 4 12"/></svg> Your policy, applied every time</span>
+      <span class="flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-success);"><polyline points="20 6 9 17 4 12"/></svg> Agent always approves the draft</span>
+    </div>
+
+    <!-- HERO MOCKUP -->
+    <div class="mt-14 mx-auto relative text-left" style="max-width: 1080px;">
+      <div class="absolute -inset-x-16 -inset-y-8 mc-glow opacity-70"></div>
+      <div class="relative rounded-2.5xl border" style="background: var(--mc-surface); border-color: var(--mc-border); box-shadow: 0 40px 80px -20px rgb(0 0 0 / 0.20);">
+        <!-- browser chrome -->
+        <div class="flex items-center gap-2 px-4 h-11 border-b" style="border-color: var(--mc-border);">
+          <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(70% 0.16 25);"></span>
+          <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(82% 0.15 85);"></span>
+          <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(72% 0.16 145);"></span>
+          <div class="mx-6 px-3 h-6 rounded-md flex items-center gap-2 text-[11px] font-mono" style="background: var(--mc-surface-2); color: var(--mc-text-3); min-width: 320px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            app.quoteassist.io / get-quote
+          </div>
+          <div class="ml-auto"><span class="mc-status mc-status-live text-[11px]">Draft ready · 3.2s</span></div>
+        </div>
+        <!-- two-pane: pasted email → draft -->
+        <div class="grid" style="grid-template-columns: 1fr 1fr; min-height: 380px;">
+          <!-- left: pasted email + extraction -->
+          <div class="p-6 border-r" style="border-color: var(--mc-border);">
+            <div class="text-[10px] font-bold tracking-widest uppercase mb-2" style="color: var(--mc-text-3);">Pasted customer email</div>
+            <div class="rounded-lg p-3.5 text-[12.5px] leading-relaxed" style="background: var(--mc-surface-2); border: 1px solid var(--mc-border); color: var(--mc-text-2);">
+              Hi — we're a family of 4 (2 adults, 2 kids aged 6 &amp; 9) looking to fly <b style="color:var(--mc-text)">London → Tokyo</b> departing <b style="color:var(--mc-text)">14 Aug</b>, back <b style="color:var(--mc-text)">28 Aug</b>. Prefer non-stop, economy. Also need a hotel near Shinjuku, 2 rooms. What can you do?
+            </div>
+            <div class="text-[10px] font-bold tracking-widest uppercase mt-5 mb-2" style="color: var(--mc-text-3);">Extracted requirements</div>
+            <div class="flex flex-wrap gap-1.5">
+              <span class="mc-badge mc-badge-brand">LHR → HND</span>
+              <span class="mc-badge mc-badge-brand">14–28 Aug</span>
+              <span class="mc-badge mc-badge-brand">2 adults · 2 children</span>
+              <span class="mc-badge mc-badge-brand">Non-stop · Economy</span>
+              <span class="mc-badge mc-badge-brand">Hotel · Shinjuku · 2 rooms</span>
+            </div>
+            <div class="mt-4 flex items-start gap-2 rounded-lg p-3 text-[12px]" style="background: color-mix(in oklch, var(--mc-warning) 12%, transparent);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0" style="color: var(--mc-warning);"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+              <span style="color: var(--mc-text-2);"><b style="color:var(--mc-text)">1 missing detail:</b> hotel star rating / budget not specified — assumed 4★.</span>
+            </div>
+          </div>
+          <!-- right: generated draft -->
+          <div class="p-6" style="background: var(--mc-surface-2);">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-[10px] font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Generated draft reply</div>
+              <span class="mc-badge mc-badge-success text-[10px]">AI · review before send</span>
+            </div>
+            <div class="mc-card p-4 text-[12.5px] leading-relaxed" style="color: var(--mc-text-2);">
+              <p>Dear Guest,</p>
+              <p class="mt-2">Thank you for your enquiry. Here is a quotation for your London–Tokyo trip (2 adults, 2 children), 14–28 August:</p>
+              <div class="mt-3 rounded-lg overflow-hidden" style="border: 1px solid var(--mc-border);">
+                <div class="flex items-center justify-between px-3 py-2" style="border-bottom:1px solid var(--mc-border);"><span>Return flights · LHR–HND non-stop</span><span class="font-mono" style="color:var(--mc-text)">£3,840</span></div>
+                <div class="flex items-center justify-between px-3 py-2"><span>Hotel · Shinjuku 4★ · 2 rooms · 14 nts</span><span class="font-mono" style="color:var(--mc-text)">£2,310</span></div>
+                <div class="flex items-center justify-between px-3 py-2 font-semibold" style="background:var(--mc-surface); color:var(--mc-text)"><span>Total incl. taxes</span><span class="font-mono">£6,150</span></div>
+              </div>
+              <p class="mt-3">Fares held for 48 hours under our standard policy. Happy to adjust the hotel tier or add transfers.</p>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <span class="mc-btn mc-btn-sm mc-btn-primary">Approve &amp; copy</span>
+              <span class="mc-btn mc-btn-sm mc-btn-secondary">Edit draft</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="py-24 border-t" style="border-color: var(--mc-border); background: var(--mc-surface-2);">
+  <div class="max-w-[1280px] mx-auto px-6">
+    <div class="text-center max-w-2xl mx-auto mb-14">
+      <div class="text-xs font-bold tracking-widest uppercase mb-3" style="color: var(--mc-brand);">The pipeline</div>
+      <h2 class="font-display font-bold text-5xl tracking-[-0.025em] leading-[1.05]">Six steps. One click.</h2>
+      <p class="mt-4 text-lg" style="color: var(--mc-text-2);">Everything between the inbound email and the outbound quote happens automatically — the agent just reviews and sends.</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-y-8">
+      <!-- step factory -->
+      <div class="step relative text-center px-3">
+        <div class="step-line"><div class="w-12 h-12 rounded-2xl grid place-items-center mx-auto relative z-1" style="background: var(--mc-surface); border:1px solid var(--mc-border); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></div></div>
+        <div class="font-mono text-[11px] mt-3" style="color: var(--mc-text-3);">01</div>
+        <div class="font-display font-bold text-base mt-1">Paste email</div>
+        <p class="text-xs mt-1" style="color: var(--mc-text-2);">Agent drops the raw customer email into the form.</p>
+      </div>
+      <div class="step relative text-center px-3">
+        <div class="step-line"><div class="w-12 h-12 rounded-2xl grid place-items-center mx-auto relative z-1" style="background: var(--mc-surface); border:1px solid var(--mc-border); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6M9 17h4"/></svg></div></div>
+        <div class="font-mono text-[11px] mt-3" style="color: var(--mc-text-3);">02</div>
+        <div class="font-display font-bold text-base mt-1">Extract</div>
+        <p class="text-xs mt-1" style="color: var(--mc-text-2);">Routes, dates, pax, cabin and preferences are parsed out.</p>
+      </div>
+      <div class="step relative text-center px-3">
+        <div class="step-line"><div class="w-12 h-12 rounded-2xl grid place-items-center mx-auto relative z-1" style="background: var(--mc-surface); border:1px solid var(--mc-border); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div></div>
+        <div class="font-mono text-[11px] mt-3" style="color: var(--mc-text-3);">03</div>
+        <div class="font-display font-bold text-base mt-1">Detect gaps</div>
+        <p class="text-xs mt-1" style="color: var(--mc-text-2);">Missing info is flagged — or sensible defaults are assumed.</p>
+      </div>
+      <div class="step relative text-center px-3">
+        <div class="step-line"><div class="w-12 h-12 rounded-2xl grid place-items-center mx-auto relative z-1" style="background: var(--mc-surface); border:1px solid var(--mc-border); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg></div></div>
+        <div class="font-mono text-[11px] mt-3" style="color: var(--mc-text-3);">04</div>
+        <div class="font-display font-bold text-base mt-1">Fetch pricing</div>
+        <p class="text-xs mt-1" style="color: var(--mc-text-2);">Live fares via pricing adapters (Amadeus, Hotelbeds…).</p>
+      </div>
+      <div class="step relative text-center px-3">
+        <div class="step-line"><div class="w-12 h-12 rounded-2xl grid place-items-center mx-auto relative z-1" style="background: var(--mc-surface); border:1px solid var(--mc-border); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 7.5 8 9 4.6-1.5 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div></div>
+        <div class="font-mono text-[11px] mt-3" style="color: var(--mc-text-3);">05</div>
+        <div class="font-display font-bold text-base mt-1">Apply policy</div>
+        <p class="text-xs mt-1" style="color: var(--mc-text-2);">Markup, fare rules and hold windows applied automatically.</p>
+      </div>
+      <div class="step relative text-center px-3">
+        <div class="step-line"><div class="w-12 h-12 rounded-2xl grid place-items-center mx-auto relative z-1" style="background: var(--mc-brand); color: #fff;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13 7.5 23.5 3 21l3-3"/><path d="M2 2l7.586 7.586"/></svg></div></div>
+        <div class="font-mono text-[11px] mt-3" style="color: var(--mc-text-3);">06</div>
+        <div class="font-display font-bold text-base mt-1">Draft reply</div>
+        <p class="text-xs mt-1" style="color: var(--mc-text-2);">A polished, ready-to-send quotation — agent approves.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CAPABILITIES -->
+<section id="capabilities" class="py-28">
+  <div class="max-w-[1280px] mx-auto px-6">
+    <div class="max-w-2xl">
+      <div class="text-xs font-bold tracking-widest uppercase mb-3" style="color: var(--mc-brand);">Capabilities</div>
+      <h2 class="font-display font-bold text-5xl tracking-[-0.025em] leading-[1.05]">Built for the way<br/><span style="color: var(--mc-text-3);">agents actually work.</span></h2>
+      <p class="mt-5 text-lg" style="color: var(--mc-text-2);">No new inbox, no workflow to relearn. QuoteAssist sits beside the tools your team already uses and does the tedious part.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-14">
+      <div class="mc-card p-7">
+        <div class="w-11 h-11 rounded-xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M9 21h6M12 7v14"/><path d="M5 11h14"/></svg></div>
+        <div class="font-display font-bold text-xl mb-2">Requirement extraction</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">Origins, destinations, dates, passenger mix, cabin class and special requests parsed straight from free-text email — no forms for the customer to fill.</p>
+      </div>
+      <div class="mc-card p-7">
+        <div class="w-11 h-11 rounded-xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+        <div class="font-display font-bold text-xl mb-2">Missing-info detection</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">Spots what the customer forgot — return date, room count, budget tier — and either flags it for the agent or applies a safe default, transparently.</p>
+      </div>
+      <div class="mc-card p-7">
+        <div class="w-11 h-11 rounded-xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div>
+        <div class="font-display font-bold text-xl mb-2">Live pricing adapters</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">A mock adapter returns realistic fixtures in development; real providers — Amadeus, Hotelbeds and more — plug in for production with no UI change.</p>
+      </div>
+      <div class="mc-card p-7">
+        <div class="w-11 h-11 rounded-xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 7.5 8 9 4.6-1.5 8-4.5 8-9V6z"/></svg></div>
+        <div class="font-display font-bold text-xl mb-2">Policy engine</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">Markup rules, supplier preferences, fare hold windows and compliance text applied to every quote — so juniors and seniors price the same way.</p>
+      </div>
+      <div class="mc-card p-7">
+        <div class="w-11 h-11 rounded-xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M12 11v6M9 14h6"/></svg></div>
+        <div class="font-display font-bold text-xl mb-2">Professional drafts</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">On-brand, itemised quotations in your house tone and currency — copy to clipboard, or send straight from the integration. Agent always approves first.</p>
+      </div>
+      <div class="mc-card p-7">
+        <div class="w-11 h-11 rounded-xl grid place-items-center mb-5" style="background: var(--mc-brand-soft); color: var(--mc-brand);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div class="font-display font-bold text-xl mb-2">History &amp; audit</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">Every quote is stored with its source email, extracted fields, pricing snapshot and the agent who approved it — searchable and re-openable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap" class="py-28 border-t" style="border-color: var(--mc-border); background: var(--mc-surface-2);">
+  <div class="max-w-[1280px] mx-auto px-6">
+    <div class="text-center max-w-2xl mx-auto mb-14">
+      <div class="text-xs font-bold tracking-widest uppercase mb-3" style="color: var(--mc-brand);">Email input · roadmap</div>
+      <h2 class="font-display font-bold text-5xl tracking-[-0.025em] leading-[1.05]">From paste, to add-in,<br/>to fully hands-off.</h2>
+      <p class="mt-4 text-lg" style="color: var(--mc-text-2);">The quotation engine stays the same — only how the email reaches it changes as you roll out.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-5 max-w-[1080px] mx-auto">
+      <div class="mc-card p-7 relative" style="border: 2px solid var(--mc-brand);">
+        <div class="flex items-center justify-between mb-4">
+          <span class="mc-badge mc-badge-brand">Phase 2 · MVP</span>
+          <span class="mc-status mc-status-live text-[11px]">Available now</span>
+        </div>
+        <div class="font-display font-bold text-xl mb-2">Web form</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">The agent copies the customer email and pastes it into QuoteAssist. Zero setup, works in any browser — the fastest path to value.</p>
+      </div>
+      <div class="mc-card p-7">
+        <div class="flex items-center justify-between mb-4">
+          <span class="mc-badge mc-badge-neutral">Phase 2b</span>
+          <span class="mc-status text-[11px]" style="color: var(--mc-text-3);">In design</span>
+        </div>
+        <div class="font-display font-bold text-xl mb-2">Outlook add-in</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">An Office.js button inside Outlook. The agent clicks it on any open email — no copy-paste, the quote drafts right beside the message.</p>
+      </div>
+      <div class="mc-card p-7">
+        <div class="flex items-center justify-between mb-4">
+          <span class="mc-badge mc-badge-neutral">Phase 11</span>
+          <span class="mc-status text-[11px]" style="color: var(--mc-text-3);">Planned</span>
+        </div>
+        <div class="font-display font-bold text-xl mb-2">Mailbox automation</div>
+        <p class="text-sm leading-relaxed" style="color: var(--mc-text-2);">A Microsoft Graph listener watches the shared mailbox and drafts quotes for incoming enquiries automatically — agents only review and send.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="py-28">
+  <div class="max-w-[1280px] mx-auto px-6">
+    <div class="text-center max-w-2xl mx-auto mb-14">
+      <div class="text-xs font-bold tracking-widest uppercase mb-3" style="color: var(--mc-brand);">Pricing</div>
+      <h2 class="font-display font-bold text-5xl tracking-[-0.025em] leading-[1.05]">Priced per seat.<br/><span style="color: var(--mc-text-3);">Pays for itself by lunch.</span></h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-5 max-w-[1080px] mx-auto">
+      <div class="mc-card p-7">
+        <div class="font-display font-bold text-xl">Starter</div>
+        <div class="text-sm mt-1" style="color: var(--mc-text-3);">For a solo agent trialling it.</div>
+        <div class="mt-6 mb-6 font-display font-bold" style="font-size: 48px; line-height:1;">$0<span class="text-base font-medium" style="color: var(--mc-text-3);"> /mo</span></div>
+        <a href="register.html" class="mc-btn mc-btn-secondary w-full">Start free</a>
+        <ul class="mt-7 space-y-3 text-sm">
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>25 quotes / month</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Web form input</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Mock pricing adapter</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Community support</span></li>
+        </ul>
+      </div>
+      <div class="mc-card p-7 relative" style="border: 2px solid var(--mc-brand); box-shadow: 0 20px 40px -16px var(--mc-brand-ring);">
+        <div class="absolute -top-3 left-7 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase" style="background: var(--mc-brand); color:#fff;">Most popular</div>
+        <div class="font-display font-bold text-xl">Team</div>
+        <div class="text-sm mt-1" style="color: var(--mc-text-3);">For agencies up to 20 agents.</div>
+        <div class="mt-6 mb-6 font-display font-bold" style="font-size: 48px; line-height:1;">$39<span class="text-base font-medium" style="color: var(--mc-text-3);"> /seat</span></div>
+        <a href="register.html" class="mc-btn mc-btn-primary w-full">Start 14-day trial</a>
+        <ul class="mt-7 space-y-3 text-sm">
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Unlimited quotes</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Outlook add-in (Phase 2b)</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Live provider adapters</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Policy engine + audit log</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Priority support</span></li>
+        </ul>
+      </div>
+      <div class="mc-card p-7">
+        <div class="font-display font-bold text-xl">Scale</div>
+        <div class="text-sm mt-1" style="color: var(--mc-text-3);">For multi-branch operations.</div>
+        <div class="mt-6 mb-6 font-display font-bold" style="font-size: 48px; line-height:1;">Custom</div>
+        <a href="#" class="mc-btn mc-btn-secondary w-full">Talk to sales</a>
+        <ul class="mt-7 space-y-3 text-sm">
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Mailbox automation (Phase 11)</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>SSO &amp; SCIM provisioning</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Custom pricing adapters</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>Dedicated success manager</span></li>
+          <li class="flex gap-2.5"><span style="color: var(--mc-success);">✓</span><span>99.95% SLA</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-24">
+  <div class="max-w-[1080px] mx-auto px-6">
+    <div class="relative overflow-hidden rounded-3xl p-16 text-center" style="background: linear-gradient(135deg, var(--mc-grad-2), oklch(40% 0.085 194));">
+      <div class="absolute -inset-20 mc-glow opacity-40"></div>
+      <h2 class="relative font-display font-bold tracking-[-0.025em]" style="color: #fff; font-size: 52px; line-height: 1.05;">Stop retyping quotes.<br/>Start approving them.</h2>
+      <div class="relative flex justify-center gap-3 mt-9">
+        <a href="register.html" class="mc-btn mc-btn-lg" style="background:#fff; color: var(--mc-grad-2);">Get started free</a>
+        <a href="get-quote.html" class="mc-btn mc-btn-lg" style="background: rgb(255 255 255 / 0.15); color:#fff; border:1px solid rgb(255 255 255 / 0.3);">Try the live demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t pt-16 pb-10" style="border-color: var(--mc-border);">
+  <div class="max-w-[1280px] mx-auto px-6 grid grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-10">
+    <div>
+      <a href="index.html" class="flex items-center gap-2.5">
+        <span class="mc-logo" style="width:32px; height:32px; font-size:13px;">QA</span>
+        <span class="font-display font-bold text-lg">QuoteAssist</span>
+      </a>
+      <p class="text-sm mt-4 max-w-xs" style="color: var(--mc-text-2);">AI-assisted travel quotation automation. Paste the email, approve the draft — the tedious middle is on us.</p>
+      <div class="flex gap-2 mt-5">
+        <a class="mc-btn mc-btn-sm mc-btn-icon mc-btn-secondary" href="#" aria-label="Twitter"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22 5.8a8.5 8.5 0 0 1-2.4.7 4.2 4.2 0 0 0 1.8-2.3 8.3 8.3 0 0 1-2.6 1A4.1 4.1 0 0 0 11.5 9a11.7 11.7 0 0 1-8.5-4.3 4.1 4.1 0 0 0 1.3 5.5 4 4 0 0 1-1.9-.5v.1a4.1 4.1 0 0 0 3.3 4 4.2 4.2 0 0 1-1.9 0 4.1 4.1 0 0 0 3.8 2.9A8.3 8.3 0 0 1 2 18.4 11.7 11.7 0 0 0 8.3 20c7.6 0 11.7-6.3 11.7-11.7v-.5A8.4 8.4 0 0 0 22 5.8z"/></svg></a>
+        <a class="mc-btn mc-btn-sm mc-btn-icon mc-btn-secondary" href="#" aria-label="LinkedIn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM8.3 18H5.7V10h2.6v8zM7 8.8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM18.3 18h-2.6v-3.9c0-.9 0-2.1-1.3-2.1s-1.5 1-1.5 2v4h-2.6V10h2.5v1.1h.1c.4-.7 1.2-1.3 2.5-1.3 2.7 0 3.2 1.7 3.2 4V18z"/></svg></a>
+      </div>
+    </div>
+    <div>
+      <div class="font-display font-bold text-sm mb-3">Product</div>
+      <ul class="text-sm space-y-2.5" style="color: var(--mc-text-2);">
+        <li><a href="#how" class="hover:text-[color:var(--mc-text)]">How it works</a></li>
+        <li><a href="#capabilities" class="hover:text-[color:var(--mc-text)]">Capabilities</a></li>
+        <li><a href="#roadmap" class="hover:text-[color:var(--mc-text)]">Roadmap</a></li>
+        <li><a href="#pricing" class="hover:text-[color:var(--mc-text)]">Pricing</a></li>
+        <li><a href="get-quote.html" class="hover:text-[color:var(--mc-text)]">Live demo</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="font-display font-bold text-sm mb-3">Resources</div>
+      <ul class="text-sm space-y-2.5" style="color: var(--mc-text-2);">
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">Documentation</a></li>
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">Adapter catalog</a></li>
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">Policy templates</a></li>
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">Status</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="font-display font-bold text-sm mb-3">Company</div>
+      <ul class="text-sm space-y-2.5" style="color: var(--mc-text-2);">
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">About</a></li>
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">Security</a></li>
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">Privacy</a></li>
+        <li><a href="#" class="hover:text-[color:var(--mc-text)]">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-[1280px] mx-auto px-6 mt-12 pt-6 flex items-center justify-between text-xs" style="color: var(--mc-text-3); border-top: 1px solid var(--mc-border);">
+    <div>© 2026 QuoteAssist, Inc. All systems normal.</div>
+    <div class="flex items-center gap-2"><span class="mc-status mc-status-live">Pricing adapters online</span></div>
+  </div>
+</footer>
+
+<!-- Tweaks defaults (host-persisted). qa-tweaks.js drives live changes. -->
+<script>
+const QA_TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "teal",
+  "radius": "rounded",
+  "theme": "light"
+}/*EDITMODE-END*/;
+</script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

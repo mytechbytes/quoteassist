@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — 503 maintenance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  body.err { display: grid; place-items: center; min-height: 100vh; padding: 56px 24px; position: relative; overflow: hidden; }
+  body.err::before { content:''; position: absolute; left: -10%; top: -10%; width: 60%; height: 60%; background: radial-gradient(ellipse, color-mix(in oklch, var(--mc-grad-1) 22%, transparent), transparent 60%); filter: blur(60px); pointer-events: none; }
+  body.err::after  { content:''; position: absolute; right: -10%; bottom: -10%; width: 60%; height: 60%; background: radial-gradient(ellipse, color-mix(in oklch, var(--mc-brand) 16%, transparent), transparent 60%); filter: blur(60px); pointer-events: none; }
+  .err-code { font: 700 190px/0.9 'Familjen Grotesk', sans-serif; letter-spacing: -0.06em; background: linear-gradient(135deg, var(--mc-grad-2), var(--mc-grad-1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+</style>
+</head>
+<body class="font-sans err" data-screen-label="503">
+
+<a href="index.html" class="absolute top-6 left-6 flex items-center gap-2.5 z-10" style="text-decoration:none; color:inherit;">
+  <span class="mc-logo" style="width:28px; height:28px; font-size:12px;">QA</span>
+  <span class="font-display font-bold">QuoteAssist</span>
+</a>
+<button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost absolute top-6 right-6 z-10" data-theme-toggle aria-label="Toggle theme">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+<div class="text-center max-w-2xl relative" style="z-index:1;">
+  <div class="err-code">503</div>
+  <div class="mc-badge mc-badge-neutral inline-flex mt-1 mb-4 font-mono">HTTP · SERVICE_UNAVAILABLE</div>
+  <h1 class="font-display font-bold tracking-[-0.025em]" style="font-size: 42px; line-height: 1.1;">QuoteAssist is<br/>having a quick tune-up.</h1>
+  <p class="mt-5 text-base mx-auto" style="color: var(--mc-text-2); max-width: 460px; line-height: 1.6;">We're upgrading the pricing engine and will be back shortly. Quotes you've already drafted are safe. Thanks for your patience.</p>
+  <div class="flex justify-center gap-3 mt-8 flex-wrap"><a href="javascript:location.reload()" class="mc-btn mc-btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>Retry now</a><a href="#" class="mc-btn mc-btn-secondary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Status page</a></div>
+  <div class="mt-9 mc-status mc-status-build inline-flex">Estimated back online in ~15 minutes</div>
+  <div class="mt-9 text-xs font-mono" style="color: var(--mc-text-3);">Reference · QA-503-maint · Scheduled maintenance</div>
+</div>
+
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

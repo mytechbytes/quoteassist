@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en" data-theme="quoteassist">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Quote QA-1479</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<!-- daisyUI (prebuilt CDN — works alongside the Tailwind Play CDN) -->
+<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  /* ── Custom daisyUI themes mapped to QuoteAssist's teal + mist tokens ── */
+  [data-theme="quoteassist"] {
+    --p: 57% 0.115 192;  --pc: 100% 0 0;
+    --s: 64% 0.13 190;   --sc: 100% 0 0;
+    --a: 64% 0.13 240;   --ac: 100% 0 0;
+    --n: 21.8% 0.008 224;--nc: 96.3% 0.002 197;
+    --b1: 100% 0 0;      --b2: 98.7% 0.002 197; --b3: 92.5% 0.005 214;
+    --bc: 21.8% 0.008 224;
+    --in: 64% 0.13 240;  --inc: 100% 0 0;
+    --su: 62% 0.14 150;  --suc: 100% 0 0;
+    --wa: 70% 0.15 85;   --wac: 21.8% 0.008 224;
+    --er: 60% 0.17 25;   --erc: 100% 0 0;
+    --rounded-box: 14px; --rounded-btn: 9px; --rounded-badge: 99px; --border-btn: 1px; --tab-radius: 9px;
+  }
+  [data-theme="quoteassist-dark"] {
+    --p: 74% 0.13 188;   --pc: 18% 0.02 200;
+    --s: 64% 0.13 190;   --sc: 100% 0 0;
+    --a: 70% 0.13 240;   --ac: 14% 0.01 229;
+    --n: 27.5% 0.011 217;--nc: 96.3% 0.002 197;
+    --b1: 21.8% 0.008 224;--b2: 16% 0.008 224; --b3: 27.5% 0.011 217;
+    --bc: 96.3% 0.002 197;
+    --in: 70% 0.13 240;  --inc: 14% 0.01 229;
+    --su: 62% 0.14 150;  --suc: 100% 0 0;
+    --wa: 70% 0.15 85;   --wac: 14% 0.01 229;
+    --er: 68% 0.17 25;   --erc: 100% 0 0;
+    --rounded-box: 14px; --rounded-btn: 9px; --rounded-badge: 99px;
+  }
+  /* keep daisyUI surfaces from fighting the app background */
+  .qa-main .card { background: var(--mc-surface); border: 1px solid var(--mc-border); }
+  .step-data { font: 400 12.5px/1.55 'Inter', sans-serif; color: var(--mc-text-2); }
+  .io-label { font: 700 10px/1 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.09em; color: var(--mc-text-3); margin-bottom: 6px; }
+  .io-box { background: var(--mc-surface-2); border: 1px solid var(--mc-border); border-radius: 10px; padding: 12px 14px; }
+</style>
+</head>
+<body class="font-sans qa-main" data-screen-label="Quote detail">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-active="list"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="text-sm breadcrumbs py-0">
+        <ul>
+          <li><a href="quotes.html" style="color:var(--mc-text-3);">Quotes</a></li>
+          <li class="font-semibold font-mono">QA-1479</li>
+        </ul>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="btn btn-sm btn-ghost gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>
+          Regenerate
+        </button>
+        <a href="get-quote.html" class="btn btn-sm btn-outline gap-2">Edit inputs</a>
+        <button class="btn btn-sm btn-primary gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Approve &amp; send
+        </button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1280px]">
+      <!-- HEADER -->
+      <div class="mb-6">
+        <h1 class="font-display font-bold text-3xl tracking-[-0.025em]" style="display:inline-block; vertical-align:middle;">The Bennetts</h1>
+        <span class="badge badge-warning badge-outline font-semibold" style="vertical-align:middle; margin-left:12px; white-space:nowrap;">Draft · in progress</span>
+        <div class="mt-3 text-sm" style="color: var(--mc-text-2);">
+          <span class="font-mono" style="color:var(--mc-brand);">QA-1479</span> · London → Tokyo · 2 adults · 2 children · 14–28 Aug 2026 · created 2 min ago by Rana Aziz
+        </div>
+      </div>
+
+      <!-- progress strip -->
+      <div class="card mb-6">
+        <div class="card-body p-5">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-semibold">Pipeline progress</span>
+            <span class="text-xs font-mono" style="color: var(--mc-text-3);">4 of 6 steps · pricing in progress</span>
+          </div>
+          <progress class="progress progress-primary w-full" value="58" max="100"></progress>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6">
+
+        <!-- LEFT COLUMN -->
+        <div class="space-y-6">
+
+          <!-- INPUT RECEIVED -->
+          <div class="card">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="font-display font-bold text-lg">Input received</h2>
+                <span class="badge badge-ghost gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6 12 13 2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+                  via web form
+                </span>
+              </div>
+              <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="io-box"><div class="text-[11px]" style="color:var(--mc-text-3);">From</div><div class="text-sm font-medium truncate">bennett.family@…</div></div>
+                <div class="io-box"><div class="text-[11px]" style="color:var(--mc-text-3);">Received</div><div class="text-sm font-medium">Today, 09:14</div></div>
+                <div class="io-box"><div class="text-[11px]" style="color:var(--mc-text-3);">Language</div><div class="text-sm font-medium">English (GB)</div></div>
+              </div>
+              <div class="io-label">Original email</div>
+              <div class="io-box step-data" style="white-space:pre-line;">Hi there,
+
+We're a family of 4 (2 adults, 2 kids aged 6 and 9) looking to fly London to Tokyo, departing 14 Aug and returning 28 Aug. We'd prefer non-stop in economy. We'll also need a hotel near Shinjuku, 2 rooms please. Airport transfers would be handy too.
+
+What can you put together for us?
+
+Thanks,
+The Bennetts</div>
+            </div>
+          </div>
+
+          <!-- PIPELINE -->
+          <div class="card">
+            <div class="card-body p-6">
+              <h2 class="font-display font-bold text-lg mb-1">Processing pipeline</h2>
+              <p class="text-xs mb-5" style="color: var(--mc-text-3);">Each step shows what went in and what came out. Expand any step for detail.</p>
+
+              <div class="grid grid-cols-1 md:grid-cols-[150px_1fr] gap-6">
+                <!-- steps overview -->
+                <ul class="steps steps-vertical">
+                  <li class="step step-primary" data-content="✓">Received</li>
+                  <li class="step step-primary" data-content="✓">Extracted</li>
+                  <li class="step step-primary" data-content="✓">Gaps</li>
+                  <li class="step step-primary" data-content="●">Pricing</li>
+                  <li class="step" data-content="5">Policy</li>
+                  <li class="step" data-content="6">Draft</li>
+                </ul>
+
+                <!-- per-step input/output accordions -->
+                <div class="join join-vertical w-full">
+                  <details class="collapse collapse-arrow join-item border" style="border-color:var(--mc-border);" open>
+                    <summary class="collapse-title min-h-0 py-3.5 font-medium text-sm flex items-center gap-2">
+                      <span class="badge badge-success badge-sm">Done</span> 1 · Email received
+                    </summary>
+                    <div class="collapse-content text-sm">
+                      <div class="io-label mt-1">Output</div>
+                      <div class="io-box step-data">Cleaned plain-text email · 71 words · sender + subject parsed · language detected (en-GB).</div>
+                    </div>
+                  </details>
+
+                  <details class="collapse collapse-arrow join-item border" style="border-color:var(--mc-border);" open>
+                    <summary class="collapse-title min-h-0 py-3.5 font-medium text-sm flex items-center gap-2">
+                      <span class="badge badge-success badge-sm">Done</span> 2 · Requirements extracted
+                    </summary>
+                    <div class="collapse-content text-sm">
+                      <div class="io-label mt-1">Input</div>
+                      <div class="io-box step-data mb-3">Cleaned email text.</div>
+                      <div class="io-label">Output</div>
+                      <div class="io-box">
+                        <div class="flex flex-wrap gap-1.5">
+                          <span class="badge badge-primary badge-outline">LHR → HND</span>
+                          <span class="badge badge-primary badge-outline">14–28 Aug</span>
+                          <span class="badge badge-primary badge-outline">2 adults · 2 children</span>
+                          <span class="badge badge-primary badge-outline">Non-stop · Economy</span>
+                          <span class="badge badge-primary badge-outline">Hotel · Shinjuku · 2 rooms</span>
+                          <span class="badge badge-primary badge-outline">Airport transfers</span>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+
+                  <details class="collapse collapse-arrow join-item border" style="border-color:var(--mc-border);">
+                    <summary class="collapse-title min-h-0 py-3.5 font-medium text-sm flex items-center gap-2">
+                      <span class="badge badge-success badge-sm">Done</span> 3 · Missing info detected
+                    </summary>
+                    <div class="collapse-content text-sm">
+                      <div class="io-label mt-1">Output · 1 gap</div>
+                      <div class="io-box step-data flex items-start gap-2">
+                        <span style="color:var(--mc-warning);">▲</span>
+                        <span>Hotel star rating / budget not specified — assumed <b style="color:var(--mc-text);">4★</b>. Everything else present.</span>
+                      </div>
+                    </div>
+                  </details>
+
+                  <details class="collapse collapse-arrow join-item border" style="border-color:var(--mc-brand);" open>
+                    <summary class="collapse-title min-h-0 py-3.5 font-medium text-sm flex items-center gap-2">
+                      <span class="badge badge-sm" style="background:color-mix(in oklch,var(--mc-warning) 18%,transparent);color:color-mix(in oklch,var(--mc-warning) 80%,black);border:0;">
+                        <span class="loading loading-spinner loading-xs"></span>&nbsp;Running
+                      </span> 4 · Pricing fetched
+                    </summary>
+                    <div class="collapse-content text-sm">
+                      <div class="io-label mt-1">Input</div>
+                      <div class="io-box step-data mb-3">4 service requests sent to the <b style="color:var(--mc-text);">mock adapter</b> (fixtures).</div>
+                      <div class="io-label">Output · 2 of 4 priced</div>
+                      <div class="io-box step-data">Return flights and hotel returned. Transfers and insurance still resolving…</div>
+                    </div>
+                  </details>
+
+                  <details class="collapse collapse-arrow join-item border" style="border-color:var(--mc-border);">
+                    <summary class="collapse-title min-h-0 py-3.5 font-medium text-sm flex items-center gap-2">
+                      <span class="badge badge-ghost badge-sm">Pending</span> 5 · Policy applied
+                    </summary>
+                    <div class="collapse-content text-sm">
+                      <div class="io-box step-data mt-1" style="color:var(--mc-text-3);">Waiting on pricing. Will apply Standard policy: 8% markup, 48-hour fare hold, nearest £5 rounding.</div>
+                    </div>
+                  </details>
+
+                  <details class="collapse collapse-arrow join-item border" style="border-color:var(--mc-border);">
+                    <summary class="collapse-title min-h-0 py-3.5 font-medium text-sm flex items-center gap-2">
+                      <span class="badge badge-ghost badge-sm">Pending</span> 6 · Draft generated
+                    </summary>
+                    <div class="collapse-content text-sm">
+                      <div class="io-box step-data mt-1" style="color:var(--mc-text-3);">A professional, itemised reply will be generated for your approval once pricing and policy complete.</div>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REQUESTED SERVICES -->
+          <div class="card">
+            <div class="card-body p-6">
+              <div class="flex items-center justify-between mb-1">
+                <h2 class="font-display font-bold text-lg">Requested services</h2>
+                <span class="badge badge-ghost">4 items</span>
+              </div>
+              <p class="text-xs mb-4" style="color: var(--mc-text-3);">One enquiry, several bookable components — each priced independently.</p>
+
+              <div class="overflow-x-auto">
+                <table class="table">
+                  <thead>
+                    <tr><th>Service</th><th>Details</th><th>Source</th><th>Status</th><th class="text-right">Price</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <span class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0" style="background:var(--mc-brand-soft);color:var(--mc-brand);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8L9 11l-2 2H4l-1 1 3 2 2 3 1-1v-3l2-2 4.7 4.5a.5.5 0 0 0 .8-.5z"/></svg></span>
+                          <span class="font-semibold">Return flights</span>
+                        </div>
+                      </td>
+                      <td class="text-sm" style="color:var(--mc-text-2);">LHR→HND 14 Aug · HND→LHR 28 Aug<br/>Non-stop · Economy · 2A+2C</td>
+                      <td><span class="badge badge-ghost badge-sm font-mono">Amadeus (mock)</span></td>
+                      <td><span class="badge badge-success badge-sm">Priced</span></td>
+                      <td class="text-right font-mono font-semibold">£3,840</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <span class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0" style="background:var(--mc-brand-soft);color:var(--mc-brand);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M3 21h18M9 21v-6h6v6"/></svg></span>
+                          <span class="font-semibold">Hotel</span>
+                        </div>
+                      </td>
+                      <td class="text-sm" style="color:var(--mc-text-2);">Shinjuku 4★ · 2 rooms · 14 nights<br/>Breakfast included</td>
+                      <td><span class="badge badge-ghost badge-sm font-mono">Hotelbeds (mock)</span></td>
+                      <td><span class="badge badge-success badge-sm">Priced</span></td>
+                      <td class="text-right font-mono font-semibold">£2,310</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <span class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0" style="background:var(--mc-surface-2);color:var(--mc-text-2);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3v-6l2-5h11l4 5v6h-2"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="17.5" cy="17.5" r="1.5"/></svg></span>
+                          <span class="font-semibold">Transport</span>
+                        </div>
+                      </td>
+                      <td class="text-sm" style="color:var(--mc-text-2);">Private airport transfers<br/>HND ⇄ hotel · van for 4</td>
+                      <td><span class="badge badge-ghost badge-sm font-mono">mock adapter</span></td>
+                      <td><span class="badge badge-warning badge-sm gap-1"><span class="loading loading-spinner loading-xs"></span>Pricing</span></td>
+                      <td class="text-right font-mono" style="color:var(--mc-text-3);">…</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <span class="w-9 h-9 rounded-lg grid place-items-center flex-shrink-0" style="background:var(--mc-surface-2);color:var(--mc-text-2);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 7.5 8 9 4.6-1.5 8-4.5 8-9V6z"/></svg></span>
+                          <span class="font-semibold">Insurance</span>
+                          <span class="badge badge-outline badge-sm">misc</span>
+                        </div>
+                      </td>
+                      <td class="text-sm" style="color:var(--mc-text-2);">Family travel insurance<br/>14 days · worldwide</td>
+                      <td><span class="badge badge-ghost badge-sm font-mono">mock adapter</span></td>
+                      <td><span class="badge badge-warning badge-sm gap-1"><span class="loading loading-spinner loading-xs"></span>Pricing</span></td>
+                      <td class="text-right font-mono" style="color:var(--mc-text-3);">…</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-sm btn-ghost mt-3 gap-2" style="color:var(--mc-brand);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add a service
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="space-y-6">
+          <!-- SUMMARY -->
+          <div class="card">
+            <div class="card-body p-6">
+              <h2 class="font-display font-bold text-lg mb-4">Quote summary</h2>
+              <div class="space-y-2.5 text-sm">
+                <div class="flex justify-between"><span style="color:var(--mc-text-2);">Return flights</span><span class="font-mono">£3,840</span></div>
+                <div class="flex justify-between"><span style="color:var(--mc-text-2);">Hotel</span><span class="font-mono">£2,310</span></div>
+                <div class="flex justify-between"><span style="color:var(--mc-text-3);">Transport</span><span class="font-mono" style="color:var(--mc-text-3);">pending</span></div>
+                <div class="flex justify-between"><span style="color:var(--mc-text-3);">Insurance</span><span class="font-mono" style="color:var(--mc-text-3);">pending</span></div>
+                <div class="divider my-1"></div>
+                <div class="flex justify-between"><span style="color:var(--mc-text-2);">Subtotal (priced so far)</span><span class="font-mono">£6,150</span></div>
+                <div class="flex justify-between"><span style="color:var(--mc-text-2);">Policy markup · 8%</span><span class="font-mono" style="color:var(--mc-text-3);">on completion</span></div>
+              </div>
+              <div class="rounded-xl mt-4 p-4 flex items-center justify-between" style="background:var(--mc-brand-soft);">
+                <div>
+                  <div class="text-xs font-semibold" style="color:var(--mc-brand);">Estimated total so far</div>
+                  <div class="text-[11px]" style="color:var(--mc-text-3);">2 of 4 services priced</div>
+                </div>
+                <div class="font-display font-bold text-2xl font-mono" style="color:var(--mc-brand);">£6,150</div>
+              </div>
+              <div class="alert mt-4 py-2.5" style="background:var(--mc-surface-2);border:1px solid var(--mc-border);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--mc-text-3);"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                <span class="text-xs" style="color:var(--mc-text-2);">Fares will be held for <b style="color:var(--mc-text);">48 hours</b> once the draft is approved.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TRIP FACTS -->
+          <div class="card">
+            <div class="card-body p-6">
+              <h2 class="font-display font-bold text-lg mb-4">Trip facts</h2>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="io-box"><div class="text-[11px]" style="color:var(--mc-text-3);">Route</div><div class="text-sm font-medium font-mono">LHR–HND</div></div>
+                <div class="io-box"><div class="text-[11px]" style="color:var(--mc-text-3);">Nights</div><div class="text-sm font-medium font-mono">14</div></div>
+                <div class="io-box"><div class="text-[11px]" style="color:var(--mc-text-3);">Travellers</div><div class="text-sm font-medium">2A · 2C</div></div>
+                <div class="io-box"><div class="text-[11px]" style="color:var(--mc-text-3);">Cabin</div><div class="text-sm font-medium">Economy</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TIMELINE -->
+          <div class="card">
+            <div class="card-body p-6">
+              <h2 class="font-display font-bold text-lg mb-3">Activity</h2>
+              <ul class="timeline timeline-vertical timeline-compact">
+                <li>
+                  <div class="timeline-middle"><span class="w-2.5 h-2.5 rounded-full block" style="background:var(--mc-success);"></span></div>
+                  <div class="timeline-end mb-3 text-sm"><b>Enquiry received</b><div class="text-xs" style="color:var(--mc-text-3);">09:14 · web form</div></div>
+                  <hr style="background:var(--mc-border);"/>
+                </li>
+                <li>
+                  <hr style="background:var(--mc-border);"/>
+                  <div class="timeline-middle"><span class="w-2.5 h-2.5 rounded-full block" style="background:var(--mc-success);"></span></div>
+                  <div class="timeline-end mb-3 text-sm"><b>Requirements extracted</b><div class="text-xs" style="color:var(--mc-text-3);">09:14 · 6 fields</div></div>
+                  <hr style="background:var(--mc-border);"/>
+                </li>
+                <li>
+                  <hr style="background:var(--mc-border);"/>
+                  <div class="timeline-middle"><span class="w-2.5 h-2.5 rounded-full block" style="background:var(--mc-warning);box-shadow:0 0 0 3px color-mix(in oklch,var(--mc-warning) 20%,transparent);"></span></div>
+                  <div class="timeline-end text-sm"><b>Pricing in progress</b><div class="text-xs" style="color:var(--mc-text-3);">now · 2 of 4 services</div></div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const QA_TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "teal",
+  "radius": "rounded",
+  "theme": "light"
+}/*EDITMODE-END*/;
+</script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+/* MangoCMS — shared UI primitives.
+   Confirmation modal, toast stack, contextual menu, anchored popover.
+   Loaded on every page that needs modal confirmations (no native confirm()). */
+
+/* ─── Toast stack ─── */
+.mcui-toasts {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: center;
+  pointer-events: none;
+}
+.mcui-toast {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--mc-text); color: var(--mc-surface);
+  border-radius: 10px; padding: 10px 14px;
+  font: 500 13px/1.3 'Inter', sans-serif;
+  box-shadow: 0 12px 28px -8px rgb(0 0 0 / 0.35);
+  pointer-events: auto; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s; max-width: 420px;
+}
+.mcui-toast.in { opacity: 1; transform: translateY(0); }
+.mcui-toast .mcui-toast-ico { display: grid; place-items: center; flex-shrink: 0; }
+.mcui-toast.ok  .mcui-toast-ico { color: var(--mc-success); }
+.mcui-toast.err .mcui-toast-ico { color: oklch(75% 0.14 25); }
+.mcui-toast.info .mcui-toast-ico { color: var(--mc-brand); }
+
+/* ─── Contextual menu / dropdown ─── */
+.mcui-menu {
+  position: fixed; z-index: 180; min-width: 196px;
+  background: var(--mc-surface); border: 1px solid var(--mc-border);
+  border-radius: 12px; box-shadow: 0 18px 44px -12px rgb(0 0 0 / 0.28);
+  padding: 6px; opacity: 0; transform: scale(0.97) translateY(-4px);
+  transform-origin: top left; transition: opacity 0.12s, transform 0.12s;
+}
+.mcui-menu.in { opacity: 1; transform: scale(1) translateY(0); }
+.mcui-menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 8px 10px; border-radius: 8px; border: 0; background: transparent;
+  font: 500 13px/1.2 'Inter', sans-serif; color: var(--mc-text);
+  cursor: pointer; text-align: left; transition: background 0.1s;
+}
+.mcui-menu-item:hover { background: var(--mc-surface-2); }
+.mcui-menu-item svg { color: var(--mc-text-3); flex-shrink: 0; }
+.mcui-menu-item:hover svg { color: var(--mc-text-2); }
+.mcui-menu-item .mcui-menu-kbd { margin-left: auto; }
+.mcui-menu-item.danger { color: var(--mc-error); }
+.mcui-menu-item.danger svg { color: var(--mc-error); }
+.mcui-menu-item.danger:hover { background: color-mix(in oklch, var(--mc-error) 8%, transparent); }
+.mcui-menu-sep { height: 1px; background: var(--mc-border); margin: 6px 4px; }
+.mcui-menu-label { font: 700 9.5px/1 'Inter'; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mc-text-3); padding: 8px 10px 4px; }
+
+/* ─── Generic anchored popover shell ─── */
+.mcui-pop {
+  position: fixed; z-index: 170;
+  background: var(--mc-surface); border: 1px solid var(--mc-border);
+  border-radius: 12px; box-shadow: 0 18px 44px -12px rgb(0 0 0 / 0.28);
+  opacity: 0; transform: scale(0.98) translateY(-4px); transform-origin: top left;
+  transition: opacity 0.12s, transform 0.12s;
+}
+.mcui-pop.in { opacity: 1; transform: scale(1) translateY(0); }
+
+/* ─── Confirmation modal accent ─── */
+.mcui-confirm .mc-modal { max-width: 440px; }
+.mcui-confirm-ico {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  display: grid; place-items: center;
+}
+.mcui-confirm-ico.danger { background: color-mix(in oklch, var(--mc-error) 12%, transparent); color: var(--mc-error); }
+.mcui-confirm-ico.brand  { background: var(--mc-brand-soft); color: var(--mc-brand); }
+.mcui-confirm-ico.warn   { background: color-mix(in oklch, var(--mc-warning) 16%, transparent); color: color-mix(in oklch, var(--mc-warning) 80%, black 20%); }

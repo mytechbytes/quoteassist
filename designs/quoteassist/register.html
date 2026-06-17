@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Create account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  .auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+  @media (max-width: 1024px) { .auth { grid-template-columns: 1fr; } .auth-aside { display: none; } }
+  .auth-aside { position: relative; overflow: hidden; background: linear-gradient(140deg, oklch(0.30 0.065 196) 0%, var(--mc-brand) 60%, var(--mc-grad-1) 100%); color: white; padding: 56px; display: flex; flex-direction: column; }
+  .auth-aside::before { content:''; position: absolute; inset:-20% -20% auto auto; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgb(255 255 255 / 0.25) 0%, transparent 60%); pointer-events: none; }
+  .auth-aside::after { content:''; position: absolute; inset: auto -10% -20% -20%; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, oklch(0.30 0.07 196 / 0.6) 0%, transparent 60%); pointer-events: none; }
+  .auth-form { display: flex; align-items: center; justify-content: center; padding: 56px; background: var(--mc-bg); position: relative; }
+  .auth-card { width: 100%; max-width: 440px; }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Register">
+
+<div class="auth">
+  <aside class="auth-aside">
+    <a href="index.html" class="flex items-center gap-2.5 relative" style="text-decoration:none; color:inherit;">
+      <span class="grid place-items-center rounded-xl font-display font-bold" style="width: 36px; height: 36px; background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); font-size: 15px; letter-spacing:-0.04em;">QA</span>
+      <span class="font-display font-bold text-lg">QuoteAssist</span>
+    </a>
+    <div class="flex-1 flex items-center relative">
+      <div>
+        <div class="text-sm font-semibold tracking-widest uppercase opacity-80 mb-5">Free for your first 25 quotes</div>
+        <h1 class="font-display font-bold tracking-[-0.025em]" style="font-size: 52px; line-height: 1.02;">
+          Set up your<br/>quoting desk<br/>in two minutes.
+        </h1>
+        <ul class="mt-8 space-y-3.5 max-w-md">
+          <li class="flex gap-3 items-start"><span class="mt-0.5">✓</span><span class="opacity-90">Paste any enquiry email — no customer forms</span></li>
+          <li class="flex gap-3 items-start"><span class="mt-0.5">✓</span><span class="opacity-90">Live pricing via mock or real provider adapters</span></li>
+          <li class="flex gap-3 items-start"><span class="mt-0.5">✓</span><span class="opacity-90">Your fare policy applied to every quote</span></li>
+          <li class="flex gap-3 items-start"><span class="mt-0.5">✓</span><span class="opacity-90">Agents always approve before anything sends</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="relative text-sm opacity-80">Trusted by agents at 320+ travel agencies.</div>
+  </aside>
+
+  <main class="auth-form">
+    <div class="absolute top-6 right-6 flex items-center gap-3 text-sm">
+      <button class="mc-btn mc-btn-sm mc-btn-ghost mc-btn-icon" data-theme-toggle aria-label="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <span style="color: var(--mc-text-2);">Have an account?</span>
+      <a href="login.html" class="font-semibold" style="color: var(--mc-brand);">Sign in →</a>
+    </div>
+
+    <div class="auth-card">
+      <a href="index.html" class="flex items-center gap-2 mb-10 lg:hidden" style="text-decoration:none; color:inherit;">
+        <span class="mc-logo" style="width:28px; height:28px; font-size: 12px;">QA</span>
+        <span class="font-display font-bold">QuoteAssist</span>
+      </a>
+
+      <h1 class="font-display font-bold text-3xl tracking-[-0.02em]">Create your account</h1>
+      <p class="mt-2 text-sm" style="color: var(--mc-text-2);">Start free — no card needed. You can invite your team once you're in.</p>
+
+      <form class="space-y-4 mt-7" onsubmit="window.location.href='verify.html';return false;">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mc-label">First name</label>
+            <input class="mc-input mc-input-lg" placeholder="Rana" required/>
+          </div>
+          <div>
+            <label class="mc-label">Last name</label>
+            <input class="mc-input mc-input-lg" placeholder="Aziz" required/>
+          </div>
+        </div>
+        <div>
+          <label class="mc-label">Work email</label>
+          <input class="mc-input mc-input-lg" type="email" placeholder="rana@skylinetravel.com" required/>
+        </div>
+        <div>
+          <label class="mc-label">Agency name</label>
+          <input class="mc-input mc-input-lg" placeholder="Skyline Travel" required/>
+        </div>
+        <div>
+          <label class="mc-label">Password</label>
+          <input id="pw" class="mc-input mc-input-lg" type="password" placeholder="At least 8 characters" oninput="qaStrength(this.value)" required/>
+          <div class="flex gap-1.5 mt-2" id="strengthBars">
+            <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+            <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+            <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+            <div class="h-1 flex-1 rounded-full" style="background: var(--mc-border-2);"></div>
+          </div>
+          <div class="text-xs mt-1.5" id="strengthLabel" style="color: var(--mc-text-3);">Use 8+ characters with a mix of letters, numbers &amp; symbols.</div>
+        </div>
+        <label class="flex items-start gap-2 text-sm" style="color: var(--mc-text-2);">
+          <input type="checkbox" required class="rounded mt-0.5" style="accent-color: var(--mc-brand);"/>
+          <span>I agree to the <a href="#" style="color: var(--mc-brand);">Terms</a> and <a href="#" style="color: var(--mc-brand);">Privacy Policy</a>.</span>
+        </label>
+        <button class="mc-btn mc-btn-lg mc-btn-primary w-full" type="submit">
+          Create account
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </form>
+      <div class="mt-6 text-center text-xs" style="color: var(--mc-text-3);">We'll send a 6-digit code to confirm your email.</div>
+    </div>
+  </main>
+</div>
+<script>
+function qaStrength(v){
+  var s=0; if(v.length>=8)s++; if(/[A-Z]/.test(v)&&/[a-z]/.test(v))s++; if(/\d/.test(v))s++; if(/[^A-Za-z0-9]/.test(v))s++;
+  var bars=document.querySelectorAll('#strengthBars div');
+  var colors=['','var(--mc-error)','var(--mc-warning)','var(--mc-warning)','var(--mc-success)'];
+  var labels=['Use 8+ characters with a mix of letters, numbers & symbols.','Weak password','Fair — add more variety','Good password','Strong password'];
+  bars.forEach(function(b,i){ b.style.background = i<s ? colors[s] : 'var(--mc-border-2)'; });
+  document.getElementById('strengthLabel').textContent = labels[s];
+}
+</script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+</body>
+</html>

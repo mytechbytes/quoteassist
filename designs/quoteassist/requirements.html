@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>QuoteAssist — Requirements</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  body { background: var(--mc-bg); margin: 0; color: var(--mc-text); font-family: 'Inter', sans-serif; }
+  .doc { max-width: 880px; margin: 0 auto; padding: 48px 24px 80px; }
+  .sheet { background: var(--mc-surface); border: 1px solid var(--mc-border); border-radius: 18px; overflow: hidden; box-shadow: 0 1px 3px rgb(0 0 0 / 0.04); }
+
+  /* cover */
+  .cover { position: relative; padding: 46px 46px 38px; overflow: hidden; border-bottom: 1px solid var(--mc-border); }
+  .cover-glow { position: absolute; inset: -40% -10% auto -10%; height: 120%; background: radial-gradient(ellipse 50% 60% at 25% 20%, color-mix(in oklch, var(--mc-grad-1) 26%, transparent), transparent 60%), radial-gradient(ellipse 50% 60% at 80% 30%, color-mix(in oklch, var(--mc-brand) 22%, transparent), transparent 60%); filter: blur(36px); pointer-events: none; }
+  .cover-in { position: relative; z-index: 1; }
+  .eyebrow { font: 700 11px/1 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.14em; color: var(--mc-brand); }
+  .doc-title { font: 700 40px/1.04 'Familjen Grotesk', sans-serif; letter-spacing: -0.03em; margin: 12px 0 0; }
+  .doc-sub { font-size: 15px; line-height: 1.6; color: var(--mc-text-2); margin: 16px 0 0; max-width: 64ch; }
+  .meta-grid { display: grid; grid-template-columns: repeat(4, auto); gap: 28px; margin-top: 26px; }
+  .meta-k { font: 700 10px/1 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mc-text-3); }
+  .meta-v { font: 600 14px/1.2 'Inter', sans-serif; margin-top: 6px; }
+
+  /* section */
+  .section { padding: 34px 46px; border-bottom: 1px solid var(--mc-border); }
+  .section:last-child { border-bottom: 0; }
+  .h2 { font: 700 13px/1 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mc-text-3); margin: 0 0 18px; }
+
+  /* summary stats */
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat { border: 1px solid var(--mc-border); border-radius: 13px; padding: 16px 18px; background: var(--mc-surface-2); }
+  .stat-n { font: 700 26px/1 'Familjen Grotesk', sans-serif; font-variant-numeric: tabular-nums; }
+  .stat-l { font: 500 12px/1.3 'Inter', sans-serif; color: var(--mc-text-3); margin-top: 5px; }
+  .barbq { display: flex; height: 8px; border-radius: 99px; overflow: hidden; margin-top: 18px; border: 1px solid var(--mc-border); }
+  .barbq i { display: block; height: 100%; }
+  .barbq-key { display: flex; gap: 18px; margin-top: 10px; flex-wrap: wrap; }
+  .barbq-key span { display: inline-flex; align-items: center; gap: 7px; font: 500 12px/1 'Inter', sans-serif; color: var(--mc-text-2); }
+  .barbq-key i { width: 11px; height: 11px; border-radius: 3px; }
+
+  /* glossary */
+  .gloss { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+  .gloss-row { display: grid; grid-template-columns: 132px 1fr; gap: 12px; padding: 7px 0; border-top: 1px solid var(--mc-border); align-items: baseline; }
+  .gloss-t { font: 600 13px/1.3 'Inter', sans-serif; }
+  .gloss-d { font: 400 12.5px/1.45 'Inter', sans-serif; color: var(--mc-text-2); }
+
+  /* module */
+  .mod-head { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .mod-code { display: inline-grid; place-items: center; min-width: 46px; height: 32px; padding: 0 10px; border-radius: 9px; font: 700 14px/1 'JetBrains Mono', monospace; color: #fff; }
+  .mod-name { font: 700 23px/1.1 'Familjen Grotesk', sans-serif; letter-spacing: -0.02em; }
+  .mod-intro { font-size: 13.5px; line-height: 1.6; color: var(--mc-text-2); margin: 0 0 22px; max-width: 70ch; }
+
+  /* task */
+  .task { display: grid; grid-template-columns: 92px 1fr; gap: 18px; padding: 18px 0; border-top: 1px solid var(--mc-border); }
+  .task-rail { display: flex; flex-direction: column; gap: 9px; align-items: flex-start; }
+  .task-id { font: 600 12px/1 'JetBrains Mono', monospace; color: var(--mc-text-2); background: var(--mc-surface-2); border: 1px solid var(--mc-border); border-radius: 6px; padding: 5px 7px; white-space: nowrap; }
+  .pri { font: 700 10px/1 'Inter', sans-serif; letter-spacing: 0.04em; padding: 4px 7px; border-radius: 5px; }
+  .pri-P0 { background: color-mix(in oklch, var(--mc-error) 14%, transparent); color: var(--mc-error); }
+  .pri-P1 { background: color-mix(in oklch, var(--mc-warning) 18%, transparent); color: color-mix(in oklch, var(--mc-warning) 72%, black 28%); }
+  .pri-P2 { background: var(--mc-surface-2); color: var(--mc-text-3); border: 1px solid var(--mc-border); }
+  .task-body { min-width: 0; }
+  .task-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .task-title { font: 600 15.5px/1.3 'Inter', sans-serif; }
+  .st { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font: 600 11px/1 'Inter', sans-serif; padding: 5px 9px; border-radius: 99px; white-space: nowrap; }
+  .st i { width: 7px; height: 7px; border-radius: 99px; }
+  .st-done { background: color-mix(in oklch, var(--mc-success) 12%, transparent); color: color-mix(in oklch, var(--mc-success) 78%, black 22%); }
+  .st-done i { background: var(--mc-success); }
+  .st-partial { background: color-mix(in oklch, var(--mc-warning) 14%, transparent); color: color-mix(in oklch, var(--mc-warning) 72%, black 28%); }
+  .st-partial i { background: var(--mc-warning); }
+  .st-planned { background: var(--mc-surface-2); color: var(--mc-text-3); border: 1px solid var(--mc-border); }
+  .st-planned i { background: var(--mc-text-3); }
+  .dark .st-done { color: var(--mc-success); }
+  .dark .st-partial { color: var(--mc-warning); }
+  .task-desc { font-size: 13.5px; line-height: 1.55; color: var(--mc-text-2); margin: 7px 0 0; }
+  .ac { margin: 11px 0 0; padding: 0; list-style: none; }
+  .ac li { position: relative; padding: 3px 0 3px 22px; font-size: 12.5px; line-height: 1.5; color: var(--mc-text); }
+  .ac li::before { content: ''; position: absolute; left: 4px; top: 9px; width: 6px; height: 6px; border: 1.5px solid var(--mc-border-2); border-radius: 2px; }
+  .ac-lab { font: 700 10px/1 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.07em; color: var(--mc-text-3); margin: 11px 0 2px; }
+
+  .foot { padding: 26px 46px; text-align: center; font-size: 12px; color: var(--mc-text-3); }
+
+  /* print */
+  @media print {
+    body { background: #fff; }
+    .doc { max-width: none; padding: 0; }
+    .sheet { border: 0; border-radius: 0; box-shadow: none; }
+    .section, .cover { padding-left: 14mm; padding-right: 14mm; }
+    .module { break-inside: avoid; }
+    .task { break-inside: avoid; }
+    .no-print { display: none !important; }
+    @page { size: A4; margin: 14mm 0; }
+  }
+</style>
+</head>
+<body data-screen-label="Requirements doc">
+<div class="doc">
+  <div class="sheet">
+    <!-- cover -->
+    <header class="cover">
+      <div class="cover-glow"></div>
+      <div class="cover-in">
+        <div class="flex items-center gap-3" style="margin-bottom: 22px;">
+          <span class="mc-logo" style="width: 34px; height: 34px; font-size: 15px;">QA</span>
+          <span class="font-display font-bold text-lg">QuoteAssist</span>
+        </div>
+        <div class="eyebrow">Product Requirements</div>
+        <h1 class="doc-title" id="d-title"></h1>
+        <p class="doc-sub" id="d-sub"></p>
+        <div class="meta-grid" id="d-meta"></div>
+      </div>
+    </header>
+
+    <!-- summary -->
+    <section class="section module">
+      <div class="h2">At a glance</div>
+      <div class="stat-row" id="d-stats"></div>
+      <div class="barbq" id="d-bar"></div>
+      <div class="barbq-key">
+        <span><i style="background: var(--mc-success);"></i> Built</span>
+        <span><i style="background: var(--mc-warning);"></i> Partial</span>
+        <span><i style="background: var(--mc-text-3);"></i> Planned</span>
+      </div>
+    </section>
+
+    <!-- glossary -->
+    <section class="section module">
+      <div class="h2">Glossary</div>
+      <div class="gloss" id="d-gloss"></div>
+    </section>
+
+    <!-- modules render here -->
+    <div id="d-modules"></div>
+
+    <div class="foot" id="d-foot"></div>
+  </div>
+</div>
+
+<script src="req-data.js"></script>
+<script>
+(function () {
+  var R = window.QAReq, M = R.meta;
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  document.getElementById('d-title').textContent = M.release;
+  document.getElementById('d-sub').textContent = M.summary;
+  document.title = 'QuoteAssist — Requirements · ' + M.release;
+
+  document.getElementById('d-meta').innerHTML = [
+    ['Product', M.product], ['Version', M.version], ['Date', M.date], ['Owner', M.owner]
+  ].map(function (m) { return '<div><div class="meta-k">' + m[0] + '</div><div class="meta-v">' + m[1] + '</div></div>'; }).join('');
+
+  // counts
+  var all = []; R.modules.forEach(function (mod) { mod.tasks.forEach(function (t) { all.push(t); }); });
+  var done = all.filter(function (t) { return t.status === 'done'; }).length;
+  var partial = all.filter(function (t) { return t.status === 'partial'; }).length;
+  var planned = all.filter(function (t) { return t.status === 'planned'; }).length;
+  var stats = [
+    [R.modules.length, 'Modules'], [all.length, 'Total tasks'],
+    [done + partial, 'In the prototype'], [planned, 'On the backlog']
+  ];
+  document.getElementById('d-stats').innerHTML = stats.map(function (s) {
+    return '<div class="stat"><div class="stat-n">' + s[0] + '</div><div class="stat-l">' + s[1] + '</div></div>';
+  }).join('');
+  var tot = all.length;
+  document.getElementById('d-bar').innerHTML =
+    '<i style="width:' + (done / tot * 100) + '%; background: var(--mc-success);"></i>' +
+    '<i style="width:' + (partial / tot * 100) + '%; background: var(--mc-warning);"></i>' +
+    '<i style="width:' + (planned / tot * 100) + '%; background: var(--mc-text-3);"></i>';
+
+  document.getElementById('d-gloss').innerHTML = R.glossary.map(function (g) {
+    return '<div class="gloss-row"><div class="gloss-t">' + esc(g[0]) + '</div><div class="gloss-d">' + esc(g[1]) + '</div></div>';
+  }).join('');
+
+  var STLAB = { done: 'Built', partial: 'Partial', planned: 'Planned' };
+  function clr(h, l, c) { return 'oklch(' + l + ' ' + c + ' ' + h + ')'; }
+
+  document.getElementById('d-modules').innerHTML = R.modules.map(function (mod) {
+    var accentBg = clr(mod.accent, '0.5', '0.13');
+    var tasks = mod.tasks.map(function (t) {
+      var ac = t.ac.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('');
+      return '<div class="task">' +
+        '<div class="task-rail"><span class="task-id">' + t.id + '</span><span class="pri pri-' + t.pri + '">' + t.pri + '</span></div>' +
+        '<div class="task-body">' +
+          '<div class="task-top"><span class="task-title">' + esc(t.title) + '</span>' +
+            '<span class="st st-' + t.status + '"><i></i>' + STLAB[t.status] + '</span></div>' +
+          '<p class="task-desc">' + esc(t.desc) + '</p>' +
+          '<div class="ac-lab">Acceptance criteria</div><ul class="ac">' + ac + '</ul>' +
+        '</div></div>';
+    }).join('');
+    return '<section class="section module">' +
+      '<div class="mod-head"><span class="mod-code" style="background:' + accentBg + ';">' + esc(mod.code) + '</span>' +
+      '<span class="mod-name">' + esc(mod.name) + '</span></div>' +
+      '<p class="mod-intro">' + esc(mod.intro) + '</p>' + tasks + '</section>';
+  }).join('');
+
+  document.getElementById('d-foot').innerHTML = M.product + ' · ' + M.release + ' · Requirements ' + M.version + ' · ' + M.date;
+})();
+</script>
+</body>
+</html>

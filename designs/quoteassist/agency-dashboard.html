@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Agency overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+</head>
+<body class="font-sans" data-screen-label="Agency · Overview">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-app="agency" data-active="overview"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Northwind Supply</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Overview</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <span class="qa-vchip" id="tb-vertical"></span>
+        <div class="w-px h-6 mx-1" style="background: var(--mc-border);"></div>
+        <a href="agency-approvals.html" class="mc-btn mc-btn-sm mc-btn-primary" id="tb-approvals">Review approvals</a>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1440px]">
+      <div class="mb-7">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Northwind Supply · Product &amp; Wholesale</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Good morning, Daniel.</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);" id="sub"></p>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="kpis"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-4">
+        <!-- pending approvals preview -->
+        <div class="mc-card overflow-hidden">
+          <div class="p-5 flex items-center justify-between border-b" style="border-color: var(--mc-border);">
+            <div class="font-display font-bold text-lg">Waiting on you</div>
+            <a href="agency-approvals.html" class="mc-btn mc-btn-sm mc-btn-ghost">Open queue →</a>
+          </div>
+          <div id="pendingList"></div>
+        </div>
+
+        <!-- activity feed -->
+        <div class="mc-card p-6">
+          <div class="font-display font-bold text-lg mb-4">Recent activity</div>
+          <div class="qa-feed" id="feed"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="qa-data.js"></script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+<script>
+(function(){
+  var T = QAData.ACTIVE_TENANT, V = QAData.vertical(QAData.activeTenant().vertical);
+  document.getElementById('tb-vertical').innerHTML = QAData.svgIcon(V.icon,13)+V.name;
+
+  var pending = QAData.requestsFor(T,'pending');
+  var pc = pending.length;
+  document.getElementById('tb-approvals').innerHTML = 'Review approvals'+(pc?' · '+pc:'');
+  document.getElementById('sub').innerHTML = '<b>'+pc+'</b> discount request'+(pc===1?'':'s')+' waiting for your decision across '+QAData.SELLERS.length+' salespeople.';
+
+  function kpi(label, ico, val, sub){
+    return '<div class="qa-kpi"><div class="qa-kpi-label">'+QAData.svgIcon(ico,13)+'<span>'+label+'</span></div><div class="qa-kpi-val">'+val+'</div><div class="qa-kpi-sub">'+sub+'</div></div>';
+  }
+  var approved = QAData.requestsFor(T,'approved').length, rejected = QAData.requestsFor(T,'rejected').length;
+  var dealVal = QAData.deals.reduce(function(a,d){return a+d.value;},0);
+  document.getElementById('kpis').innerHTML =
+    kpi('Pending approvals','<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>', pc, 'awaiting decision') +
+    kpi('Open '+V.dealPlural,'<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>', QAData.deals.length, QAData.fmtMoney(dealVal,V.unit)+' in pipeline') +
+    kpi('Salespeople','<circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.5 3-5 6-5s5.5 1.5 6 5"/>', QAData.SELLERS.length, '3 levels · Junior→Lead') +
+    kpi('Decided · 30d','<path d="M9 11l3 3L20 6"/>', approved+rejected, approved+' approved · '+rejected+' rejected');
+
+  // pending list preview
+  function avatar(s,sz){ sz=sz||32; return '<div class="rounded-full grid place-items-center text-white font-bold flex-shrink-0 text-xs" style="width:'+sz+'px;height:'+sz+'px;background:linear-gradient(135deg,oklch(0.74 0.16 '+s.hue+'),oklch(0.5 0.14 '+s.hue+'));">'+s.name.split(' ').map(function(w){return w[0];}).slice(0,2).join('')+'</div>'; }
+  document.getElementById('pendingList').innerHTML = pc ? pending.slice(0,4).map(function(r){
+    var s=QAData.seller(r.seller);
+    return '<div class="qa-listrow"><a href="agency-approvals.html" style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;text-decoration:none;color:inherit;">'+avatar(s)+
+      '<div style="flex:1;min-width:0;"><div class="text-sm font-semibold truncate">'+r.customer+' <span class="font-mono text-[11px]" style="color:var(--mc-text-3);">'+r.deal+'</span></div>'+
+      '<div class="text-[11px]" style="color:var(--mc-text-3);">'+s.name+' · '+r.level+' · '+r.category+'</div></div>'+
+      '<span class="qa-discount-jump"><span class="from">'+r.current+'%</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mc-text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="to">'+r.requested+'%</span></span>'+
+      '<span class="mc-badge mc-badge-neutral" style="margin-left:14px;">'+r.routedTo+'</span></a></div>';
+  }).join('') : '<div class="p-8 text-center"><div class="text-sm font-semibold">All clear 🎉</div><div class="text-xs mt-1" style="color:var(--mc-text-3);">No discount requests waiting.</div></div>';
+
+  // activity feed
+  var ic={ requested:'<path d="M12 5v14M5 12h14"/>', approved:'<polyline points="20 6 9 17 4 12"/>', rejected:'<path d="M18 6L6 18M6 6l12 12"/>' };
+  document.getElementById('feed').innerHTML = QAData.activity.slice(0,6).map(function(a){
+    var s=QAData.seller(a.seller);
+    var verb = a.type==='requested' ? 'requested '+a.requested+'% on' : a.type==='approved' ? 'approval granted on' : 'rejected on';
+    var who = a.type==='requested' ? (s?s.name:'A seller') : (a.by||'Admin');
+    var txt = a.type==='requested'
+      ? '<b>'+(s?s.name:'Seller')+'</b> requested <b>'+a.requested+'%</b> on '+a.deal
+      : '<b>'+(a.by||'Admin')+'</b> '+(a.type==='approved'?'approved':'rejected')+' '+a.deal+' ('+a.requested+'%)';
+    return '<div class="qa-feed-item"><div class="qa-feed-dot '+(a.type==='requested'?'req':a.type)+'">'+QAData.svgIcon(ic[a.type],10)+'</div>'+
+      '<div class="qa-feed-txt">'+txt+'</div><div class="qa-feed-meta">'+QAData.fmtAgo(a.ts)+'</div></div>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

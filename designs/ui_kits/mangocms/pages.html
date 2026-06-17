@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>MangoCMS — Pages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="mangocms-config.js"></script>
+<link rel="stylesheet" href="mangocms.css"/>
+</head>
+<body class="font-sans" data-screen-label="Pages">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-mount data-active="pages" data-tenant="MangoBook"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <a href="dashboard.html" class="font-medium hover:underline" style="color: var(--mc-text-3);">Studio Renza</a>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <a href="tenants.html" class="font-medium hover:underline" style="color: var(--mc-text-3);">MangoBook</a>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Pages</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">Import from URL</button>
+        <button class="mc-btn mc-btn-sm mc-btn-primary" data-modal-open="newPageModal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          New page
+        </button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1440px]">
+      <div class="mb-7 flex items-end justify-between">
+        <div>
+          <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">MangoBook · Content</div>
+          <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Pages <span class="text-base font-medium font-mono ml-2" style="color: var(--mc-text-3);">— 12 published · 3 drafts</span></h1>
+          <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">Every URL on mangobook.com. Use the page builder to lay out a page, or duplicate an existing one.</p>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="mc-card p-4"><div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Published</div><div class="font-display font-bold text-2xl mt-1.5 font-mono">12</div></div>
+        <div class="mc-card p-4"><div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">In review</div><div class="font-display font-bold text-2xl mt-1.5 font-mono">2</div></div>
+        <div class="mc-card p-4"><div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Drafts</div><div class="font-display font-bold text-2xl mt-1.5 font-mono">3</div></div>
+        <div class="mc-card p-4"><div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Scheduled</div><div class="font-display font-bold text-2xl mt-1.5 font-mono">1</div><div class="text-[11px] mt-0.5" style="color: var(--mc-text-3);">12 Jun · 09:00</div></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="mc-card p-3 flex items-center gap-2.5 mb-4">
+        <div class="relative flex-1 max-w-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--mc-text-3);"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input class="mc-input pl-9" placeholder="Search by title, slug, author…"/>
+        </div>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">Status: All <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">Author: All <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">Folder: /<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="flex-1"></div>
+        <div class="flex rounded-lg overflow-hidden" style="border:1px solid var(--mc-border);">
+          <button class="px-3 h-8 text-xs font-semibold" style="background: var(--mc-text); color: var(--mc-surface);" title="Tree">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h12M3 18h8"/></svg>
+          </button>
+          <button class="px-3 h-8 text-xs font-semibold" style="color: var(--mc-text-2);" title="Grid">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table with page hierarchy -->
+      <div class="mc-card overflow-hidden">
+        <table class="mc-table">
+          <thead><tr>
+            <th class="w-10"><input type="checkbox" class="rounded" style="accent-color: var(--mc-brand);"/></th>
+            <th>Title</th>
+            <th>Slug · URL</th>
+            <th>Sections</th>
+            <th>Status</th>
+            <th>Author</th>
+            <th class="num">Views · 30d</th>
+            <th>Updated</th>
+            <th style="text-align:right; padding-right:18px;">Actions</th>
+          </tr></thead>
+          <tbody id="pages-tbody"></tbody>
+        </table>
+        <div class="flex items-center gap-3 px-5 py-3 text-xs border-t" style="border-color: var(--mc-border); background: var(--mc-surface-2); color: var(--mc-text-3);">
+          <span>15 pages · 1 page</span>
+          <div class="ml-auto flex gap-1">
+            <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-secondary" disabled style="opacity:0.5;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button class="mc-btn mc-btn-sm" style="background: var(--mc-text); color: var(--mc-surface); height:28px; padding:0 10px; font-size:12px;">1</button>
+            <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-secondary" disabled style="opacity:0.5;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- NEW PAGE MODAL -->
+<div class="mc-modal-backdrop" id="newPageModal" style="display:none;">
+  <div class="mc-modal" style="max-width: 640px;">
+    <div class="mc-modal-head">
+      <div>
+        <div class="font-display font-bold text-lg">Create a new page</div>
+        <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Start from a layout, or empty.</div>
+      </div>
+      <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" data-modal-close>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="mc-modal-body">
+      <div class="grid grid-cols-2 gap-4 mb-5">
+        <div><label class="mc-label">Page title</label><input class="mc-input" placeholder="About the publisher" value="Reading Lists"/></div>
+        <div>
+          <label class="mc-label">URL slug</label>
+          <div class="flex">
+            <div class="px-3 flex items-center text-xs font-mono rounded-l-lg" style="border:1px solid var(--mc-border-2); border-right:0; background: var(--mc-surface-2); color: var(--mc-text-3);">mangobook.com /</div>
+            <input class="mc-input rounded-l-none" value="reading-lists" style="border-top-left-radius: 0; border-bottom-left-radius: 0;"/>
+          </div>
+        </div>
+      </div>
+      <label class="mc-label">Start from</label>
+      <div class="grid grid-cols-4 gap-2.5">
+        <label class="mc-card p-2.5 cursor-pointer" style="border:2px solid var(--mc-brand);">
+          <div class="aspect-[4/3] rounded-md mb-2 flex flex-col items-center justify-center p-2" style="background: var(--mc-surface-2);">
+            <div style="width: 60%; height: 4px; border-radius: 2px; background: var(--mc-text);"></div>
+            <div style="width: 80%; height: 3px; border-radius: 1px; background: var(--mc-text-3); margin-top: 4px;"></div>
+            <div style="width: 18px; height: 6px; border-radius: 2px; background: var(--mc-brand); margin-top: 6px;"></div>
+          </div>
+          <div class="font-semibold text-xs">Headline + CTA</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[4/3] rounded-md mb-2 grid grid-cols-3 gap-1 p-2" style="background: var(--mc-surface-2);"><div class="rounded-sm" style="background: var(--mc-border-2);"></div><div class="rounded-sm" style="background: var(--mc-border-2);"></div><div class="rounded-sm" style="background: var(--mc-border-2);"></div></div>
+          <div class="font-semibold text-xs">3-up cards</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[4/3] rounded-md mb-2 grid grid-cols-2 gap-1 p-2" style="background: var(--mc-surface-2);"><div class="grid gap-1"><div style="height:4px; background: var(--mc-text);"></div><div style="height:3px; background: var(--mc-text-3);"></div></div><div style="background: var(--mc-border-2); border-radius: 2px;"></div></div>
+          <div class="font-semibold text-xs">Split content</div>
+        </label>
+        <label class="mc-card p-2.5 cursor-pointer">
+          <div class="aspect-[4/3] rounded-md mb-2 grid place-items-center" style="background: var(--mc-surface-2); border: 1px dashed var(--mc-border-2);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><path d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <div class="font-semibold text-xs">Empty</div>
+        </label>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-5">
+        <div><label class="mc-label">Folder</label><select class="mc-input mc-select"><option>/ (root)</option><option>/blog</option><option>/about</option></select></div>
+        <div><label class="mc-label">Visibility</label><select class="mc-input mc-select"><option>Public</option><option>Members only</option><option>Password-protected</option></select></div>
+      </div>
+    </div>
+    <div class="mc-modal-foot">
+      <button class="mc-btn mc-btn-sm mc-btn-ghost" data-modal-close>Cancel</button>
+      <button class="mc-btn mc-btn-sm mc-btn-secondary">Create as draft</button>
+      <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-primary">Create &amp; open builder →</a>
+    </div>
+  </div>
+</div>
+
+<script src="mc-sidebar.js"></script>
+<script src="mangocms-shell.js"></script>
+<script>
+  const pages = [
+    { title: 'Home', slug: '/', sec: 6, status:'live', author:'HN', views:'412,801', updated:'2 h ago', icon:'home', depth: 0 },
+    { title: 'Catalogue', slug: '/catalogue', sec: 4, status:'live', author:'EM', views:'89,142', updated:'yesterday', icon:'list', depth: 0 },
+    { title: 'Fiction', slug: '/catalogue/fiction', sec: 3, status:'live', author:'EM', views:'42,011', updated:'3 d ago', icon:'doc', depth: 1 },
+    { title: 'Mystery', slug: '/catalogue/mystery', sec: 3, status:'live', author:'IB', views:'38,902', updated:'3 d ago', icon:'doc', depth: 1 },
+    { title: 'Sci-Fi', slug: '/catalogue/sci-fi', sec: 3, status:'live', author:'MP', views:'28,001', updated:'4 d ago', icon:'doc', depth: 1 },
+    { title: 'Authors', slug: '/authors', sec: 5, status:'live', author:'SA', views:'19,442', updated:'5 d ago', icon:'list', depth: 0 },
+    { title: 'Journal', slug: '/journal', sec: 4, status:'live', author:'CR', views:'34,201', updated:'1 wk ago', icon:'list', depth: 0 },
+    { title: 'About', slug: '/about', sec: 5, status:'live', author:'HN', views:'5,891', updated:'2 wk ago', icon:'doc', depth: 0 },
+    { title: 'Contact', slug: '/contact', sec: 3, status:'live', author:'HN', views:'2,114', updated:'2 wk ago', icon:'doc', depth: 0 },
+    { title: 'Shop', slug: '/shop', sec: 7, status:'live', author:'DM', views:'62,402', updated:'3 wk ago', icon:'doc', depth: 0 },
+    { title: 'Reading Lists', slug: '/reading-lists', sec: 4, status:'draft', author:'EM', views:'—', updated:'just now', icon:'doc', depth: 0 },
+    { title: 'Spring 2026 issue', slug: '/journal/spring-2026', sec: 8, status:'review', author:'CR', views:'—', updated:'3 h ago', icon:'doc', depth: 1 },
+    { title: 'Book club terms', slug: '/legal/book-club', sec: 2, status:'review', author:'HN', views:'—', updated:'2 d ago', icon:'doc', depth: 1 },
+    { title: 'Lemons in July · launch', slug: '/launches/lemons', sec: 6, status:'scheduled', author:'CR', views:'—', updated:'12 Jun · 09:00', icon:'doc', depth: 0 },
+    { title: 'Old homepage v2', slug: '/_archive/home-v2', sec: 5, status:'archived', author:'HN', views:'—', updated:'2 mo ago', icon:'doc', depth: 0 },
+  ];
+
+  const statusMap = {
+    live:      '<span class="mc-status mc-status-live">Live</span>',
+    review:    '<span class="mc-status mc-status-build">In review</span>',
+    draft:     '<span class="mc-status">Draft</span>',
+    scheduled: '<span class="mc-status" style="color: oklch(70% 0.15 85);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Scheduled</span>',
+    archived:  '<span class="mc-status" style="opacity:0.6;">Archived</span>',
+  };
+  const authorMap = { HN:30, EM:60, IB:290, MP:350, SA:230, CR:150, DM:90 };
+  const av = init => {
+    const h = authorMap[init] || 30;
+    return `<div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full grid place-items-center text-white text-[10px] font-bold flex-shrink-0" style="background: linear-gradient(135deg, oklch(0.74 0.16 ${h}), oklch(0.50 0.14 ${h}));">${init}</div></div>`;
+  };
+  const iconHome = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+  const iconList = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
+  const iconDoc  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  const ic = k => k === 'home' ? iconHome : k === 'list' ? iconList : iconDoc;
+
+  document.getElementById('pages-tbody').innerHTML = pages.map(p => `
+    <tr>
+      <td><input type="checkbox" class="rounded" style="accent-color: var(--mc-brand);"/></td>
+      <td>
+        <div class="flex items-center gap-2" style="padding-left: ${p.depth * 20}px;">
+          ${p.depth ? '<span style="color: var(--mc-text-3); font-family: \'JetBrains Mono\';">└</span>' : ''}
+          <span style="color: var(--mc-text-3);">${ic(p.icon)}</span>
+          <span class="font-semibold">${p.title}</span>
+        </div>
+      </td>
+      <td class="font-mono text-xs" style="color: var(--mc-text-2);">${p.slug}</td>
+      <td class="text-xs"><span class="mc-badge mc-badge-neutral font-mono">${p.sec} blocks</span></td>
+      <td>${statusMap[p.status]}</td>
+      <td>${av(p.author)}</td>
+      <td class="num">${p.views}</td>
+      <td class="text-xs" style="color: var(--mc-text-2);">${p.updated}</td>
+      <td style="text-align:right;">
+        <div class="inline-flex gap-0.5">
+          <a href="builder-page.html" class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" title="Open builder"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></a>
+          <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost" title="More"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  document.querySelectorAll('[data-modal-open]').forEach(b => {
+    if (b.dataset._bound) return; b.dataset._bound = '1';
+    b.addEventListener('click', () => {
+      const m = document.getElementById(b.getAttribute('data-modal-open'));
+      if (m) m.style.display = 'grid';
+    });
+  });
+</script>
+</body>
+</html>

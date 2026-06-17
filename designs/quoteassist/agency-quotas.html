@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Discount quotas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  .legend { display:flex; align-items:center; gap:18px; }
+  .legend span { display:inline-flex; align-items:center; gap:7px; font:500 12px/1 'Inter',sans-serif; color:var(--mc-text-2); }
+  .legend i { width:13px; height:13px; border-radius:4px; display:inline-block; }
+  .qlv-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .qlv-pill { display:inline-flex; align-items:center; height:24px; padding:0 11px; border-radius:99px; font:700 11px/1 'Inter',sans-serif; }
+  .stepper { display:inline-flex; align-items:center; border:1px solid var(--mc-border-2); border-radius:8px; overflow:hidden; }
+  .stepper button { width:28px; height:32px; border:0; background:var(--mc-surface); color:var(--mc-text-2); font-size:15px; cursor:pointer; }
+  .stepper button:hover { background:var(--mc-surface-2); }
+  .stepper input { width:42px; height:32px; border:0; border-left:1px solid var(--mc-border); border-right:1px solid var(--mc-border); text-align:center; font:600 13px/1 'JetBrains Mono',monospace; background:var(--mc-surface); color:var(--mc-text); outline:none; }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Agency · Quotas">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-app="agency" data-active="quotas"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Northwind Supply</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Discount quotas</span>
+      </div>
+      <div class="ml-auto flex items-center gap-3">
+        <div class="qa-seg" id="viewSeg">
+          <button data-var="matrix" class="on">Matrix</button>
+          <button data-var="cards">By level</button>
+        </div>
+        <button class="mc-btn mc-btn-sm mc-btn-primary" id="saveBtn">Save quotas</button>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1240px]">
+      <div class="mb-5">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Northwind Supply</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Discount quotas</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">Set how much each seller level can discount per pricing category. <b>Self-approve</b> applies instantly; up to the <b>cap</b> needs approval; above the cap is blocked. Platform ceiling for this vertical: <b id="ceil"></b>.</p>
+      </div>
+
+      <div class="legend mb-5">
+        <span><i style="background:color-mix(in oklch,var(--mc-success) 45%,transparent);"></i> Self-approve limit</span>
+        <span><i style="background:color-mix(in oklch,var(--mc-warning) 50%,transparent);"></i> Needs approval up to cap</span>
+        <span><i style="background:color-mix(in oklch,var(--mc-error) 40%,transparent);"></i> Blocked above cap</span>
+      </div>
+
+      <div id="view"></div>
+
+      <p class="text-xs mt-5" style="color: var(--mc-text-3);">Both views edit the same quotas — switch with the toggle in the header to compare layouts.</p>
+    </main>
+  </div>
+</div>
+
+<script src="qa-data.js"></script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+<script>
+(function(){
+  var T = QAData.ACTIVE_TENANT, V = QAData.vertical(QAData.activeTenant().vertical);
+  var ceiling = QAData.guardrails[QAData.activeTenant().vertical];
+  document.getElementById('ceil').textContent = ceiling + '%';
+  var levelColor = { Junior:200, Senior:265, Lead:30 };
+  var mode = localStorage.getItem('qa2-quota-view') || 'matrix';
+
+  function clamp(v){ v=parseInt(v,10); if(isNaN(v)) v=0; return Math.max(0, Math.min(ceiling, v)); }
+
+  /* ---------- Variation A: matrix ---------- */
+  function renderMatrix(){
+    var heads = V.categories.map(function(c){ return '<th>'+c+'</th>'; }).join('');
+    var rows = QAData.LEVELS.map(function(lv){
+      var cells = V.categories.map(function(c){
+        var q = QAData.quotaFor(T,lv,c);
+        return '<td class="qmx-cell"><div class="qmx-pair">'+
+          '<input class="qmx-inp" type="number" min="0" max="'+ceiling+'" value="'+q.self+'" data-lv="'+lv+'" data-cat="'+c+'" data-f="self" title="Self-approve limit"/>'+
+          '<span class="qmx-sep">/</span>'+
+          '<input class="qmx-inp cap" type="number" min="0" max="'+ceiling+'" value="'+q.cap+'" data-lv="'+lv+'" data-cat="'+c+'" data-f="cap" title="Approval cap"/>'+
+          '</div></td>';
+      }).join('');
+      return '<tr><td class="qmx-levcell"><div class="qmx-lev">'+lv+'</div><div class="qmx-lev-sub">self / cap %</div></td>'+cells+'</tr>';
+    }).join('');
+    document.getElementById('view').innerHTML =
+      '<div class="mc-card overflow-hidden"><div class="qmx-wrap"><table class="qmx"><thead><tr><th class="qmx-corner">Level \\ Category</th>'+heads+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+    bindInputs();
+  }
+
+  /* ---------- Variation B: per-level cards ---------- */
+  function stepper(lv,c,f,val){
+    return '<div class="stepper"><button data-step="-1" data-lv="'+lv+'" data-cat="'+c+'" data-f="'+f+'">−</button>'+
+      '<input class="qstep" type="text" inputmode="numeric" value="'+val+'" data-lv="'+lv+'" data-cat="'+c+'" data-f="'+f+'"/>'+
+      '<button data-step="1" data-lv="'+lv+'" data-cat="'+c+'" data-f="'+f+'">+</button></div>';
+  }
+  function renderCards(){
+    document.getElementById('view').innerHTML = '<div class="qlv-grid">'+QAData.LEVELS.map(function(lv){
+      var hue=levelColor[lv];
+      var rows = V.categories.map(function(c){
+        var q=QAData.quotaFor(T,lv,c);
+        return '<div class="qlv-row"><span class="qlv-cat">'+c+'</span>'+
+          '<div class="flex items-center gap-4">'+
+            '<div class="flex items-center gap-2"><span class="text-[11px]" style="color:var(--mc-text-3);">self</span>'+stepper(lv,c,'self',q.self)+'</div>'+
+            '<div class="flex items-center gap-2"><span class="text-[11px]" style="color:var(--mc-text-3);">cap</span>'+stepper(lv,c,'cap',q.cap)+'</div>'+
+          '</div></div>';
+      }).join('');
+      return '<div class="mc-card p-5"><div class="qlv-card-head"><div class="font-display font-bold text-lg">'+lv+'</div>'+
+        '<span class="qlv-pill" style="background:oklch(0.92 0.05 '+hue+');color:oklch(0.42 0.13 '+hue+');">'+V.categories.length+' categories</span></div>'+
+        rows+'</div>';
+    }).join('')+'</div>';
+    bindSteppers();
+  }
+
+  function bindInputs(){
+    document.querySelectorAll('.qmx-inp').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var v=clamp(inp.value); inp.value=v;
+        QAData.setQuota(T, inp.dataset.lv, inp.dataset.cat, inp.dataset.f, v);
+        // reflect paired clamp
+        renderMatrix();
+      });
+    });
+  }
+  function bindSteppers(){
+    document.querySelectorAll('.qstep').forEach(function(inp){
+      inp.addEventListener('change', function(){ var v=clamp(inp.value); QAData.setQuota(T,inp.dataset.lv,inp.dataset.cat,inp.dataset.f,v); renderCards(); });
+    });
+    document.querySelectorAll('[data-step]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var q=QAData.quotaFor(T,b.dataset.lv,b.dataset.cat);
+        var cur=q[b.dataset.f]; var v=clamp(cur+parseInt(b.dataset.step,10));
+        QAData.setQuota(T,b.dataset.lv,b.dataset.cat,b.dataset.f,v); renderCards();
+      });
+    });
+  }
+
+  function render(){
+    document.querySelectorAll('#viewSeg button').forEach(function(b){ b.classList.toggle('on', b.dataset.var===mode); });
+    if(mode==='cards') renderCards(); else renderMatrix();
+  }
+  document.querySelectorAll('#viewSeg button').forEach(function(b){
+    b.addEventListener('click', function(){ mode=b.dataset.var; localStorage.setItem('qa2-quota-view',mode); render(); });
+  });
+  document.getElementById('saveBtn').addEventListener('click', function(){ QAData.persist(); QAData.toast('Discount quotas saved for all levels.'); });
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+name: quote-assist
+
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: quote_assist_dev
+      # postgres:18 moved the default data dir; pin it to the classic path so the
+      # /var/lib/postgresql/data mount is used (avoids the "unused mount" exit).
+      PGDATA: /var/lib/postgresql/data
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports: ["6379:6379"]
+
+  ai-service:
+    build: ./projects/ai-service
+    environment:
+      AI_DEFAULT_MODEL: claude-haiku
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  platform:
+    build: ./projects/platform
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db/quote_assist_dev
+      REDIS_URL: redis://redis:6379
+      AI_SERVICE_URL: http://ai-service:8000
+      PHX_HOST: localhost
+      SECRET_KEY_BASE: dev_only_change_me_000000000000000000000000000000000000000000000000
+    ports: ["4000:4000"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      ai-service:
+        condition: service_started
+
+volumes:
+  pgdata:

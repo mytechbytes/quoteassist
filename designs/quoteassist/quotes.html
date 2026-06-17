@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Quotes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+<style>
+  /* quote card / list view */
+  .qa-qcard { display:flex; flex-direction:column; gap:12px; }
+  .qa-qcard-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .qa-qcard-top > div:first-child { min-width:0; flex:1; }
+  .qa-qcard-top > .mc-status { flex-shrink:0; }
+  .qa-qcard-ref { font:500 12px/1 'JetBrains Mono',monospace; color:var(--mc-brand); }
+  .qa-qcard-name { font:600 15px/1.2 'Inter',sans-serif; margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .qa-qcard-route { font:500 12px/1 'JetBrains Mono',monospace; color:var(--mc-text-2); margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .qa-qcard-meta { display:flex; align-items:center; justify-content:space-between; padding-top:11px; border-top:1px solid var(--mc-border); }
+  .qa-qcard-total { font:600 16px/1 'JetBrains Mono',monospace; }
+  .qa-qcard-actions { display:flex; gap:4px; }
+</style>
+</head>
+<body class="font-sans" data-screen-label="Quotes">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-active="list"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Workspace</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Quotes</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+          Export CSV
+        </button>
+        <a href="get-quote.html" class="mc-btn mc-btn-sm mc-btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          New quote
+        </a>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1440px]">
+      <div class="mb-6">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Workspace · History</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Quotes</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">Every quotation you've drafted, with its source email, pricing snapshot and status.</p>
+      </div>
+
+      <div id="quotesList"></div>
+    </main>
+  </div>
+</div>
+
+<!-- toast -->
+<div id="toast" class="mc-card" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:80; padding:12px 18px; box-shadow: var(--mc-pop, 0 24px 60px -12px rgb(0 0 0 / 0.25)); align-items:center; gap:10px;"></div>
+
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+<script src="qa-listkit.js"></script>
+<script src="qa-quotes.js"></script>
+</body>
+</html>

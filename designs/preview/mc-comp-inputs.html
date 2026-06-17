@@ -1,0 +1,39 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="_card.css"/>
+<style>
+  body { padding: 20px 24px; font-family: 'Inter', sans-serif; color: oklch(21.8% 0.008 223.9); }
+  .lbl { font: 600 11px/1.2 Inter, sans-serif; color: oklch(45% 0.017 213.2); margin-bottom: 6px; }
+  .inp { width: 100%; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid oklch(87.2% 0.007 219.6); background: white; font: 400 13.5px/1 Inter, sans-serif; outline: none; }
+  .inp.focus { border-color: oklch(58% 0.17 50); box-shadow: 0 0 0 3px oklch(58% 0.17 50 / 0.18); }
+  .inp::placeholder { color: oklch(56% 0.021 213.5); }
+</style>
+</head>
+<body>
+  <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 14px;">
+    <div>
+      <div class="lbl">Site name</div>
+      <input class="inp" value="Studio Renza Showcase"/>
+    </div>
+    <div>
+      <div class="lbl">Subdomain</div>
+      <div style="display:flex; gap: 8px;">
+        <input class="inp focus" value="drinkcitrus" style="flex:1;"/>
+        <div style="display:flex; align-items:center; padding: 0 12px; border-radius: 10px; background: oklch(98.7% 0.002 197.1); border: 1px solid oklch(87.2% 0.007 219.6); font-family: 'JetBrains Mono', monospace; font-size: 12px; color: oklch(45% 0.017 213.2);">.mangocms.io</div>
+      </div>
+    </div>
+    <div>
+      <div class="lbl">Email</div>
+      <input class="inp" type="email" placeholder="harper@renza.studio"/>
+    </div>
+    <div>
+      <div class="lbl">Plan</div>
+      <div class="inp" style="appearance:none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%2364748b\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"/></svg>'); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; display:flex; align-items:center;">Studio · $49/mo</div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div style="font-family:'JetBrains Mono', monospace; font-size:10.5px; color: oklch(45% 0.017 213.2);">
+    h-40 · radius 10 · border mist-300 · focus ring mango-600/18% · 6px label gap
+  </div>
+</body></html>

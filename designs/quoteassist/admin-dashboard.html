@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>QuoteAssist — Platform overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="qa-config.js"></script>
+<link rel="stylesheet" href="qa.css"/>
+</head>
+<body class="font-sans" data-screen-label="Admin · Overview">
+
+<div class="mc-shell">
+  <aside class="mc-side" data-nav data-app="admin" data-active="overview"></aside>
+
+  <div class="min-w-0">
+    <header class="mc-topbar">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium" style="color: var(--mc-text-3);">Platform</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mc-text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="font-semibold">Overview</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="mc-btn mc-btn-sm mc-btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Last 30 days
+        </button>
+        <a href="admin-tenants.html" class="mc-btn mc-btn-sm mc-btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          New agency
+        </a>
+      </div>
+    </header>
+
+    <main class="p-8 max-w-[1440px]">
+      <div class="mb-7">
+        <div class="text-xs font-bold tracking-widest uppercase" style="color: var(--mc-text-3);">Platform · Overview</div>
+        <h1 class="font-display font-bold text-4xl tracking-[-0.025em] mt-1.5">Good morning, Mara.</h1>
+        <p class="mt-1.5 text-sm" style="color: var(--mc-text-2);">QuoteAssist is live across <b id="ov-verticals"></b> verticals and <b id="ov-tenants"></b> agencies. One agency is on trial and one is suspended.</p>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="ov-kpis"></div>
+
+      <!-- row: vertical mix + plan mix -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-4 mb-6">
+        <div class="mc-card p-6">
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <div class="font-display font-bold text-lg">Agencies by vertical</div>
+              <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Where the platform is being used today</div>
+            </div>
+            <a href="admin-verticals.html" class="mc-btn mc-btn-sm mc-btn-ghost">Manage verticals →</a>
+          </div>
+          <div id="ov-verticalbars" class="space-y-3.5"></div>
+        </div>
+
+        <div class="mc-card p-6">
+          <div class="font-display font-bold text-lg mb-1">Monthly recurring revenue</div>
+          <div class="text-xs mb-4" style="color: var(--mc-text-3);">Across all paying agencies</div>
+          <div class="font-display font-bold text-4xl tracking-tight font-mono" id="ov-mrr"></div>
+          <div class="mt-1 text-sm" style="color:var(--mc-success);">▲ 14% vs last month</div>
+          <div class="mt-5 pt-5 space-y-2.5" style="border-top:1px solid var(--mc-border);" id="ov-plans"></div>
+        </div>
+      </div>
+
+      <!-- recent agencies -->
+      <div class="mc-card overflow-hidden">
+        <div class="p-6 flex items-end justify-between border-b" style="border-color: var(--mc-border);">
+          <div>
+            <div class="font-display font-bold text-lg">Agencies</div>
+            <div class="text-xs mt-0.5" style="color: var(--mc-text-3);">Newest tenants and their status.</div>
+          </div>
+          <a href="admin-tenants.html" class="mc-btn mc-btn-sm mc-btn-ghost">All agencies
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <table class="mc-table">
+          <thead><tr><th>Agency</th><th>Vertical</th><th>Plan</th><th>Seats</th><th>MRR</th><th>Status</th></tr></thead>
+          <tbody id="ov-rows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="qa-data.js"></script>
+<script src="qa-shell.js"></script>
+<script src="qa-tweaks.js"></script>
+<script>
+(function(){
+  var s = QAData.platformStats();
+  document.getElementById('ov-verticals').textContent = s.verticals;
+  document.getElementById('ov-tenants').textContent = s.tenants;
+  document.getElementById('ov-mrr').textContent = '$' + s.mrr.toLocaleString('en-GB');
+
+  function kpi(label, ico, val, sub){
+    return '<div class="qa-kpi"><div class="qa-kpi-label">'+QAData.svgIcon(ico,13)+'<span>'+label+'</span></div><div class="qa-kpi-val">'+val+'</div><div class="qa-kpi-sub">'+sub+'</div></div>';
+  }
+  document.getElementById('ov-kpis').innerHTML =
+    kpi('Agencies','<path d="M3 21h18M5 21V7l7-4 7 4v14"/>', s.tenants, s.active+' active · 1 trial · 1 suspended') +
+    kpi('Seats in use','<circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.5 3-5 6-5s5.5 1.5 6 5"/>', s.seats, 'across all agencies') +
+    kpi('Verticals live','<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>', s.verticals + ' / 6', 'product, airline, medical…') +
+    kpi('MRR','<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>', '$'+(s.mrr/1000).toFixed(1)+'k', '▲ 14% vs last month');
+
+  // vertical bars
+  var counts = {};
+  QAData.VERTICAL_ORDER.forEach(function(v){ counts[v] = 0; });
+  QAData.tenants.forEach(function(t){ counts[t.vertical]++; });
+  var max = Math.max.apply(null, Object.keys(counts).map(function(k){return counts[k];}));
+  document.getElementById('ov-verticalbars').innerHTML = QAData.VERTICAL_ORDER.map(function(v){
+    var V = QAData.vertical(v), c = counts[v], pct = max? Math.round(c/max*100):0;
+    return '<div class="flex items-center gap-3">'+
+      '<div class="qa-vbadge" style="width:30px;height:30px;border-radius:9px;">'+QAData.svgIcon(V.icon,16)+'</div>'+
+      '<div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium">'+V.name+'</span><span class="font-mono text-xs" style="color:var(--mc-text-3);">'+c+'</span></div>'+
+      '<div style="height:7px;border-radius:99px;background:var(--mc-surface-2);overflow:hidden;"><div style="height:100%;width:'+pct+'%;border-radius:99px;background:linear-gradient(90deg,var(--mc-grad-1),var(--mc-grad-2));"></div></div></div>'+
+    '</div>';
+  }).join('');
+
+  // plan mix
+  var planCounts = {};
+  Object.keys(QAData.PLANS).forEach(function(p){ planCounts[p]=0; });
+  QAData.tenants.forEach(function(t){ planCounts[t.plan]++; });
+  document.getElementById('ov-plans').innerHTML = Object.keys(QAData.PLANS).map(function(p){
+    return '<div class="flex items-center justify-between text-sm"><span style="color:var(--mc-text-2);">'+p+'</span><span class="font-mono font-semibold">'+planCounts[p]+'</span></div>';
+  }).join('');
+
+  // recent rows
+  function statusBadge(st){
+    if(st==='active') return '<span class="mc-status mc-status-live">Active</span>';
+    if(st==='trial') return '<span class="mc-status mc-status-build">Trial</span>';
+    return '<span class="mc-status mc-status-error">Suspended</span>';
+  }
+  document.getElementById('ov-rows').innerHTML = QAData.tenants.slice(0,5).map(function(t){
+    var V = QAData.vertical(t.vertical);
+    return '<tr><td><div class="font-semibold text-sm">'+t.name+'</div><div class="text-[11px]" style="color:var(--mc-text-3);">'+t.owner+' · '+t.region+'</div></td>'+
+      '<td><span class="qa-vchip">'+QAData.svgIcon(V.icon,13)+V.name+'</span></td>'+
+      '<td><span class="mc-badge mc-badge-neutral">'+t.plan+'</span></td>'+
+      '<td class="font-mono text-xs">'+t.seatsUsed+' / '+QAData.PLANS[t.plan].seats+'</td>'+
+      '<td class="font-mono text-xs">'+(t.mrr? '$'+t.mrr : '—')+'</td>'+
+      '<td>'+statusBadge(t.status)+'</td></tr>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

@@ -117,20 +117,12 @@ defmodule QuoteAssistWeb.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div
-      class="relative flex flex-row items-center rounded-full"
-      style="background:var(--mc-surface-2);border:1px solid var(--mc-border);padding:3px;gap:2px"
-    >
-      <%# Sliding indicator — positioned by JS-set data-theme on <html> %>
-      <div
-        class="absolute h-[calc(100%-6px)] rounded-full transition-[left]"
-        style="width:calc(33.33% - 2px);top:3px;left:3px;background:var(--mc-surface);box-shadow:0 1px 3px rgb(0 0 0 / 0.10);
-               [[data-theme=light]_&]:left-[calc(33.33%+1px)];[[data-theme=dark]_&]:left-[calc(66.66%-1px)]"
-      />
+    <div class="mtb-theme-toggle">
+      <%# Sliding indicator — positioned via mtb.css from data-theme/-source on <html> %>
+      <div class="mtb-theme-slider" aria-hidden="true"></div>
 
       <button
-        class="flex p-1.5 cursor-pointer rounded-full relative z-10"
-        style="color:var(--mc-text-3)"
+        class="mtb-theme-btn"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="system"
         title="System theme"
@@ -139,8 +131,7 @@ defmodule QuoteAssistWeb.Layouts do
       </button>
 
       <button
-        class="flex p-1.5 cursor-pointer rounded-full relative z-10"
-        style="color:var(--mc-text-3)"
+        class="mtb-theme-btn"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="light"
         title="Light theme"
@@ -149,8 +140,7 @@ defmodule QuoteAssistWeb.Layouts do
       </button>
 
       <button
-        class="flex p-1.5 cursor-pointer rounded-full relative z-10"
-        style="color:var(--mc-text-3)"
+        class="mtb-theme-btn"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="dark"
         title="Dark theme"

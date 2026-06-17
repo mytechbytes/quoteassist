@@ -21,7 +21,11 @@ services:
     image: redis:8-alpine
     ports: ["6379:6379"]
 
+  # Not built/started by default — the FastAPI service ships in R8. Until then the
+  # directory is empty and would break `docker compose up`. Opt in explicitly with
+  # `docker compose --profile ai up` once services/ai-service exists.
   ai-service:
+    profiles: ["ai"]
     build: ./services/ai-service
     environment:
       AI_DEFAULT_MODEL: claude-haiku
@@ -43,8 +47,6 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
-      ai-service:
         condition: service_started
 
 volumes:

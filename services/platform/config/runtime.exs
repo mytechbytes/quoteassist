@@ -23,6 +23,15 @@ end
 config :quote_assist, QuoteAssistWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+# Service integrations — read in all environments so the values injected by
+# docker-compose / .env land in application config instead of being silently
+# dropped. Consumers arrive in later releases (Redis: rate limiting + background
+# jobs; AI service: R8 quote-reply generation). Read with
+# `Application.get_env(:quote_assist, :ai_service_url | :redis_url)`.
+config :quote_assist,
+  ai_service_url: System.get_env("AI_SERVICE_URL") || "http://localhost:8000",
+  redis_url: System.get_env("REDIS_URL")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

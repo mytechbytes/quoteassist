@@ -50,11 +50,20 @@ defmodule QuoteAssistWeb.Layouts do
         </a>
 
         <nav class="ml-auto flex items-center gap-2 sm:gap-3">
-          <.link navigate={~p"/tenants"} class="mtb-btn mtb-btn-ghost mtb-btn-sm">
-            Tenants
-          </.link>
-          <%!-- /admin/login lands in R3 — plain href avoids a verified-route warning until then. --%>
-          <a href="/admin/login" class="mtb-btn mtb-btn-secondary mtb-btn-sm">Admin login</a>
+          <%= if @current_scope && @current_scope.user do %>
+            <span class="hidden text-sm sm:inline" style="color:var(--mc-text-2)">
+              {@current_scope.user.email}
+            </span>
+            <.link href={~p"/logout"} method="delete" class="mtb-btn mtb-btn-secondary mtb-btn-sm">
+              Log out
+            </.link>
+          <% else %>
+            <.link navigate={~p"/tenants"} class="mtb-btn mtb-btn-ghost mtb-btn-sm">
+              Tenants
+            </.link>
+            <%!-- /admin/login lands in R3 — plain href avoids a verified-route warning until then. --%>
+            <a href="/admin/login" class="mtb-btn mtb-btn-secondary mtb-btn-sm">Admin login</a>
+          <% end %>
           <.theme_toggle />
         </nav>
       </header>

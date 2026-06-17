@@ -1,11 +1,12 @@
 {
-  "comment": "ExCoveralls config. skip_files holds files that don't need unit coverage (framework-generated, boilerplate, infra wiring, and test support). The 70% threshold is enforced by ci/check_coverage.exs, not here, so minimum_coverage stays 0.",
+  "comment": "ExCoveralls config. skip_files holds files that don't need unit coverage (framework-generated, boilerplate, infra wiring, and test support). The 80% threshold is enforced by ci/check_coverage.exs, not here, so minimum_coverage stays 0.",
   "coverage_options": {
     "treat_no_relevant_lines_as_covered": true,
     "minimum_coverage": 0
   },
   "skip_files": [
     "test/",
+    "lib/mix/tasks/qa.create_user.ex",
     "lib/quote_assist/application.ex",
     "lib/quote_assist/mailer.ex",
     "lib/quote_assist/release.ex",

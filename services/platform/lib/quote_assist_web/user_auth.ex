@@ -224,7 +224,7 @@ defmodule QuoteAssistWeb.UserAuth do
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+        |> Phoenix.LiveView.redirect(to: ~p"/login")
 
       {:halt, socket}
     end
@@ -239,7 +239,7 @@ defmodule QuoteAssistWeb.UserAuth do
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must re-authenticate to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+        |> Phoenix.LiveView.redirect(to: ~p"/login")
 
       {:halt, socket}
     end
@@ -257,12 +257,13 @@ defmodule QuoteAssistWeb.UserAuth do
   end
 
   @doc "Returns the path to redirect to after log in."
-  # the user was already logged in, redirect to settings
+  # Land signed-in users in the app workspace. Tenant scoping + the real shell
+  # arrive in R2; for now /app is a minimal authenticated placeholder.
   def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
-    ~p"/users/settings"
+    ~p"/app"
   end
 
-  def signed_in_path(_), do: ~p"/"
+  def signed_in_path(_), do: ~p"/app"
 
   @doc """
   Plug for routes that require the user to be authenticated.
@@ -274,7 +275,7 @@ defmodule QuoteAssistWeb.UserAuth do
       conn
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
-      |> redirect(to: ~p"/users/log-in")
+      |> redirect(to: ~p"/login")
       |> halt()
     end
   end

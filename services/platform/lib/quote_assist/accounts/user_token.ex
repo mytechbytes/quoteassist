@@ -62,6 +62,8 @@ defmodule QuoteAssist.Accounts.UserToken do
       from token in by_token_and_context_query(token, "session"),
         join: user in assoc(token, :user),
         where: token.inserted_at > ago(@session_validity_in_days, "day"),
+        # Soft-deleted identities can never authenticate (see RELEASE_PLAN.md).
+        where: is_nil(user.deleted_at),
         select: {%{user | authenticated_at: token.authenticated_at}, token.inserted_at}
 
     {:ok, query}
@@ -116,6 +118,7 @@ defmodule QuoteAssist.Accounts.UserToken do
             join: user in assoc(token, :user),
             where: token.inserted_at > ago(^@magic_link_validity_in_minutes, "minute"),
             where: token.sent_to == user.email,
+            where: is_nil(user.deleted_at),
             select: {user, token}
 
         {:ok, query}

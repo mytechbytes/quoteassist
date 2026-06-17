@@ -70,8 +70,10 @@ defmodule QuoteAssistWeb.CoreComponents do
         class="mtb-card flex items-start gap-3 p-4 text-sm"
         style={
           if @kind == :info,
-            do: "border-color:color-mix(in oklch,var(--mc-info) 40%,transparent);background:color-mix(in oklch,var(--mc-info) 8%,var(--mc-surface))",
-            else: "border-color:color-mix(in oklch,var(--mc-error) 40%,transparent);background:color-mix(in oklch,var(--mc-error) 8%,var(--mc-surface))"
+            do:
+              "border-color:color-mix(in oklch,var(--mc-info) 40%,transparent);background:color-mix(in oklch,var(--mc-info) 8%,var(--mc-surface))",
+            else:
+              "border-color:color-mix(in oklch,var(--mc-error) 40%,transparent);background:color-mix(in oklch,var(--mc-error) 8%,var(--mc-surface))"
         }
       >
         <.icon

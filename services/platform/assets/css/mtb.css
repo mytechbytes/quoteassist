@@ -727,29 +727,3 @@ body {
   width: 100%;
   max-width: 440px;
 }
-
-/* Single OTP / confirmation-code cell (verify.html). Render six in a row. */
-@utility mtb-otp {
-  width: 52px;
-  height: 60px;
-  text-align: center;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 24px;
-  line-height: 1;
-  border-radius: 12px;
-  border: 1px solid var(--mc-border-2);
-  background: var(--mc-surface);
-  color: var(--mc-text);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-
-  &:focus {
-    border-color: var(--mc-brand);
-    box-shadow: 0 0 0 3px var(--mc-brand-ring);
-  }
-
-  &[data-filled] {
-    border-color: var(--mc-brand);
-  }
-}

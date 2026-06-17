@@ -52,6 +52,18 @@ defmodule QuoteAssistWeb.Plugs.LoginThrottle do
     end
   end
 
+  @doc """
+  Per-email throttle for the magic-link *send* path, called from
+  `QuoteAssistWeb.UserLive.Login`. The LiveView socket has no client IP, so this
+  limits per-email only. Records a hit and returns `true` once the per-email
+  limit for the window is exceeded.
+  """
+  @spec magic_link_throttled?(String.t()) :: boolean()
+  def magic_link_throttled?(email) when is_binary(email) do
+    cfg = config([])
+    RateLimiter.hit({:login_email, normalize(email)}, cfg.email_limit, cfg.window_ms) == limited()
+  end
+
   defp limited, do: {:error, :rate_limited}
 
   defp config(opts) do
@@ -72,8 +84,10 @@ defmodule QuoteAssistWeb.Plugs.LoginThrottle do
   # per-email limit (emails are citext / case-insensitive anyway).
   defp email_param(conn) do
     case get_in(conn.params, ["user", "email"]) || conn.params["email"] do
-      email when is_binary(email) and email != "" -> String.downcase(email)
+      email when is_binary(email) and email != "" -> normalize(email)
       _ -> nil
     end
   end
+
+  defp normalize(email), do: String.downcase(email)
 end

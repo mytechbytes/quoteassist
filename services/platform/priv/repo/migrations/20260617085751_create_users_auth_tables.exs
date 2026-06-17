@@ -9,6 +9,10 @@ defmodule QuoteAssist.Repo.Migrations.CreateUsersAuthTables do
       add :email, :citext, null: false
       add :hashed_password, :string
       add :confirmed_at, :utc_datetime
+      # Soft-delete marker (null = live). Every identity/tenant-owned table carries
+      # this from its first migration (see RELEASE_PLAN.md). Default queries filter
+      # it out; hard purge is a separate, audited admin action (R3+).
+      add :deleted_at, :utc_datetime
 
       timestamps(type: :utc_datetime)
     end

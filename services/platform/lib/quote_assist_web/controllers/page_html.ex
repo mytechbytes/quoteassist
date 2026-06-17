@@ -20,8 +20,8 @@ defmodule QuoteAssistWeb.PageHTML do
       {"Foundation",
        [
          %{id: "R0", desc: "Walking skeleton — app deploys, /health green", status: :done},
-         %{id: "R0a", desc: "Platform home + tenant directory (/tenants)", status: :in_progress},
-         %{id: "R1", desc: "Auth — tenant users sign in / out", status: :pending},
+         %{id: "R0a", desc: "Platform home + tenant directory (/tenants)", status: :done},
+         %{id: "R1", desc: "Auth — tenant users sign in / out", status: :in_progress},
          %{id: "R2", desc: "Tenancy + RBAC (subdomain + custom domain)", status: :pending}
        ]},
       {"Site Admin",

@@ -25,7 +25,7 @@ defmodule QuoteAssistWeb.UserSessionController do
       _ ->
         conn
         |> put_flash(:error, "The link is invalid or it has expired.")
-        |> redirect(to: ~p"/users/log-in")
+        |> redirect(to: ~p"/login")
     end
   end
 
@@ -42,22 +42,13 @@ defmodule QuoteAssistWeb.UserSessionController do
       conn
       |> put_flash(:error, "Invalid email or password")
       |> put_flash(:email, String.slice(email, 0, 160))
-      |> redirect(to: ~p"/users/log-in")
+      |> redirect(to: ~p"/login")
     end
   end
 
-  def update_password(conn, %{"user" => user_params} = params) do
-    user = conn.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
-    {:ok, {_user, expired_tokens}} = Accounts.update_user_password(user, user_params)
-
-    # disconnect all existing LiveViews with old sessions
-    UserAuth.disconnect_sessions(expired_tokens)
-
-    conn
-    |> put_session(:user_return_to, ~p"/users/settings")
-    |> create(params, "Password updated successfully!")
-  end
+  # NOTE: password change (`update_password`) and the settings screen land in R6
+  # (account flows). The generated action was removed here to keep R1 to sign
+  # in / out only; re-introduce it with the settings UI in R6.
 
   def delete(conn, _params) do
     conn

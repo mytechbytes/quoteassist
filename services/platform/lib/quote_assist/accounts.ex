@@ -6,7 +6,7 @@ defmodule QuoteAssist.Accounts do
   import Ecto.Query, warn: false
   alias QuoteAssist.Repo
 
-  alias QuoteAssist.Accounts.{User, UserToken, UserNotifier}
+  alias QuoteAssist.Accounts.{User, UserNotifier, UserToken}
 
   ## Database getters
 
@@ -23,7 +23,7 @@ defmodule QuoteAssist.Accounts do
 
   """
   def get_user_by_email(email) when is_binary(email) do
-    Repo.get_by(User, email: email)
+    Repo.one(from u in User, where: u.email == ^email and is_nil(u.deleted_at))
   end
 
   @doc """
@@ -40,7 +40,7 @@ defmodule QuoteAssist.Accounts do
   """
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    user = Repo.get_by(User, email: email)
+    user = Repo.one(from u in User, where: u.email == ^email and is_nil(u.deleted_at))
     if User.valid_password?(user, password), do: user
   end
 

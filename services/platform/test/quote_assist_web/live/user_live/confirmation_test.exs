@@ -17,7 +17,7 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
           Accounts.deliver_login_instructions(user, url)
         end)
 
-      {:ok, _lv, html} = live(conn, ~p"/users/log-in/#{token}")
+      {:ok, _lv, html} = live(conn, ~p"/login/#{token}")
       assert html =~ "Confirm and stay logged in"
     end
 
@@ -27,8 +27,8 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
           Accounts.deliver_login_instructions(user, url)
         end)
 
-      {:ok, _lv, html} = live(conn, ~p"/users/log-in/#{token}")
-      refute html =~ "Confirm my account"
+      {:ok, _lv, html} = live(conn, ~p"/login/#{token}")
+      refute html =~ "Confirm and stay logged in"
       assert html =~ "Keep me logged in on this device"
     end
 
@@ -40,8 +40,8 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
           Accounts.deliver_login_instructions(user, url)
         end)
 
-      {:ok, _lv, html} = live(conn, ~p"/users/log-in/#{token}")
-      refute html =~ "Confirm my account"
+      {:ok, _lv, html} = live(conn, ~p"/login/#{token}")
+      refute html =~ "Confirm and stay logged in"
       assert html =~ "Log in"
     end
 
@@ -51,7 +51,7 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
           Accounts.deliver_login_instructions(user, url)
         end)
 
-      {:ok, lv, _html} = live(conn, ~p"/users/log-in/#{token}")
+      {:ok, lv, _html} = live(conn, ~p"/login/#{token}")
 
       form = form(lv, "#confirmation_form", %{"user" => %{"token" => token}})
       render_submit(form)
@@ -64,14 +64,14 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
       assert Accounts.get_user!(user.id).confirmed_at
       # we are logged in now
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/app"
 
       # log out, new conn
       conn = build_conn()
 
       {:ok, _lv, html} =
-        live(conn, ~p"/users/log-in/#{token}")
-        |> follow_redirect(conn, ~p"/users/log-in")
+        live(conn, ~p"/login/#{token}")
+        |> follow_redirect(conn, ~p"/login")
 
       assert html =~ "Magic link is invalid or it has expired"
     end
@@ -85,7 +85,7 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
           Accounts.deliver_login_instructions(user, url)
         end)
 
-      {:ok, lv, _html} = live(conn, ~p"/users/log-in/#{token}")
+      {:ok, lv, _html} = live(conn, ~p"/login/#{token}")
 
       form = form(lv, "#login_form", %{"user" => %{"token" => token}})
       render_submit(form)
@@ -101,16 +101,16 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
       conn = build_conn()
 
       {:ok, _lv, html} =
-        live(conn, ~p"/users/log-in/#{token}")
-        |> follow_redirect(conn, ~p"/users/log-in")
+        live(conn, ~p"/login/#{token}")
+        |> follow_redirect(conn, ~p"/login")
 
       assert html =~ "Magic link is invalid or it has expired"
     end
 
-    test "raises error for invalid token", %{conn: conn} do
+    test "redirects to login page for invalid token", %{conn: conn} do
       {:ok, _lv, html} =
-        live(conn, ~p"/users/log-in/invalid-token")
-        |> follow_redirect(conn, ~p"/users/log-in")
+        live(conn, ~p"/login/invalid-token")
+        |> follow_redirect(conn, ~p"/login")
 
       assert html =~ "Magic link is invalid or it has expired"
     end

@@ -17,6 +17,12 @@ defmodule QuoteAssistWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Throttles the login POST (per-IP + per-email) via QuoteAssist.RateLimiter.
+  # Reused for /admin/login and /register in later releases.
+  pipeline :login_throttle do
+    plug QuoteAssistWeb.Plugs.LoginThrottle
+  end
+
   scope "/", QuoteAssistWeb do
     pipe_through :browser
 
@@ -62,11 +68,10 @@ defmodule QuoteAssistWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{QuoteAssistWeb.UserAuth, :require_authenticated}] do
-      live "/users/settings", UserLive.Settings, :edit
-      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+      # Minimal authenticated landing. Tenant scoping + the real workspace shell
+      # arrive in R2 (:require_tenant_member, /app/*).
+      live "/app", AppHomeLive, :index
     end
-
-    post "/users/update-password", UserSessionController, :update_password
   end
 
   scope "/", QuoteAssistWeb do
@@ -74,12 +79,21 @@ defmodule QuoteAssistWeb.Router do
 
     live_session :current_user,
       on_mount: [{QuoteAssistWeb.UserAuth, :mount_current_scope}] do
-      live "/users/register", UserLive.Registration, :new
-      live "/users/log-in", UserLive.Login, :new
-      live "/users/log-in/:token", UserLive.Confirmation, :new
+      live "/login", UserLive.Login, :new
+      live "/login/:token", UserLive.Confirmation, :new
     end
 
-    post "/users/log-in", UserSessionController, :create
-    delete "/users/log-out", UserSessionController, :delete
+    delete "/logout", UserSessionController, :delete
   end
+
+  # The credential POST runs through the login throttle.
+  scope "/", QuoteAssistWeb do
+    pipe_through [:browser, :login_throttle]
+
+    post "/login", UserSessionController, :create
+  end
+
+  # NOTE: self-registration (/register) lands in R4; the settings screen and
+  # password change land in R6. Their generated routes/LiveViews/tests were
+  # removed to keep R1 to sign in / out only (see RELEASE_PLAN.md).
 end

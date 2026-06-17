@@ -28,6 +28,7 @@ defmodule QuoteAssistWeb.HealthController do
         conn
         |> put_status(:service_unavailable)
         |> json(%{status: "unavailable", reason: inspect(reason)})
+
         # coveralls-ignore-stop
     end
   end
@@ -39,7 +40,8 @@ defmodule QuoteAssistWeb.HealthController do
     :ok
   rescue
     # coveralls-ignore-start — failure path requires the DB to be unreachable.
-    error -> {:error, error}
-    # coveralls-ignore-stop
+    error ->
+      {:error, error}
+      # coveralls-ignore-stop
   end
 end

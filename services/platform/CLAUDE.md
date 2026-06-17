@@ -6,6 +6,23 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
+**R1 complete / next R2.** Auth — tenant users sign in and out. `phx.gen.auth`
+(scope-based; magic-link + opt-in password) adapted to the design system: login
+at `/login` (split-screen ported from `login.html`, password reveal + magic-link
+request, theme toggle — all via `Phoenix.LiveView.JS`), magic-link confirm at
+`/login/:token` (`verify.html` chrome, link-based — no OTP), `/logout`, and a
+protected `/app` placeholder (`AppHomeLive`, `on_mount :require_authenticated`)
+that bounces to `/login` when signed out. `users`/`users_tokens` land with a
+`deleted_at` column and the auth lookups filter soft-deleted identities. Swoosh
+mailer + `/dev/mailbox` are wired (the magic-link email lands there in dev). A
+per-IP + per-email login throttle (`QuoteAssist.RateLimiter` +
+`QuoteAssistWeb.Plugs.LoginThrottle`) guards the login POST and the magic-link
+send, and is reused for `/admin/login` + `/register` later. `mix qa.create_user`
+(dev/staging only) creates a confirmed sign-in user without touching
+`seeds.exs` (R2 owns the real dev tenant/user seed). Registration (R4) and the
+settings/password-change screens (R6) were intentionally deferred — their
+generated routes, LiveViews, and tests were removed to keep R1 to sign in / out.
+
 **R0a complete.** Platform home `/` renders the release-status table inside the
 public chrome (`Layouts.app`: wordmark · Tenants · Admin login · theme toggle,
 with a `version · env` footer); `/tenants` is a static `TenantListLive` directory
@@ -21,8 +38,9 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R1** — auth: tenant users sign in / out (`phx.gen.auth`, Swoosh mailer,
-login throttle).
+**Next: R2** — tenancy + RBAC: `TenantResolver` (host → tenant), `Tenancy.scope/2`,
+`Policy.can?/3` + the permission catalog, `audit_logs` + `Audit.log/1`, and the
+real `/app/*` workspace behind `:require_tenant_member`.
 
 ## How to run
 

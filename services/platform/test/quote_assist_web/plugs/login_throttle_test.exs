@@ -22,19 +22,27 @@ defmodule QuoteAssistWeb.Plugs.LoginThrottleTest do
 
   test "passes the connection through while under the limit" do
     opts = LoginThrottle.init(ip_limit: 5, email_limit: 5, window_ms: 60_000)
-    conn = LoginThrottle.call(login_conn(%{"user" => %{"email" => "a@b.com"}}, {127, 0, 0, 1}), opts)
+
+    conn =
+      LoginThrottle.call(login_conn(%{"user" => %{"email" => "a@b.com"}}, {127, 0, 0, 1}), opts)
 
     refute conn.halted
   end
 
   test "halts and redirects to /login once the per-email limit is exceeded" do
     opts =
-      LoginThrottle.init(ip_limit: 1_000, email_limit: 2, window_ms: 60_000, redirect_to: "/login")
+      LoginThrottle.init(
+        ip_limit: 1_000,
+        email_limit: 2,
+        window_ms: 60_000,
+        redirect_to: "/login"
+      )
 
     email = "throttle@example.com"
 
     # Vary the IP so the per-IP limit is never the trigger here.
     refute LoginThrottle.call(login_conn(%{"user" => %{"email" => email}}, {127, 0, 0, 1}), opts).halted
+
     refute LoginThrottle.call(login_conn(%{"user" => %{"email" => email}}, {127, 0, 0, 2}), opts).halted
 
     conn = LoginThrottle.call(login_conn(%{"user" => %{"email" => email}}, {127, 0, 0, 3}), opts)

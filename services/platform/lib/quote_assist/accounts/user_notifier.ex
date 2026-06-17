@@ -1,8 +1,8 @@
 defmodule QuoteAssist.Accounts.UserNotifier do
   import Swoosh.Email
 
-  alias QuoteAssist.Mailer
   alias QuoteAssist.Accounts.User
+  alias QuoteAssist.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

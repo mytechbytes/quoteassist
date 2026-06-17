@@ -90,3 +90,9 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# In dev, tenant subdomains resolve under *.lvh.me:4000, so the public tenant
+# directory links to `http://<slug>.lvh.me:4000/login`.
+config :quote_assist,
+  tenant_base_domain: "lvh.me:4000",
+  tenant_url_scheme: "http"

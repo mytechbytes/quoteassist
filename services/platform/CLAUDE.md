@@ -6,12 +6,23 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
+**R0a complete.** Platform home `/` renders the release-status table inside the
+public chrome (`Layouts.app`: wordmark · Tenants · Admin login · theme toggle,
+with a `version · env` footer); `/tenants` is a static `TenantListLive` directory
+that shows an empty state until the `Tenant` schema lands in R2 — the
+live-tenants `Repo.all` query is the only wiring left (`mount/3` has the hook;
+the row markup is already in place). Config adds `:deploy_env` (footer tag,
+overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
+`:tenant_url_scheme` (per-tenant subdomain login links; dev → `lvh.me:4000`).
+`/admin/login` is a plain `href` (route lands in R3).
+
 **R0 complete.** Walking skeleton: `/health` + `/health/ready`, Dockerfile,
 `docker-compose`, `.env.example`, `assets/css/mtb.css` (design tokens +
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R0a** — platform home `/` (release-status table) + `/tenants` list.
+**Next: R1** — auth: tenant users sign in / out (`phx.gen.auth`, Swoosh mailer,
+login throttle).
 
 ## How to run
 

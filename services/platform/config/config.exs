@@ -11,6 +11,17 @@ config :quote_assist,
   ecto_repos: [QuoteAssist.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
 
+# Platform presentation (R0a)
+#   :deploy_env         — environment tag shown in the public footer. Overridden
+#                         at runtime from DEPLOY_ENV (config/runtime.exs).
+#   :tenant_base_domain — host the public tenant directory builds its subdomain
+#   :tenant_url_scheme     login links from (`<scheme>://<slug>.<base>/login`).
+#                         These prod defaults are overridden for dev in dev.exs.
+config :quote_assist,
+  deploy_env: "dev",
+  tenant_base_domain: "quoteassist.mytechbytes.in",
+  tenant_url_scheme: "https"
+
 # Configure the endpoint
 config :quote_assist, QuoteAssistWeb.Endpoint,
   url: [host: "localhost"],

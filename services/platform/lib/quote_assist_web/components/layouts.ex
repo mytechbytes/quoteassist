@@ -35,30 +35,68 @@ defmodule QuoteAssistWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="mtb-topbar px-6">
-      <a href="/" class="flex items-center gap-3 no-underline" style="color:var(--mc-text)">
-        <span
-          class="mtb-logo"
-          style="width:32px;height:32px;font-size:13px;letter-spacing:-0.04em;color:white"
+    <div class="flex min-h-screen flex-col">
+      <header class="mtb-topbar px-6">
+        <a href="/" class="flex items-center gap-3 no-underline" style="color:var(--mc-text)">
+          <span
+            class="mtb-logo"
+            style="width:32px;height:32px;font-size:13px;letter-spacing:-0.04em;color:white"
+          >
+            QA
+          </span>
+          <span style="font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:-0.02em">
+            QuoteAssist
+          </span>
+        </a>
+
+        <nav class="ml-auto flex items-center gap-2 sm:gap-3">
+          <.link navigate={~p"/tenants"} class="mtb-btn mtb-btn-ghost mtb-btn-sm">
+            Tenants
+          </.link>
+          <%!-- /admin/login lands in R3 — plain href avoids a verified-route warning until then. --%>
+          <a href="/admin/login" class="mtb-btn mtb-btn-secondary mtb-btn-sm">Admin login</a>
+          <.theme_toggle />
+        </nav>
+      </header>
+
+      <main class="w-full flex-1 px-4 py-10 sm:px-6">
+        {render_slot(@inner_block)}
+      </main>
+
+      <footer class="border-t" style="border-color:var(--mc-border)">
+        <div
+          class="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-5 text-xs sm:px-6"
+          style="color:var(--mc-text-3)"
         >
-          QA
-        </span>
-        <span style="font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:-0.02em">
-          QuoteAssist
-        </span>
-      </a>
-
-      <div class="ml-auto flex items-center gap-3">
-        <.theme_toggle />
-      </div>
-    </header>
-
-    <main class="px-6 py-8">
-      {render_slot(@inner_block)}
-    </main>
+          <span>QuoteAssist · multi-tenant quote assistant</span>
+          <span class="font-mono">v{app_version()} · {deploy_env()}</span>
+        </div>
+      </footer>
+    </div>
 
     <.flash_group flash={@flash} />
     """
+  end
+
+  @doc """
+  Application version string for the footer, e.g. `"0.1.0"`.
+
+  Falls back to `"dev"` when the app spec has no version (e.g. not yet loaded).
+  """
+  def app_version do
+    case Application.spec(:quote_assist, :vsn) do
+      nil -> "dev"
+      vsn -> to_string(vsn)
+    end
+  end
+
+  @doc """
+  Deployment environment tag for the footer: `dev | staging | prod`.
+
+  Set from `DEPLOY_ENV` at runtime (see `config/runtime.exs`); defaults to `dev`.
+  """
+  def deploy_env do
+    Application.get_env(:quote_assist, :deploy_env, "dev")
   end
 
   @doc """

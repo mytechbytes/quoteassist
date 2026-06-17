@@ -32,6 +32,12 @@ config :quote_assist,
   ai_service_url: System.get_env("AI_SERVICE_URL") || "http://localhost:8000",
   redis_url: System.get_env("REDIS_URL")
 
+# Deployment environment tag surfaced in the platform footer (R0a). Staging and
+# prod both run as :prod releases, so they are told apart by DEPLOY_ENV; when it
+# is unset we fall back to the compile-time environment (dev/test → itself,
+# prod → "prod").
+config :quote_assist, :deploy_env, System.get_env("DEPLOY_ENV") || to_string(config_env())
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

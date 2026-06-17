@@ -18,6 +18,11 @@ defmodule QuoteAssistWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    # Public tenant directory — links out to each tenant's subdomain login.
+    # Tenant subdomains aren't resolved until R2 (TenantResolver), so those
+    # links 404 gracefully for now.
+    live "/tenants", TenantListLive
   end
 
   # Health probes — no auth, no CSRF, no session overhead.

@@ -38,9 +38,10 @@ defmodule QuoteAssist.TenantsTest do
       assert Tenants.resolve_host("nope.example.com") == :not_found
     end
 
-    test "404s a suspended tenant" do
-      tenant_with_status_fixture(:suspended, %{slug: "susp"})
-      assert Tenants.resolve_host("susp.example.com") == :not_found
+    test "resolves a suspended tenant to {:suspended, tenant} (403, not 404)" do
+      suspended = tenant_with_status_fixture(:suspended, %{slug: "susp"})
+      assert {:suspended, resolved} = Tenants.resolve_host("susp.example.com")
+      assert resolved.id == suspended.id
     end
 
     test "404s a cancelled tenant" do
@@ -70,6 +71,15 @@ defmodule QuoteAssist.TenantsTest do
       |> put_custom_domain!("pending.acme.test", :pending)
 
       assert Tenants.resolve_host("pending.acme.test") == :not_found
+    end
+
+    test "resolves a suspended tenant's verified custom domain to {:suspended, tenant}" do
+      suspended =
+        tenant_with_status_fixture(:suspended, %{slug: "suspcd"})
+        |> put_custom_domain!("quotes.susp.test", :verified)
+
+      assert {:suspended, resolved} = Tenants.resolve_host("quotes.susp.test")
+      assert resolved.id == suspended.id
     end
 
     test "404s an unknown host" do

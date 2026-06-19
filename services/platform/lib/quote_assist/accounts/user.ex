@@ -33,6 +33,20 @@ defmodule QuoteAssist.Accounts.User do
     |> validate_email(opts)
   end
 
+  @doc """
+  Changeset for registering a self-service owner (R5-selfreg): email + the display
+  name they typed on the signup form, set together at creation. The password is set
+  later, at onboarding (`onboarding_password_changeset/3`). Used only when the email
+  is new — an existing user is reused as-is, name untouched.
+  """
+  def owner_registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :display_name])
+    |> validate_email(opts)
+    |> validate_required([:display_name])
+    |> validate_length(:display_name, min: 1, max: 80)
+  end
+
   defp validate_email(changeset, opts) do
     changeset =
       changeset
@@ -98,6 +112,36 @@ defmodule QuoteAssist.Accounts.User do
     |> validate_length(:display_name, min: 1, max: 80)
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
+  end
+
+  @doc """
+  Changeset for the platform-host onboarding link (R5-selfreg): set the initial
+  password **and** confirm the email in a single update. Setting `hashed_password`
+  and `confirmed_at` together is the one "ready to log in" predicate, so they must
+  land in the same changeset (and therefore the same transaction). The display name
+  was already captured at registration, so it is not collected here.
+
+  ## Options
+
+    * `:hash_password` - hash + clear the virtual password (default `true`). Pass
+      `false` for live form validation.
+  """
+  def onboarding_password_changeset(user, attrs, opts \\ []) do
+    changeset =
+      user
+      |> cast(attrs, [:password])
+      |> validate_confirmation(:password, message: "does not match password")
+      |> validate_password(opts)
+
+    # Confirm the email alongside the password — but only on a valid, persisting
+    # changeset (so live validation with `hash_password: false` never stamps it),
+    # and only when not already confirmed (a reused, already-confirmed owner keeps
+    # their original `confirmed_at`).
+    if changeset.valid? and Keyword.get(opts, :hash_password, true) and is_nil(user.confirmed_at) do
+      put_change(changeset, :confirmed_at, DateTime.utc_now(:second))
+    else
+      changeset
+    end
   end
 
   defp validate_password(changeset, opts) do

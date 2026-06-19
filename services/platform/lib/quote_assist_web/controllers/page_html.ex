@@ -28,8 +28,8 @@ defmodule QuoteAssistWeb.PageHTML do
        [
          %{id: "R3", desc: "Admin identity + tenant CRUD + 15-day trial", status: :done},
          %{id: "R4-retrofit", desc: "Admin RBAC + protected super_admin", status: :done},
-         %{id: "R5-selfreg", desc: "Self-registration → auto-approve to trial", status: :pending},
-         %{id: "R6-errors", desc: "Branded error pages (401/403/404/500/503)", status: :pending}
+         %{id: "R5-selfreg", desc: "Self-registration → auto-approve to trial", status: :done},
+         %{id: "R6-errors", desc: "Branded error pages (401/403/404/500/503)", status: :done}
        ]},
       {"Tenant Basics",
        [

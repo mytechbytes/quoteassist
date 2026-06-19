@@ -65,6 +65,29 @@ defmodule QuoteAssist.Accounts.UserNotifier do
     """)
   end
 
+  @doc """
+  Deliver the self-service owner onboarding link (R5-selfreg). The link sets a
+  password and confirms the email in one step.
+  """
+  def deliver_onboarding_instructions(user, url) do
+    deliver(user.email, "Finish setting up your QuoteAssist workspace", """
+
+    ==============================
+
+    Hi #{user.email},
+
+    Your QuoteAssist workspace is ready. Finish setting up your account — set a
+    password and confirm your email — by visiting the URL below:
+
+    #{url}
+
+    This link expires in 7 days. If you didn't create a QuoteAssist workspace,
+    please ignore this email.
+
+    ==============================
+    """)
+  end
+
   defp deliver_confirmation_instructions(user, url) do
     deliver(user.email, "Confirmation instructions", """
 

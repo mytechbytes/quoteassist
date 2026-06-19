@@ -208,8 +208,17 @@ defmodule QuoteAssistWeb.UserLive.Login do
             </.button>
           </.form>
 
+          <%!-- Unconfirmed-owner safety net (R5-selfreg): a self-registered owner who
+                hasn't finished onboarding isn't stranded at a dead password form —
+                the setup link (or a magic link above, which confirms + signs them in)
+                always gets them in. --%>
           <p :if={!@current_scope} class="mt-7 text-center text-sm" style="color:var(--mc-text-3)">
-            New here? <%!-- /register lands in R4 (self-registration) --%>
+            Just created your workspace? Open the setup link we emailed to finish — or request a
+            magic link above to continue.
+          </p>
+
+          <p :if={!@current_scope} class="mt-3 text-center text-sm" style="color:var(--mc-text-3)">
+            New here?
             <a href="/register" class="font-semibold" style="color:var(--mc-brand)">Create account →</a>
           </p>
         </div>

@@ -38,6 +38,10 @@ config :quote_assist,
 # prod → "prod").
 config :quote_assist, :deploy_env, System.get_env("DEPLOY_ENV") || to_string(config_env())
 
+# Maintenance mode (R6-errors): set MAINTENANCE_MODE=true (or 1) on a deploy to serve
+# the branded 503 page for all browser traffic while keeping the health probes up.
+config :quote_assist, :maintenance_mode, System.get_env("MAINTENANCE_MODE") in ~w(true 1)
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

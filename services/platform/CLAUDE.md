@@ -6,7 +6,40 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
-**R4-retrofit complete / next R5-selfreg.** Admin RBAC + protected `super_admin`. The R3
+**R6-errors complete.** Branded error pages (401/403/404/500/503) wired to real Phoenix
+error handling. `ErrorHTML` renders one parametric `error_page` document (ported from
+`designs/quoteassist/error-*.html`, `mc-*`/`qa-*` → `mtb-*`) per status, with a plain-text
+fallback for any other status; `ErrorJSON` stays generic. A `Plugs.Maintenance` plug (first
+in the `:browser` pipeline, gated by `:maintenance_mode` / the `MAINTENANCE_MODE` env) serves
+the 503 to all browser traffic while the `/health` probes on the `:api` pipeline stay up.
+`QuoteAssistWeb.Errors` adds `UnauthorizedError` (403) + `UnauthenticatedError` (401);
+`FallbackController` maps `{:error, :unauthorized|:unauthenticated|:not_found}` for controller
+actions, and `UserAuth.permit!/2` is the LiveView "raise → branded 403" primitive (the tenant
+guards that call it land in R7-rbac). 401 stays a host-aware redirect (tenant `/login` vs
+`/admin/login`); `RequirePlatform` now renders the branded 404 on tenant hosts. **Suspended
+tenants** are distinguished at the resolver: `Tenants.resolve_host/1` returns `{:suspended,
+tenant}` (vs `{:ok, _}` / `:not_found`), and `TenantResolver` renders a dedicated branded
+"workspace suspended" notice (`TenantErrorHTML.tenant_suspended`) with status **403** — the
+workspace exists but access is forbidden (admin pause or lapsed trial). Unknown / cancelled /
+deleted hosts still 404. `fetch_live_tenant/1` is unchanged (trial/active only), so a member
+on a tenant suspended mid-session is bounced at the next mount and meets the 403 notice.
+
+**R5-selfreg complete.** Public `/register` (platform host, behind `RequirePlatform`) →
+`Tenants.register_self_service/1` creates the tenant directly in `trial` (now + 15 days,
+seeded **Starter** plan, `source: :self_signup`) + owner `User` (reused if the email already
+exists, else registered with the form's display name) + owner `Membership`, all in one
+`Ecto.Multi` audited as `actor_type: :system` (`tenant.self_registered`). The owner gets a
+platform-host `quoteassist.../onboarding/:token` link (a 7-day `onboarding` `UserToken`);
+`OnboardingSetupLive` sets the initial password **and** confirms the email in one transaction
+(single-use token), then links to the tenant's own-host login. Expired/used links resend
+neutrally (no enumeration via `Tenants.resend_onboarding/1`); the tenant login page carries an
+un-onboarded-owner safety net. Self-signups show a `Self-registered` badge in `/admin/tenants`
+— admins handle bad actors reactively with the R3 suspend/cancel controls (no approval queue).
+A `tenants.source` column (`admin | self_signup`) was added for triage. This is a *new*
+platform-host, token-based flow distinct from the R3 `/app/welcome` invited-owner onboarding,
+which is unchanged.
+
+**R4-retrofit complete.** Admin RBAC + protected `super_admin`. The R3
 `admins` identity gained the protected-type pattern via migration: `type`
 (`super_admin | admin`), `role_id`, `active`, with the bootstrap admin promoted to
 `super_admin` in the same transaction. A code-owned admin catalog
@@ -35,8 +68,9 @@ reused-or-registered + owner `Membership` + audit, then a magic-link invite buil
 the tenant's host); edit name/plan; suspend/reactivate/cancel via the status FSM;
 soft-delete — each audited (actor = admin). A `plans` table (Starter + Growth, seeded
 in every env) backs `tenant.plan_id`. Expired trials are blocked at tenant login and
-auto-transition `trial → suspended` (audited), after which `TenantResolver` 404s the
-host. Owner onboarding (`/app/welcome`) sets a display name + password (reuses the
+auto-transition `trial → suspended` (audited), after which `TenantResolver` shows the
+branded suspension notice (403; was 404 pre-R6) on the host. Owner onboarding
+(`/app/welcome`) sets a display name + password (reuses the
 magic-link invite); `users.display_name` was pulled forward from R6.
 
 **R2 complete.** Tenancy + RBAC. Tenants resolve from the request
@@ -89,11 +123,12 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R5-selfreg** — self-registration → auto-approve to trial: a public `/register`
-(platform host) that creates the tenant directly in `trial` + owner `User`/`Membership`,
-owner email verification via the platform-host `/onboarding/:token` flow, and **no** admin
-approval queue (admins handle bad actors reactively via the R3 tenant suspend/cancel
-controls). Reuse the `Tenants` create-with-owner multi and the audit log.
+**Next: R7-rbac** — tenant users, roles, permissions + the `self:*` baseline + the generic
+`requests` inbox (`leave` first). Build the roles UI over the R2 code-owned catalog, member
+invite/assign/activate/deactivate/remove (session-revoking), the self-service profile/
+password/email/sessions surface, and the owner protected-type query-layer guards (mirroring
+admin `super_admin`). The R6 `UserAuth.permit!/2` raise→403 primitive and the platform-host
+`/onboarding/:token` flow (now reusable for invited members) are already in place.
 
 ## How to run
 
@@ -124,7 +159,15 @@ mix format && mix compile --warnings-as-errors   # part of "green before done"
      directory, admin);
   2. `*.quoteassist.mytechbytes.in` → load tenant by `slug`;
   3. any other host → load tenant by **verified** `custom_domain`;
-  4. unknown / suspended / deleted → 404.
+  4. a live but **suspended** tenant → branded "workspace suspended" notice, **403**;
+  5. unknown / cancelled / deleted → branded "workspace not found", **404**.
+- **Platform-host-only pages.** The tenant directory (`/tenants`) and `/admin/*` are
+  gated by `RequirePlatform` — they 404 on any tenant subdomain / custom domain. The
+  build-status home (`/`) is host-aware: it renders only on the primary domain; on a
+  tenant host the controller redirects to `/app` (signed in) or `/login` rather than
+  showing platform chrome (and rather than 404-ing the tenant root, which is the
+  post-logout redirect target). Net effect: the build-status page and the "Admin
+  login" link in the shared `Layouts.app` chrome appear on the primary domain only.
 - Cookies scoped to the **exact resolved host** (never `.quoteassist...`), so
   sessions never leak across tenants or between a subdomain and its custom domain.
 - Dev: `*.quoteassist.localhost:4000` for subdomains (`acme.quoteassist.localhost:4000`).
@@ -186,8 +229,8 @@ R1            auth — tenant users sign in/out (phx.gen.auth, mailer, throttle)
 R2            tenancy + RBAC (TenantResolver, Tenancy.scope, Policy, audit_logs)   ✅
 R3            admin identity + tenant CRUD + 15-day trial                          ✅
 R4-retrofit   admin RBAC + protected super_admin (retrofits R3)                    ✅
-R5-selfreg    self-registration → auto-approve to trial
-R6-errors     branded error pages (401/403/404/500/503)
+R5-selfreg    self-registration → auto-approve to trial                            ✅
+R6-errors     branded error pages (401/403/404/500/503)                            ✅
 R7-rbac       tenant users, roles, permissions + self:* + requests
 R8-dashboard  /app dashboard landing
 R9-recovery   account recovery (forgot/reset, email-change)
@@ -202,3 +245,16 @@ for the per-release Build / Data / Done-when detail.
 ## Git workflow
 
 Always confirm before `git commit` / `git push`. Push directly to `main` only.
+
+
+# Elixir Project Rules
+## Development Workflow
+- When you are done editing files, the project's `Stop` hook will automatically execute formatting, testing, and coverage checks.
+- If the `Stop` hook fails (exits with code 2), read the stderr output stream carefully, refactor the code to fix the failing tests or styling rules, and let the loop run again.
+
+## Commands
+- Format code: `mix format`
+- Run credo: `credo --strict`
+- Run tests: `mix test`
+- Test coverage: `mix test —cover`
+- Test coverage: `mix coveralls.json && mix run --no-start ci/check_coverage.exs`

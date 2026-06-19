@@ -63,12 +63,12 @@ defmodule QuoteAssistWeb.Plugs.TenantResolverTest do
       assert conn.resp_body =~ "nope.example.com"
     end
 
-    test "suspended tenant" do
-      tenant_with_status_fixture(:suspended, %{slug: "susp"})
-      conn = get_on_host("susp.example.com")
+    test "cancelled tenant 404s" do
+      tenant_with_status_fixture(:cancelled, %{slug: "gone"})
+      conn = get_on_host("gone.example.com")
 
       assert conn.status == 404
-      assert conn.resp_body =~ "susp.example.com"
+      assert conn.resp_body =~ "gone.example.com"
     end
 
     test "unverified (pending) custom domain" do
@@ -79,6 +79,32 @@ defmodule QuoteAssistWeb.Plugs.TenantResolverTest do
 
       assert conn.status == 404
       assert conn.resp_body =~ "pending.acme.test"
+    end
+  end
+
+  describe "call/2 — a suspended tenant renders the branded 403 page" do
+    test "suspended subdomain returns 403 with the suspension notice" do
+      tenant_with_status_fixture(:suspended, %{slug: "susp", name: "Suspended Co"})
+      conn = get_on_host("susp.example.com")
+
+      assert conn.status == 403
+      assert conn.halted
+      assert conn.resp_body =~ "SUSPENDED"
+      assert conn.resp_body =~ "Suspended Co"
+      assert conn.resp_body =~ "susp.example.com"
+      # The suspended tenant id is not written to the session — the workspace
+      # must not be entered.
+      assert get_session(conn, :tenant_id) == nil
+    end
+
+    test "a suspended tenant's verified custom domain also returns 403" do
+      tenant_with_status_fixture(:suspended, %{slug: "cdsusp", name: "CD Susp"})
+      |> put_custom_domain!("quotes.cdsusp.test", :verified)
+
+      conn = get_on_host("quotes.cdsusp.test")
+
+      assert conn.status == 403
+      assert conn.resp_body =~ "SUSPENDED"
     end
   end
 end

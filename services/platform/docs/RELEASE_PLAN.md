@@ -65,7 +65,9 @@ Chosen over path-prefix (`/t/acme/…`) and session-only because:
    load the live tenant by `slug`.
 3. Otherwise → treat the full host as a **custom domain**, load the live tenant
    by `custom_domain` (verified only).
-4. No match / suspended / deleted → 404.
+4. A live but **suspended** tenant → render a branded suspension notice with status
+   **403** (the workspace exists; access is forbidden). No match / cancelled /
+   deleted → 404.
 Tenant assigned to `conn`/socket; cookies scoped to the **exact resolved host**
 (never `.quoteassist.mytechbytes.in`) so sessions never leak across tenants or
 between a tenant's subdomain and its custom domain.
@@ -361,9 +363,9 @@ resequenced into a clean R4–R12 order (the suffixes are descriptive labels).
 | R1             | Foundation    | Auth — sign in / out  ✅ done               |
 | R2             | Foundation    | Tenancy + RBAC (subdomain + custom domain) ✅ done |
 | R3             | Site Admin    | Admin identity + Tenant CRUD + 15-day trial ✅ done |
-| R4-retrofit    | Site Admin    | Admin RBAC + protected `super_admin` (retrofits R3) |
-| R5-selfreg     | Site Admin    | Self-registration → auto-approve to trial  |
-| R6-errors      | Foundation    | Error pages (401/403/404/500/503)          |
+| R4-retrofit    | Site Admin    | Admin RBAC + protected `super_admin` (retrofits R3) ✅ done |
+| R5-selfreg     | Site Admin    | Self-registration → auto-approve to trial  ✅ done |
+| R6-errors      | Foundation    | Error pages (401/403/404/500/503)          ✅ done |
 | R7-rbac        | Tenant Basics | Users, roles, permissions + self:* + requests |
 | R8-dashboard   | Tenant Basics | `/app` dashboard landing                   |
 | R9-recovery    | Tenant Basics | Account recovery (forgot/reset, email-change) |
@@ -550,7 +552,8 @@ that tenant; signed-in users are scoped to it; cross-tenant access is impossible
    Unique constraints on `slug` and `custom_domain`.
 2. **`TenantResolver` plug** — reads the host: platform host → no tenant;
    `*.quoteassist.mytechbytes.in` → load by slug; any other host → load by
-   verified `custom_domain`. Unknown / suspended / deleted → 404. Tenant
+   verified `custom_domain`. A live but suspended tenant → branded 403 suspension
+   notice (added in R6-errors); unknown / cancelled / deleted → 404. Tenant
    assigned to `conn`/socket; cookies scoped to the exact resolved host.
 3. `QuoteAssist.Tenancy.scope/2` — constrains every query to the resolved
    tenant; raises if no tenant in scope (fails loud on cross-tenant reads).
@@ -828,9 +831,10 @@ route is permission-gated (R4-retrofit + R7-rbac).
 1. Map each status to its design file and a Phoenix render path:
    - `401` unauthenticated → redirect to the right login (tenant vs admin host).
    - `403` forbidden → permission/owner-protection denial (a member hitting an
-     owner-only route, an admin lacking a `*:` permission).
-   - `404` not found → unknown route, unknown/suspended-but-cancelled tenant
-     host, missing record.
+     owner-only route, an admin lacking a `*:` permission), **and a suspended
+     tenant host** (live but paused — its own branded "workspace suspended" notice).
+   - `404` not found → unknown route, unknown/cancelled/deleted tenant host,
+     missing record.
    - `500` server error → `ErrorHTML`/`ErrorJSON` fallback.
    - `503` maintenance → behind a config flag for deploys.
 2. Wire via `Phoenix.Router` error handling + a `FallbackController` for
@@ -1086,8 +1090,10 @@ changes.
 [shipped, frozen]
 R0 → R0a → R1 → R2 → R3   foundation + site admin: skeleton · home+tenants · auth · tenancy+RBAC · admin/tenant CRUD ✅
 
+[resequenced, shipped]
+R4-retrofit → R5-selfreg → R6-errors    admin RBAC (retrofits R3) · self-reg (auto-trial) · error pages ✅
+
 [resequenced, to build]
-R4-retrofit → R5-selfreg → R6-errors    admin RBAC (retrofits R3) · self-reg (auto-trial) · error pages
   → R7-rbac → R8-dashboard → R9-recovery   tenant users/roles/self/requests · dashboard · account recovery
   → R10-domain                             custom domain
   → R11-quotes → R12-quote-reply           quote CRUD · AI reply hook

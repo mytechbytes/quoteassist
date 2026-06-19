@@ -81,6 +81,18 @@ defmodule QuoteAssist.Accounts do
     |> Repo.insert()
   end
 
+  @doc """
+  Registers a self-service owner (R5-selfreg): email + display name, unconfirmed and
+  password-less. Used by `Tenants.register_self_service/1` only when the email is new
+  (an existing user is reused untouched). The owner sets a password and confirms via
+  the onboarding link.
+  """
+  def register_owner(attrs) do
+    %User{}
+    |> User.owner_registration_changeset(attrs)
+    |> Repo.insert()
+  end
+
   ## Settings
 
   @doc """
@@ -185,6 +197,56 @@ defmodule QuoteAssist.Accounts do
   """
   def onboard_user(%User{} = user, attrs) do
     user |> User.onboarding_changeset(attrs) |> Repo.update()
+  end
+
+  ## Owner onboarding via the platform-host link (R5-selfreg)
+  #
+  # The self-registered owner finishes setup on `quoteassist.../onboarding/:token`,
+  # not while logged in. These functions back that flow: a long-lived (7-day)
+  # "onboarding" token is emailed, exchanged for the user, and consumed when the
+  # owner sets a password — which also confirms their email in the same transaction.
+
+  @doc """
+  Changeset for the onboarding password form. Defaults to `hash_password: false` so
+  live validation doesn't hash (or stamp `confirmed_at`) on every keystroke.
+  """
+  def change_owner_onboarding(%User{} = user, attrs \\ %{}, opts \\ []) do
+    User.onboarding_password_changeset(user, attrs, Keyword.put_new(opts, :hash_password, false))
+  end
+
+  @doc """
+  Issues an onboarding token for `user` and emails the onboarding link built by
+  `url_fun`. The link targets the platform host (`/onboarding/:token`) so the same
+  flow works regardless of the tenant's host state.
+  """
+  def deliver_onboarding_instructions(%User{} = user, url_fun) when is_function(url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "onboarding")
+    Repo.insert!(user_token)
+    UserNotifier.deliver_onboarding_instructions(user, url_fun.(encoded_token))
+  end
+
+  @doc "Gets the user for a valid onboarding token, or nil (expired / unknown / used)."
+  def get_user_by_onboarding_token(token) when is_binary(token) do
+    with {:ok, query} <- UserToken.verify_onboarding_token_query(token),
+         {user, _token} <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Completes onboarding: sets the password and confirms the email in one update, then
+  deletes all of the user's tokens — so the onboarding link is single-use and any
+  stale links are invalidated. Returns `{:ok, user}` or `{:error, changeset}`.
+  """
+  def complete_onboarding(%User{} = user, attrs) do
+    case user
+         |> User.onboarding_password_changeset(attrs)
+         |> update_user_and_delete_all_tokens() do
+      {:ok, {user, _expired_tokens}} -> {:ok, user}
+      {:error, changeset} -> {:error, changeset}
+    end
   end
 
   ## Session

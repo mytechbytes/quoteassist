@@ -29,6 +29,12 @@ defmodule QuoteAssistWeb.TenantListLiveTest do
     refute html =~ "No tenants yet"
   end
 
+  test "GET /tenants 404s on a tenant host — the directory is platform-only", %{conn: conn} do
+    active_tenant_fixture(%{slug: "acme"})
+    conn = %{conn | host: "acme.example.com"} |> get(~p"/tenants")
+    assert conn.status == 404
+  end
+
   test "directory lists each tenant with a link to its subdomain login" do
     tenants = [%{name: "Acme Co", slug: "acme", status: :active}]
 

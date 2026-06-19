@@ -106,6 +106,84 @@ defmodule QuoteAssistWeb.CoreComponents do
   end
 
   @doc """
+  Renders an error flash as a centered, SweetAlert-style modal dialog the user must
+  acknowledge. Info/success keep using the top-right toast (`flash/1`); errors (login
+  failures and the like) interrupt with this modal instead.
+
+  Built only with `Phoenix.LiveView.JS` and the `mtb-modal-*` tokens — no extra JS
+  library, per the locked design-system rules. Dismiss clears the `:error` flash and
+  hides the modal; on a dead view the clear is a harmless no-op and the OK button (a
+  plain client-side hide) is enough.
+
+  ## Examples
+
+      <.error_modal flash={@flash} />
+  """
+  attr :flash, :map, default: %{}, doc: "the map of flash messages"
+  attr :id, :string, default: "flash-error-modal"
+
+  def error_modal(assigns) do
+    ~H"""
+    <div
+      :if={msg = Phoenix.Flash.get(@flash, :error)}
+      id={@id}
+      class="mtb-modal-backdrop"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby={"#{@id}-title"}
+    >
+      <div
+        class="mtb-modal"
+        style="max-width:400px"
+        phx-click-away={dismiss_error(@id)}
+        phx-window-keydown={dismiss_error(@id)}
+        phx-key="escape"
+      >
+        <div class="mtb-modal-body" style="text-align:center;padding:32px 28px 8px">
+          <div
+            class="mx-auto grid place-items-center rounded-full"
+            style="width:60px;height:60px;background:color-mix(in oklch,var(--mc-error) 12%,var(--mc-surface))"
+          >
+            <.icon name="hero-exclamation-triangle" class="size-8" style="color:var(--mc-error)" />
+          </div>
+          <h2
+            id={"#{@id}-title"}
+            class="mt-4 text-xl font-bold tracking-tight"
+            style="font-family:var(--font-display);color:var(--mc-text)"
+          >
+            Something went wrong
+          </h2>
+          <p class="mx-auto mt-2 max-w-xs text-sm" style="color:var(--mc-text-2);line-height:1.55">
+            {msg}
+          </p>
+        </div>
+        <div
+          class="mtb-modal-foot"
+          style="justify-content:center;border-top:none;background:transparent;padding:8px 24px 28px"
+        >
+          <button
+            type="button"
+            class="mtb-btn mtb-btn-primary"
+            style="min-width:120px"
+            phx-click={dismiss_error(@id)}
+            autofocus
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  # Clears the :error flash server-side (on a LiveView) and hides the modal. The hide
+  # makes dismissal feel instant and is the only effect on a dead view, where
+  # `lv:clear-flash` has no LiveView to handle.
+  defp dismiss_error(id) do
+    JS.push("lv:clear-flash", value: %{key: "error"}) |> hide("##{id}")
+  end
+
+  @doc """
   Renders a button with navigation support.
 
   ## Examples

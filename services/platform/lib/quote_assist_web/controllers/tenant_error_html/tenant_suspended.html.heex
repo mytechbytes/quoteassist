@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workspace suspended · QuoteAssist</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href={~p"/assets/css/app.css"} />
+
+    <%!-- Apply theme before paint to avoid FOUC (mirrors root.html.heex). --%>
+    <script>
+      (() => {
+        const systemTheme = () => matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        const theme = localStorage.getItem("phx:theme") || systemTheme();
+        document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+      })();
+    </script>
+  </head>
+  <body>
+    <main class="grid min-h-screen place-items-center px-6 py-14" style="background:var(--mc-bg)">
+      <a
+        href={@platform_url}
+        class="absolute left-6 top-6 flex items-center gap-2.5 no-underline"
+        style="color:var(--mc-text)"
+      >
+        <span class="mtb-logo" style="width:28px;height:28px;font-size:12px">QA</span>
+        <span style="font-family:var(--font-display);font-weight:700">QuoteAssist</span>
+      </a>
+
+      <div class="mx-auto max-w-xl text-center">
+        <div
+          class="mtb-grad-text"
+          style="font-family:var(--font-display);font-weight:700;font-size:120px;line-height:0.9;letter-spacing:-0.05em"
+        >
+          403
+        </div>
+
+        <span class="mtb-badge mtb-badge-warning mt-1 font-mono">WORKSPACE&nbsp;SUSPENDED</span>
+
+        <h1
+          class="mt-4 text-3xl font-bold tracking-tight"
+          style="font-family:var(--font-display);color:var(--mc-text)"
+        >
+          This workspace is suspended
+        </h1>
+
+        <p class="mx-auto mt-3 max-w-md text-sm" style="color:var(--mc-text-2);line-height:1.6">
+          Access to <span class="font-semibold" style="color:var(--mc-text)">{@tenant_name}</span>
+          (<span class="font-mono font-semibold" style="color:var(--mc-text)">{@host}</span>)
+          is currently suspended. This can happen when a trial ends or an administrator pauses the
+          account. If you think this is a mistake, please contact your workspace administrator.
+        </p>
+
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <a href={@platform_url} class="mtb-btn mtb-btn-primary">Go to QuoteAssist</a>
+          <a href={@directory_url} class="mtb-btn mtb-btn-secondary">Browse workspaces</a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

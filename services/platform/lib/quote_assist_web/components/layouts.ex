@@ -403,7 +403,6 @@ defmodule QuoteAssistWeb.Layouts do
     ~H"""
     <div id={@id} aria-live="polite">
       <.flash kind={:info} flash={@flash} />
-      <.flash kind={:error} flash={@flash} />
 
       <.flash
         id="client-error"
@@ -435,6 +434,10 @@ defmodule QuoteAssistWeb.Layouts do
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
     </div>
+
+    <%!-- Error flashes (login failures, etc.) interrupt with a centered modal the user
+          must acknowledge, rather than a top-right toast. Info/success stay as toasts. --%>
+    <.error_modal flash={@flash} />
     """
   end
 

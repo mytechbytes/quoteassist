@@ -64,6 +64,21 @@ defmodule QuoteAssistWeb.Plugs.LoginThrottle do
     RateLimiter.hit({:login_email, normalize(email)}, cfg.email_limit, cfg.window_ms) == limited()
   end
 
+  @doc """
+  Per-email throttle for the self-registration *submit* path (R5-selfreg), called
+  from `QuoteAssistWeb.RegistrationLive`. Like `magic_link_throttled?/1` the socket
+  has no client IP, so this limits per-email only — on a separate bucket so signups
+  and logins don't share a budget. Records a hit and returns `true` once the limit
+  for the window is exceeded.
+  """
+  @spec registration_throttled?(String.t()) :: boolean()
+  def registration_throttled?(email) when is_binary(email) do
+    cfg = config([])
+
+    RateLimiter.hit({:register_email, normalize(email)}, cfg.email_limit, cfg.window_ms) ==
+      limited()
+  end
+
   defp limited, do: {:error, :rate_limited}
 
   defp config(opts) do

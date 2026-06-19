@@ -12,6 +12,7 @@ defmodule QuoteAssist.Tenants do
   alias QuoteAssist.Accounts
   alias QuoteAssist.Accounts.{Admin, User}
   alias QuoteAssist.Audit
+  alias QuoteAssist.Plans
   alias QuoteAssist.Repo
   alias QuoteAssist.Tenants.{Membership, Role, Tenant}
 
@@ -21,9 +22,12 @@ defmodule QuoteAssist.Tenants do
   Resolves a request host to a tenant. The host is the sole input — params are never
   consulted.
 
-    * `:platform`     — platform host (home / directory / admin); no tenant.
-    * `{:ok, tenant}` — a live, resolvable tenant by slug or verified custom domain.
-    * `:not_found`    — a tenant host with no matching live tenant → the caller 404s.
+    * `:platform`          — platform host (home / directory / admin); no tenant.
+    * `{:ok, tenant}`      — a live, resolvable tenant (trial / active) by slug or
+      verified custom domain.
+    * `{:suspended, tenant}` — a live but suspended tenant; the caller shows a
+      suspension notice with status 403 (the workspace exists, access is forbidden).
+    * `:not_found`         — no matching live tenant, or a cancelled one → 404.
   """
   def resolve_host(host) when is_binary(host) do
     host = String.downcase(host)
@@ -50,26 +54,33 @@ defmodule QuoteAssist.Tenants do
   end
 
   defp resolve_by_slug(slug) do
-    query = from t in resolvable_query(), where: t.slug == ^slug
-
-    case Repo.one(query) do
-      nil -> :not_found
-      tenant -> {:ok, tenant}
-    end
+    query = from t in live_tenant_query(), where: t.slug == ^slug
+    query |> Repo.one() |> classify()
   end
 
   defp resolve_by_custom_domain(host) do
     query =
-      from t in resolvable_query(),
+      from t in live_tenant_query(),
         where: t.custom_domain == ^host and t.custom_domain_status == :verified
 
-    case Repo.one(query) do
-      nil -> :not_found
-      tenant -> {:ok, tenant}
-    end
+    query |> Repo.one() |> classify()
   end
 
-  # Live + status in (:trial, :active). Suspended / cancelled / deleted never resolve.
+  # Classifies a looked-up tenant (or nil) into a host-resolution outcome by status:
+  # trial/active serve the workspace, suspended shows the 403 notice, and cancelled
+  # (or no match) is a 404. Deleted tenants are already excluded by `live_tenant_query/0`.
+  defp classify(nil), do: :not_found
+  defp classify(%Tenant{status: :suspended} = tenant), do: {:suspended, tenant}
+  defp classify(%Tenant{status: :cancelled}), do: :not_found
+  defp classify(%Tenant{} = tenant), do: {:ok, tenant}
+
+  # Live = not soft-deleted, any status — `resolve_host/1` then classifies by status.
+  defp live_tenant_query do
+    from t in Tenant, where: is_nil(t.deleted_at)
+  end
+
+  # Live + status in (:trial, :active). Used to reload a still-serving tenant mid-session
+  # (`fetch_live_tenant/1`); suspended / cancelled / deleted never pass.
   defp resolvable_query do
     from t in Tenant,
       where: is_nil(t.deleted_at) and t.status in ^Tenant.resolvable_statuses()
@@ -460,6 +471,167 @@ defmodule QuoteAssist.Tenants do
         {:ok, deleted}
       end
     end)
+  end
+
+  # ── Self-registration (R5-selfreg) ────────────────────────────────────────────────
+  #
+  # A company self-registers on the platform host and lands in their workspace on a
+  # 15-day trial immediately — no admin approval (RELEASE_PLAN.md). The owner verifies
+  # their email by setting a password on the platform-host onboarding link. Admins
+  # handle bad actors reactively via the R3 suspend/cancel controls.
+
+  @doc "Changeset backing the public self-registration form (name + slug + owner)."
+  def change_self_registration(attrs \\ %{}) do
+    Tenant.self_register_changeset(%Tenant{}, attrs)
+  end
+
+  # Same well-known `Ecto.Multi` opaque false positive suppressed on
+  # `create_tenant_with_owner/2` — see the note there.
+  @dialyzer {:no_opaque, register_self_service: 1}
+
+  @doc """
+  Self-registers a tenant and its owner, atomically (`Ecto.Multi`, audited as
+  `actor_type: :system`):
+
+    * tenant — status `trial`, `trial_expires_at = now + 15 days`, `source:
+      :self_signup`, on the seeded **Starter** plan;
+    * the built-in role set (`seed_default_roles/1`);
+    * owner `User` — reuses the existing global row if the email is already known
+      (the self-asserting path where reuse is correct), else registers a new
+      unconfirmed user with the display name from the form;
+    * owner `Membership` (**`type: :owner`**, no role);
+    * an audit row (actor = system).
+
+  On success a platform-host onboarding link is emailed to the owner and
+  `{:ok, %{tenant: tenant, owner: owner}}` is returned. Any failed step rolls the
+  whole thing back; an invalid form or a taken slug comes back as
+  `{:error, changeset}`.
+  """
+  def register_self_service(attrs) do
+    changeset = Tenant.self_register_changeset(%Tenant{}, attrs)
+
+    if changeset.valid? do
+      owner_email = Ecto.Changeset.get_field(changeset, :owner_email)
+      owner_name = Ecto.Changeset.get_field(changeset, :owner_name)
+      expires_at = DateTime.add(DateTime.utc_now(:second), @trial_days, :day)
+      plan = default_signup_plan()
+
+      insert_changeset =
+        changeset
+        |> Ecto.Changeset.put_change(:status, :trial)
+        |> Ecto.Changeset.put_change(:source, :self_signup)
+        |> Ecto.Changeset.put_change(:trial_expires_at, expires_at)
+        |> Ecto.Changeset.put_change(:plan_id, plan && plan.id)
+
+      multi =
+        Multi.new()
+        |> Multi.insert(:tenant, insert_changeset)
+        |> Multi.run(:roles, fn _repo, %{tenant: tenant} ->
+          {:ok, seed_default_roles(tenant)}
+        end)
+        |> Multi.run(:owner, fn _repo, _changes ->
+          ensure_signup_owner(owner_email, owner_name)
+        end)
+        |> Multi.run(:membership, fn _repo, %{tenant: tenant, owner: owner} ->
+          create_owner_membership(tenant, owner)
+        end)
+        |> Multi.run(:audit, fn _repo, %{tenant: tenant, owner: owner} ->
+          Audit.log(%{
+            actor_type: :system,
+            actor_id: nil,
+            tenant_id: tenant.id,
+            action: "tenant.self_registered",
+            target_type: "tenant",
+            target_id: tenant.id,
+            metadata: %{"slug" => tenant.slug, "owner_email" => mask_email(owner.email)}
+          })
+        end)
+
+      case Repo.transaction(multi) do
+        {:ok, %{tenant: tenant, owner: owner}} ->
+          deliver_owner_onboarding(owner)
+          {:ok, %{tenant: tenant, owner: owner}}
+
+        {:error, :tenant, %Ecto.Changeset{} = failed, _changes} ->
+          {:error, failed}
+
+        {:error, _step, _reason, _changes} ->
+          {:error, %{changeset | action: :insert}}
+      end
+    else
+      {:error, %{changeset | action: :insert}}
+    end
+  end
+
+  @doc """
+  Re-issues an onboarding link for `email` when it belongs to a not-yet-onboarded
+  owner of a live tenant. Always returns `:ok` — it never reveals whether the email
+  exists, so the resend action can't be used to enumerate accounts.
+  """
+  def resend_onboarding(email) when is_binary(email) do
+    with %User{} = user <- Accounts.get_user_by_email(email),
+         %Tenant{} <- newest_owner_tenant(user),
+         false <- onboarded?(user) do
+      deliver_owner_onboarding(user)
+    end
+
+    :ok
+  end
+
+  @doc """
+  The tenant of the user's most recent live owner membership, or nil. Used after
+  onboarding to send a new owner to the right tenant login (they may own several).
+  """
+  def newest_owner_tenant(%User{id: user_id}) do
+    Repo.one(
+      from m in Membership,
+        join: t in Tenant,
+        on: t.id == m.tenant_id,
+        where:
+          m.user_id == ^user_id and m.type == :owner and is_nil(m.deleted_at) and
+            is_nil(t.deleted_at),
+        order_by: [desc: m.inserted_at],
+        limit: 1,
+        select: t
+    )
+  end
+
+  @doc "The tenant's own-host login URL (subdomain). Public so onboarding can link to it."
+  def tenant_login_url(%Tenant{} = tenant), do: tenant_url(tenant, "/login")
+
+  # Whether a user is fully set up (has a password AND a confirmed email) — the
+  # single "ready to log in" predicate (RELEASE_PLAN.md).
+  defp onboarded?(%User{hashed_password: hash, confirmed_at: confirmed}) do
+    not is_nil(hash) and not is_nil(confirmed)
+  end
+
+  # Default plan for a self-signup: the seeded Starter plan, falling back to the
+  # cheapest live plan if Starter is somehow absent (and nil if no plans exist).
+  defp default_signup_plan do
+    Plans.get_plan_by_slug("starter") || List.first(Plans.list_plans())
+  end
+
+  # Reuse the existing global user (name untouched), or register a fresh unconfirmed
+  # owner carrying the display name from the signup form.
+  defp ensure_signup_owner(email, name) do
+    case Accounts.get_user_by_email(email) do
+      %User{} = user -> {:ok, user}
+      nil -> Accounts.register_owner(%{email: email, display_name: name})
+    end
+  end
+
+  defp deliver_owner_onboarding(%User{} = owner) do
+    Accounts.deliver_onboarding_instructions(owner, &onboarding_url/1)
+  end
+
+  defp onboarding_url(token), do: platform_url("/onboarding/#{token}")
+
+  # Builds a URL on the platform host (apex, no subdomain) from config — the
+  # onboarding flow always lives there, regardless of any tenant's host state.
+  defp platform_url(path) do
+    scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "https")
+    base = Application.get_env(:quote_assist, :tenant_base_domain, "quoteassist.mytechbytes.in")
+    "#{scheme}://#{base}#{path}"
   end
 
   # ── Trial expiry ──────────────────────────────────────────────────────────────────

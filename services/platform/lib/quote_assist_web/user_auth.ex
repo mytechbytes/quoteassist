@@ -328,4 +328,20 @@ defmodule QuoteAssistWeb.UserAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
+
+  @doc """
+  Authorizes a tenant-scoped action: returns `scope` when it holds `permission`, and
+  otherwise raises `QuoteAssistWeb.Errors.UnauthorizedError` (→ branded 403 page) — the
+  "raise → branded page" denial path (R6-errors). Used from LiveView mounts/events for
+  hard permission gates (e.g. owner-only routes); the tenant guards that call it land
+  in R7-rbac. A redirect to login is the right answer for *missing auth*; this is for
+  an authenticated actor who simply lacks the permission.
+  """
+  def permit!(scope, permission) when is_binary(permission) do
+    if Policy.can?(scope, permission) do
+      scope
+    else
+      raise QuoteAssistWeb.Errors.UnauthorizedError
+    end
+  end
 end

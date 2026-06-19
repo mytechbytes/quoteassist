@@ -1,0 +1,87 @@
+<%!--
+  Tenant-host landing (`/` on a tenant subdomain / custom domain). Public — shown to
+  everyone: a signed-in member gets a "Go to workspace" CTA, a guest a "Sign in" CTA
+  (nobody is auto-redirected). Tenant-branded chrome (the tenant's name as the wordmark)
+  rather than the platform `Layouts.app`, whose "Tenants" / "Admin login" links are
+  platform-host-only. Rendered by `PageController.home/2`; wrapped by the root layout.
+--%>
+<div class="flex min-h-screen flex-col" style="background:var(--mc-bg)">
+  <header class="mtb-topbar px-6">
+    <a href="/" class="flex items-center gap-3 no-underline" style="color:var(--mc-text)">
+      <span
+        class="mtb-logo"
+        style="width:32px;height:32px;font-size:13px;letter-spacing:-0.04em;color:white"
+      >
+        QA
+      </span>
+      <span style="font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:-0.02em">
+        {@current_tenant.name}
+      </span>
+    </a>
+
+    <nav class="ml-auto flex items-center gap-2 sm:gap-3">
+      <.link
+        :if={@current_scope && @current_scope.user}
+        href={~p"/app"}
+        class="mtb-btn mtb-btn-primary mtb-btn-sm no-underline"
+      >
+        Go to workspace
+      </.link>
+      <.link
+        :if={!(@current_scope && @current_scope.user)}
+        href={~p"/login"}
+        class="mtb-btn mtb-btn-primary mtb-btn-sm no-underline"
+      >
+        Sign in
+      </.link>
+      <Layouts.theme_toggle />
+    </nav>
+  </header>
+
+  <main class="flex flex-1 items-center justify-center px-6 py-16">
+    <div class="mx-auto max-w-2xl text-center">
+      <span class="mtb-badge mtb-badge-brand font-mono">{@current_tenant.name}</span>
+
+      <h1
+        class="mt-5 text-4xl font-bold tracking-tight sm:text-5xl"
+        style="font-family:var(--font-display);color:var(--mc-text);line-height:1.05"
+      >
+        Enquiries in.<br />Polished quotes out.
+      </h1>
+
+      <p class="mx-auto mt-5 max-w-lg text-base" style="color:var(--mc-text-2);line-height:1.6">
+        Welcome to {@current_tenant.name}'s workspace on QuoteAssist — where inbound enquiries
+        become accurate, policy-checked quotations in a click.
+      </p>
+
+      <div class="mt-9 flex flex-wrap justify-center gap-3">
+        <.link
+          :if={@current_scope && @current_scope.user}
+          href={~p"/app"}
+          class="mtb-btn mtb-btn-primary mtb-btn-lg no-underline"
+        >
+          Go to workspace <span aria-hidden="true">→</span>
+        </.link>
+        <.link
+          :if={!(@current_scope && @current_scope.user)}
+          href={~p"/login"}
+          class="mtb-btn mtb-btn-primary mtb-btn-lg no-underline"
+        >
+          Sign in <span aria-hidden="true">→</span>
+        </.link>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t" style="border-color:var(--mc-border)">
+    <div
+      class="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5 text-xs"
+      style="color:var(--mc-text-3)"
+    >
+      <span>{@current_tenant.name} · powered by QuoteAssist</span>
+      <span class="font-mono">v{Layouts.app_version()} · {Layouts.deploy_env()}</span>
+    </div>
+  </footer>
+</div>
+
+<Layouts.flash_group flash={@flash} />

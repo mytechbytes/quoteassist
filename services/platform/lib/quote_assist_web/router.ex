@@ -6,6 +6,10 @@ defmodule QuoteAssistWeb.Router do
 
   pipeline :browser do
     plug :accepts, ["html"]
+    # Maintenance gate (R6-errors): when :maintenance_mode is on, every browser
+    # request short-circuits to the branded 503. Runs first, before sessions/tenant
+    # resolution. Health probes live on the :api pipeline, so they stay up.
+    plug QuoteAssistWeb.Plugs.Maintenance
     plug :fetch_session
     # Resolve the tenant from the host before anything else touches it: assigns
     # :current_tenant, writes the tenant id into the host-scoped session, and 404s
@@ -55,14 +59,23 @@ defmodule QuoteAssistWeb.Router do
     plug QuoteAssistWeb.Plugs.LoginThrottle, redirect_to: "/admin/login"
   end
 
+  # The build-status home is platform content. On the platform host it renders; on a
+  # tenant host there is no platform home, so the controller redirects into the
+  # workspace (or its login) instead of showing platform chrome. `/` stays reachable
+  # (not RequirePlatform-gated) so the tenant root — e.g. the post-logout redirect
+  # target — never 404s.
   scope "/", QuoteAssistWeb do
     pipe_through :browser
 
     get "/", PageController, :home
+  end
 
-    # Public tenant directory — links out to each tenant's subdomain login.
-    # Tenant subdomains aren't resolved until R2 (TenantResolver), so those
-    # links 404 gracefully for now.
+  # Platform-host-only: the tenant directory and the "Admin login" link in its shared
+  # `Layouts.app` chrome live solely on the primary domain. RequirePlatform 404s this
+  # on any tenant subdomain / custom domain.
+  scope "/", QuoteAssistWeb do
+    pipe_through [:browser, :require_platform]
+
     live "/tenants", TenantListLive
   end
 
@@ -121,6 +134,21 @@ defmodule QuoteAssistWeb.Router do
     end
   end
 
+  # ── Self-registration + onboarding (R5-selfreg) — platform host only ──────────────
+  # Public pages: a company self-registers at /register (tenant created directly on a
+  # 15-day trial), then the owner sets a password on the platform-host onboarding link
+  # (/onboarding/:token) and is sent to their tenant's own-host login. RequirePlatform
+  # 404s these on tenant hosts so onboarding always lives on the apex.
+  scope "/", QuoteAssistWeb do
+    pipe_through [:browser, :require_platform]
+
+    live_session :public_onboarding,
+      on_mount: [{QuoteAssistWeb.UserAuth, :mount_current_scope}] do
+      live "/register", RegistrationLive, :new
+      live "/onboarding/:token", OnboardingSetupLive, :new
+    end
+  end
+
   # Logout is host-agnostic — it only clears the current session.
   scope "/", QuoteAssistWeb do
     pipe_through [:browser]
@@ -176,8 +204,21 @@ defmodule QuoteAssistWeb.Router do
     end
   end
 
-  # NOTE: self-registration (/register) lands in R5-selfreg; the profile/settings and
-  # password-change surface lands in R7-rbac, and account recovery in R9-recovery.
-  # Their generated routes/LiveViews/tests were removed to keep R1 to sign in / out
-  # only (see RELEASE_PLAN.md).
+  # NOTE: self-registration (/register + /onboarding/:token) shipped in R5-selfreg
+  # above. The profile/settings and password-change surface lands in R7-rbac, and
+  # account recovery (forgot/reset) in R9-recovery (see RELEASE_PLAN.md).
+
+  # Catch-all — MUST stay the last route. Any path no route above matched renders the
+  # branded, themed 404 through the :browser pipeline. TenantResolver runs first, so an
+  # unknown host still shows "workspace not found", a suspended tenant its 403, and
+  # maintenance mode its 503; a known tenant host or the platform host falls through to
+  # here. Matching a real route — instead of letting the request raise
+  # Phoenix.Router.NoRouteError — is deliberate: it keeps the branded page consistent in
+  # every environment, since in dev `debug_errors` would otherwise replace an unmatched
+  # route with an unstyled debug page.
+  scope "/", QuoteAssistWeb do
+    pipe_through :browser
+
+    get "/*path", PageController, :not_found
+  end
 end

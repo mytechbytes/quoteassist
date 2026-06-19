@@ -35,6 +35,11 @@ config :quote_assist,
   tenant_base_domain: "quoteassist.mytechbytes.in",
   tenant_url_scheme: "https"
 
+# Maintenance mode (R6-errors): when true, the `Maintenance` plug serves the branded
+# 503 for every browser request. Off by default; flipped per deploy via MAINTENANCE_MODE
+# (config/runtime.exs).
+config :quote_assist, :maintenance_mode, false
+
 # Configure the endpoint
 config :quote_assist, QuoteAssistWeb.Endpoint,
   url: [host: "localhost"],

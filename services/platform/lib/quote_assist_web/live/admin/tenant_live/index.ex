@@ -105,13 +105,22 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
               style="border-top:1px solid var(--mc-border)"
             >
               <td class="px-5 py-3 align-middle">
-                <.link
-                  navigate={~p"/admin/tenants/#{tenant.id}"}
-                  class="text-sm font-semibold no-underline hover:underline"
-                  style="color:var(--mc-text)"
-                >
-                  {tenant.name}
-                </.link>
+                <div class="flex items-center gap-2">
+                  <.link
+                    navigate={~p"/admin/tenants/#{tenant.id}"}
+                    class="text-sm font-semibold no-underline hover:underline"
+                    style="color:var(--mc-text)"
+                  >
+                    {tenant.name}
+                  </.link>
+                  <span
+                    :if={tenant.source == :self_signup}
+                    class="mtb-badge mtb-badge-info"
+                    title="Self-registered via /register"
+                  >
+                    Self-registered
+                  </span>
+                </div>
                 <div class="text-[11px]" style="color:var(--mc-text-3)">
                   <span class="font-mono">{tenant.slug}</span>
                   · {Tenants.owner_email(tenant) || "no owner"}

@@ -1,0 +1,14 @@
+{
+    "hooks": {
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "cd services/platform && bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/elixir_check.sh\""
+                    }
+                ]
+            }
+        ]
+    }
+}

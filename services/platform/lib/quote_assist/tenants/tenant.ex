@@ -16,6 +16,11 @@ defmodule QuoteAssist.Tenants.Tenant do
   @statuses [:trial, :active, :suspended, :cancelled]
   @custom_domain_statuses [:none, :pending, :verified]
 
+  # How the tenant entered the platform (R5-selfreg), for admin triage. `:admin` is
+  # the default (the R3 console flow); `:self_signup` is set by self-registration.
+  # Server-determined only — never cast from a form.
+  @sources [:admin, :self_signup]
+
   # Allowed status transitions. `suspended → active` is the reactivate path (R3);
   # `cancelled` is terminal.
   @transitions %{
@@ -29,8 +34,15 @@ defmodule QuoteAssist.Tenants.Tenant do
   # the resolver (RELEASE_PLAN.md).
   @resolvable_statuses [:trial, :active]
 
-  # Reserved slugs that would collide with platform hosts / routes.
-  @reserved_slugs ~w(www admin api app dev mail)
+  # Reserved slugs that would collide with platform hosts / routes, plus common
+  # infrastructure and brand-safety labels we never hand to a self-registering
+  # tenant (RELEASE_PLAN.md R5-selfreg). Applied to every create path via
+  # `changeset/2`, so the admin console is held to the same list.
+  @reserved_slugs ~w(
+    www admin api app dev mail smtp ftp support help status billing
+    account accounts login logout register signup onboarding assets
+    static cdn public system root security quoteassist
+  )
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -38,16 +50,20 @@ defmodule QuoteAssist.Tenants.Tenant do
     field :name, :string
     field :slug, :string
     field :status, Ecto.Enum, values: @statuses, default: :trial
+    field :source, Ecto.Enum, values: @sources, default: :admin
     field :custom_domain, :string
     field :custom_domain_status, Ecto.Enum, values: @custom_domain_statuses, default: :none
     field :custom_domain_token, :string
     field :deleted_at, :utc_datetime
-    # 15-day trial deadline (set at admin creation). Past this, tenant login is
-    # blocked and the tenant auto-transitions to suspended (see Tenants.enforce_trial_expiry/1).
+    # 15-day trial deadline (set at creation). Past this, tenant login is blocked
+    # and the tenant auto-transitions to suspended (see Tenants.enforce_trial_expiry/1).
     field :trial_expires_at, :utc_datetime
-    # Virtual — the owner email entered on the admin create form. Not persisted;
-    # Tenants.create_tenant_with_owner/2 reads it to create/attach the owner.
+    # Virtual — the owner email entered on a create form (admin or self-register).
+    # Not persisted; the create flow reads it to create/attach the owner.
     field :owner_email, :string, virtual: true
+    # Virtual — the owner's display name, collected only on the self-register form
+    # (the admin create flow invites by email and the owner sets their own name).
+    field :owner_name, :string, virtual: true
 
     belongs_to :plan, QuoteAssist.Plans.Plan
     has_many :memberships, Membership
@@ -58,6 +74,9 @@ defmodule QuoteAssist.Tenants.Tenant do
 
   @doc "All valid tenant statuses."
   def statuses, do: @statuses
+
+  @doc "All valid tenant sources (how the tenant entered the platform)."
+  def sources, do: @sources
 
   @doc "Statuses that resolve to a live workspace (others 404 at the resolver)."
   def resolvable_statuses, do: @resolvable_statuses
@@ -112,6 +131,27 @@ defmodule QuoteAssist.Tenants.Tenant do
       message: "must have the @ sign and no spaces"
     )
     |> validate_length(:owner_email, max: 160)
+  end
+
+  @doc """
+  Changeset for the public **self-registration** form (R5-selfreg). Builds on
+  `changeset/2` (name + slug format/reserved/uniqueness) and adds the two virtual
+  fields the signup collects: `owner_email` and `owner_name`. The plan, trial clock,
+  status, and `source` are server-determined in `Tenants.register_self_service/1` —
+  never cast here, so a crafted form can't pick its own plan or skip the trial.
+  """
+  def self_register_changeset(tenant, attrs) do
+    tenant
+    |> changeset(attrs)
+    |> cast(attrs, [:owner_email, :owner_name])
+    |> validate_required([:owner_email, :owner_name])
+    |> update_change(:owner_email, fn email -> email |> String.trim() |> String.downcase() end)
+    |> update_change(:owner_name, &String.trim/1)
+    |> validate_format(:owner_email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> validate_length(:owner_email, max: 160)
+    |> validate_length(:owner_name, min: 1, max: 80)
   end
 
   @doc """

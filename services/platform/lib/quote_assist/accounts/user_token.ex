@@ -11,6 +11,11 @@ defmodule QuoteAssist.Accounts.UserToken do
   @magic_link_validity_in_minutes 15
   @change_email_validity_in_days 7
   @session_validity_in_days 14
+  # Onboarding links sit in an inbox waiting to be clicked, so they live longer than
+  # a magic link — long enough not to strand a self-registered owner, short enough to
+  # bound exposure (R5-selfreg). Expiry is never a dead end: the onboarding page can
+  # always re-issue a fresh link.
+  @onboarding_validity_in_days 7
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -117,6 +122,33 @@ defmodule QuoteAssist.Accounts.UserToken do
           from token in by_token_and_context_query(hashed_token, "login"),
             join: user in assoc(token, :user),
             where: token.inserted_at > ago(^@magic_link_validity_in_minutes, "minute"),
+            where: token.sent_to == user.email,
+            where: is_nil(user.deleted_at),
+            select: {user, token}
+
+        {:ok, query}
+
+      :error ->
+        :error
+    end
+  end
+
+  @doc """
+  Checks if an onboarding token is valid and returns its lookup query.
+
+  Mirrors the magic-link verification (hashed token, context `"onboarding"`,
+  `sent_to == user.email`, soft-deleted users excluded) but with the longer
+  onboarding TTL. If found, the query returns `{user, token}`.
+  """
+  def verify_onboarding_token_query(token) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
+        query =
+          from token in by_token_and_context_query(hashed_token, "onboarding"),
+            join: user in assoc(token, :user),
+            where: token.inserted_at > ago(@onboarding_validity_in_days, "day"),
             where: token.sent_to == user.email,
             where: is_nil(user.deleted_at),
             select: {user, token}

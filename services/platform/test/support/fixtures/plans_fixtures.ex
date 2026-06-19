@@ -10,8 +10,15 @@ defmodule QuoteAssist.PlansFixtures do
       Enum.into(attrs, %{
         name: "Plan #{System.unique_integer([:positive])}",
         slug: "plan#{System.unique_integer([:positive])}",
-        monthly_price: 99,
-        seat_limit: 10
+        price: 9900,
+        interval: :monthly,
+        active: true,
+        limits: %{
+          "quotes_per_month" => 100,
+          "seats" => 10,
+          "ai_generations_per_month" => 100,
+          "custom_domain" => false
+        }
       })
 
     {:ok, plan} = Plans.create_plan(attrs)

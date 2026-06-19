@@ -12,6 +12,7 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
   alias QuoteAssist.Audit
   alias QuoteAssist.Plans
   alias QuoteAssist.Tenants
+  alias QuoteAssist.Tenants.Membership
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -141,7 +142,7 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
                     {membership.user.email}
                   </td>
                   <td class="px-6 py-3 text-right">
-                    <span class="mtb-badge mtb-badge-neutral">{membership.role.name}</span>
+                    <span class="mtb-badge mtb-badge-neutral">{Membership.role_label(membership)}</span>
                   </td>
                 </tr>
               </tbody>

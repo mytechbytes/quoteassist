@@ -16,7 +16,7 @@ defmodule QuoteAssistWeb.UserLive.ConfirmationTest do
   describe "Confirm user" do
     setup %{tenant: tenant} do
       unconfirmed = unconfirmed_user_fixture()
-      membership_fixture(tenant, unconfirmed, "viewer")
+      membership_fixture(tenant, unconfirmed, "agent")
       confirmed = user_fixture()
       membership_fixture(tenant, confirmed, "owner")
       %{unconfirmed_user: unconfirmed, confirmed_user: confirmed}

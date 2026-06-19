@@ -69,16 +69,29 @@ defmodule QuoteAssist.TenantsFixtures do
     role
   end
 
-  @doc "A live membership for `user` in `tenant` with the given built-in role slug."
-  def membership_fixture(%Tenant{} = tenant, %User{} = user, role_slug \\ "owner") do
+  @doc """
+  A live membership for `user` in `tenant`. `"owner"` creates the protected owner
+  *type* (no role); any other value is treated as a built-in member role slug.
+  """
+  def membership_fixture(tenant, user, role_or_owner \\ "owner")
+
+  def membership_fixture(%Tenant{} = tenant, %User{} = user, "owner") do
+    {:ok, membership} = Tenants.create_owner_membership(tenant, user)
+    membership
+  end
+
+  def membership_fixture(%Tenant{} = tenant, %User{} = user, role_slug) do
     role = Tenants.get_role_by_slug(tenant, role_slug)
     {:ok, membership} = Tenants.create_membership(tenant, user, role)
     membership
   end
 
-  @doc "A fresh user with a membership in `tenant`. Returns `{user, membership}`."
-  def member_fixture(%Tenant{} = tenant, role_slug \\ "owner") do
+  @doc """
+  A fresh user with a membership in `tenant`. Returns `{user, membership}`.
+  `"owner"` (the default) makes the user the tenant owner (protected type).
+  """
+  def member_fixture(%Tenant{} = tenant, role_or_owner \\ "owner") do
     user = AccountsFixtures.user_fixture()
-    {user, membership_fixture(tenant, user, role_slug)}
+    {user, membership_fixture(tenant, user, role_or_owner)}
   end
 end

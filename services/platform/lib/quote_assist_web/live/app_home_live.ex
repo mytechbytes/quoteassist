@@ -2,11 +2,13 @@ defmodule QuoteAssistWeb.AppHomeLive do
   @moduledoc """
   Tenant workspace landing (`/app`). Guarded by `on_mount :require_tenant_member`:
   reaching it requires a logged-in user with a live membership for the tenant
-  resolved from the host, so `current_scope` always carries a tenant, membership,
-  and role. R2 ships the empty shell; quote requests (R7), the AI reply hook (R8),
-  and team/roles (R5) render into it later.
+  resolved from the host, so `current_scope` always carries a tenant and membership.
+  R2 ships the empty shell; team/roles (R7-rbac), the dashboard (R8-dashboard), quote
+  requests (R11-quotes), and the AI reply hook (R12-quote-reply) render into it later.
   """
   use QuoteAssistWeb, :live_view
+
+  alias QuoteAssist.Tenants.Membership
 
   @impl true
   def mount(_params, _session, socket) do
@@ -49,14 +51,14 @@ defmodule QuoteAssistWeb.AppHomeLive do
         <p class="mt-1.5 flex flex-wrap items-center gap-2 text-sm" style="color:var(--mc-text-2)">
           Signed in as
           <span class="font-medium" style="color:var(--mc-text)">{@current_scope.user.email}</span>
-          <span class="mtb-badge mtb-badge-brand">{@current_scope.membership.role.name}</span>
+          <span class="mtb-badge mtb-badge-brand">{Membership.role_label(@current_scope.membership)}</span>
         </p>
       </div>
 
       <div class="mtb-card px-6 py-8">
         <p class="text-sm" style="color:var(--mc-text-2)">
           Your workspace is ready and scoped to <span class="font-medium" style="color:var(--mc-text)">{@current_scope.tenant.name}</span>.
-          Team and roles arrive in R5; quote requests and the AI reply hook follow in R7–R8.
+          Team and roles arrive in R7-rbac; quote requests and the AI reply hook follow in R11–R12.
         </p>
       </div>
     </Layouts.workspace>

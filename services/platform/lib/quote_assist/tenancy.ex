@@ -10,6 +10,7 @@ defmodule QuoteAssist.Tenancy do
   import Ecto.Query
 
   alias QuoteAssist.Accounts.Scope
+  alias QuoteAssist.Tenants.Membership
 
   defmodule NoTenantError do
     @moduledoc "Raised when a tenant-scoped query runs without a tenant in scope."
@@ -26,4 +27,33 @@ defmodule QuoteAssist.Tenancy do
   end
 
   def scope(_query, _scope), do: raise(NoTenantError)
+
+  @doc """
+  Memberships visible to the scope's actor — the **query-layer** half of owner
+  protection (RELEASE_PLAN.md, R2): a non-owner can never see owners. Returns a
+  tenant-scoped, live-only `Membership` query; for a non-owner actor it additionally
+  excludes `:owner` rows. Hiding owners only in the template would be a security bug,
+  so the exclusion lives here, in the query, alongside `scope/2`.
+  """
+  def members_visible_to(%Scope{} = actor_scope) do
+    base = scope(Membership, actor_scope)
+
+    if owner?(actor_scope) do
+      base
+    else
+      from m in base, where: m.type != :owner
+    end
+  end
+
+  @doc """
+  Membership types the scope's actor may assign — the other half of owner protection.
+  Only an owner may assign `:owner`; a member may assign `:member` only, so a member
+  can never grant the protected type or escalate themselves by any path.
+  """
+  def assignable_types_for(%Scope{} = actor_scope) do
+    if owner?(actor_scope), do: [:owner, :member], else: [:member]
+  end
+
+  defp owner?(%Scope{membership: %Membership{type: :owner}}), do: true
+  defp owner?(_), do: false
 end

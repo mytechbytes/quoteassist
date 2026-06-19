@@ -28,7 +28,7 @@ defmodule QuoteAssistWeb.Admin.PlanLiveTest do
       html =
         lv
         |> form("#plan-form",
-          plan: %{name: "Enterprise", slug: "enterprise", monthly_price: 499, seat_limit: 100}
+          plan: %{name: "Enterprise", slug: "enterprise", price: 49_900, interval: "monthly"}
         )
         |> render_submit()
 
@@ -44,7 +44,7 @@ defmodule QuoteAssistWeb.Admin.PlanLiveTest do
 
       html =
         lv
-        |> form("#plan-form", plan: %{name: "Growth Plus", monthly_price: 199, seat_limit: 30})
+        |> form("#plan-form", plan: %{name: "Growth Plus", price: 19_900})
         |> render_submit()
 
       assert html =~ "Growth Plus"

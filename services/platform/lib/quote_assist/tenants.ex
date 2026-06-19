@@ -12,7 +12,6 @@ defmodule QuoteAssist.Tenants do
   alias QuoteAssist.Accounts
   alias QuoteAssist.Accounts.{Admin, User}
   alias QuoteAssist.Audit
-  alias QuoteAssist.Authz.Permissions
   alias QuoteAssist.Repo
   alias QuoteAssist.Tenants.{Membership, Role, Tenant}
 
@@ -173,42 +172,31 @@ defmodule QuoteAssist.Tenants do
     end
   end
 
-  @doc "Built-in role specs (mirror the design catalog in qa-team.js)."
+  @doc """
+  Built-in **member** role specs, composed from the code-owned catalog
+  (`QuoteAssist.Authz.Permissions`). Owner is a protected *type*, not a role
+  (computed all-access), so it is intentionally absent here. Definitions track the
+  R7-rbac catalog: `manager` runs the desk; `agent` drafts and sends quotes.
+  """
   def default_role_specs do
-    all = Permissions.keys()
-
     [
       %{
-        slug: "owner",
-        name: "Owner",
-        description: "Full control of the workspace, billing and access.",
-        permissions: all
-      },
-      %{
-        slug: "lead",
-        name: "Team lead",
-        description: "Runs the desk: pricing, members and every quote.",
-        permissions: all -- ["settings.billing"]
-      },
-      %{
-        slug: "senior",
-        name: "Senior agent",
-        description: "Full quoting plus fare-policy tuning.",
-        permissions: ~w(quotes.view quotes.create quotes.edit quotes.send quotes.export
-                        quotes.delete pricing.view pricing.policy team.view settings.view)
+        slug: "manager",
+        name: "Manager",
+        description: "Runs the desk: every quote, members and settings.",
+        permissions: ~w(quote:list quote:create quote:read quote:update quote:delete
+                        quote:status quote:reply quote:ai_generate
+                        user:list user:create user:read user:update
+                        user:activate user:deactivate
+                        role:list role:read settings:read settings:update)
       },
       %{
         slug: "agent",
         name: "Agent",
         description: "Drafts and sends quotes from enquiries.",
-        permissions: ~w(quotes.view quotes.create quotes.edit quotes.send quotes.export
-                        pricing.view team.view settings.view)
-      },
-      %{
-        slug: "viewer",
-        name: "Viewer",
-        description: "Read-only access for auditors and observers.",
-        permissions: ~w(quotes.view pricing.view team.view settings.view)
+        permissions: ~w(quote:list quote:create quote:read quote:update
+                        quote:status quote:reply quote:ai_generate
+                        user:list user:read)
       }
     ]
   end
@@ -243,7 +231,8 @@ defmodule QuoteAssist.Tenants do
 
   @doc """
   The user's live membership for a tenant, with role preloaded — or nil. This is the
-  access gate: no live membership for the resolved tenant means no access.
+  access gate: no live membership for the resolved tenant means no access. (Owners
+  carry no role, so the preload is simply nil for them.)
   """
   def get_active_membership(%Tenant{} = tenant, %User{} = user) do
     Repo.one(
@@ -253,11 +242,40 @@ defmodule QuoteAssist.Tenants do
     )
   end
 
-  @doc "Adds a user to a tenant with a role (a live membership)."
+  @doc "Adds a user to a tenant as a **member** with a role (a live membership)."
   def create_membership(%Tenant{} = tenant, %User{} = user, %Role{} = role) do
     %Membership{}
-    |> Membership.changeset(%{tenant_id: tenant.id, user_id: user.id, role_id: role.id})
+    |> Membership.member_changeset(%{tenant_id: tenant.id, user_id: user.id, role_id: role.id})
     |> Repo.insert()
+  end
+
+  @doc """
+  Adds a user to a tenant as the **owner** (protected type, no role). The owner holds
+  computed all-access via `QuoteAssist.Authz.Policy`; see the protected-type pattern.
+  """
+  def create_owner_membership(%Tenant{} = tenant, %User{} = user) do
+    %Membership{}
+    |> Membership.owner_changeset(%{tenant_id: tenant.id, user_id: user.id})
+    |> Repo.insert()
+  end
+
+  @doc """
+  Count of live, active owners for a tenant. The last-active-owner guard reads this
+  inside the same transaction as any owner deactivation / removal / demotion (R7-rbac)
+  so the "≥1 active owner per tenant" invariant can never be raced past.
+  """
+  def active_owner_count(%Tenant{id: tenant_id}), do: active_owner_count(tenant_id)
+
+  def active_owner_count(tenant_id) when is_binary(tenant_id) do
+    Repo.aggregate(
+      from(m in Membership,
+        where:
+          m.tenant_id == ^tenant_id and m.type == :owner and m.active == true and
+            is_nil(m.deleted_at)
+      ),
+      :count,
+      :id
+    )
   end
 
   # ── Admin tenant console (R3) ─────────────────────────────────────────────────────
@@ -296,10 +314,10 @@ defmodule QuoteAssist.Tenants do
     from m in Membership, where: is_nil(m.deleted_at), preload: [:user, :role]
   end
 
-  @doc "The owner's email for a tenant (the live `owner`-role membership), or nil."
+  @doc "The owner's email for a tenant (the live `owner`-type membership), or nil."
   def owner_email(%Tenant{memberships: memberships}) when is_list(memberships) do
     Enum.find_value(memberships, fn m ->
-      if m.role && m.role.slug == "owner", do: m.user.email
+      if m.type == :owner && m.user, do: m.user.email
     end)
   end
 
@@ -335,6 +353,12 @@ defmodule QuoteAssist.Tenants do
     Tenant.admin_update_changeset(tenant, attrs)
   end
 
+  # `Ecto.Multi.t/0` is opaque and wraps a `MapSet`; piping `Multi.new/0` into
+  # `Multi.insert/4` makes Dialyzer read that MapSet structurally and emit a
+  # spurious `call_without_opaque`. The code is correct (a well-known Ecto.Multi
+  # false positive), so scope a `:no_opaque` suppression to just this function.
+  @dialyzer {:no_opaque, create_tenant_with_owner: 2}
+
   @doc """
   Admin-creates a tenant and its owner, atomically (`Ecto.Multi`):
 
@@ -342,7 +366,7 @@ defmodule QuoteAssist.Tenants do
     * the built-in role set (`seed_default_roles/1`);
     * owner `User` — reuses the existing global row if the email is already known,
       else registers a new (unconfirmed) user;
-    * owner `Membership` (role `owner`);
+    * owner `Membership` (**`type: :owner`**, no role);
     * an audit row (actor = admin).
 
   On success an invite email (a magic link built on the tenant's own host) is sent to
@@ -365,7 +389,7 @@ defmodule QuoteAssist.Tenants do
         end)
         |> Multi.run(:owner, fn _repo, _changes -> ensure_owner_user(owner_email) end)
         |> Multi.run(:membership, fn _repo, %{tenant: tenant, owner: owner} ->
-          create_membership(tenant, owner, get_role_by_slug(tenant, "owner"))
+          create_owner_membership(tenant, owner)
         end)
         |> Multi.run(:audit, fn _repo, %{tenant: tenant, owner: owner} ->
           Audit.log(%{

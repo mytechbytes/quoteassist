@@ -10,12 +10,11 @@ defmodule QuoteAssistWeb.PageControllerTest do
 
     # Release train rows (hard-coded in PageHTML.release_tracks/0).
     assert body =~ "R0a"
-    assert body =~ "R-CD"
-    assert body =~ "R8"
+    assert body =~ "R10-domain"
+    assert body =~ "R12-quote-reply"
 
-    # Status labels span all three states once R0a is in flight.
+    # Status labels: R0–R3 are done, later releases pending.
     assert body =~ "Done"
-    assert body =~ "In progress"
     assert body =~ "Pending"
 
     # Public chrome: Admin login points at the (R3) admin route.

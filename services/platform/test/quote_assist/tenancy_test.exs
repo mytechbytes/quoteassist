@@ -49,12 +49,46 @@ defmodule QuoteAssist.TenancyTest do
     test "cross-tenant isolation: tenant A's scope cannot see tenant B's rows" do
       tenant_a = tenant_fixture(%{slug: "isoa"})
       tenant_b = tenant_fixture(%{slug: "isob"})
-      b_owner = Tenants.get_role_by_slug(tenant_b, "owner")
+      b_role = Tenants.get_role_by_slug(tenant_b, "agent")
 
       ids_visible_to_a =
         Role |> Tenancy.scope(%Scope{tenant: tenant_a}) |> Repo.all() |> Enum.map(& &1.id)
 
-      refute b_owner.id in ids_visible_to_a
+      refute b_role.id in ids_visible_to_a
+    end
+  end
+
+  describe "owner protection (query layer)" do
+    setup do
+      tenant = tenant_fixture(%{slug: "ownerprot"})
+      {_u1, owner} = member_fixture(tenant, "owner")
+      {_u2, member} = member_fixture(tenant, "agent")
+      %{tenant: tenant, owner: owner, member: member}
+    end
+
+    test "members_visible_to/1 excludes owners for a non-owner actor", ctx do
+      scope = %Scope{tenant: ctx.tenant, membership: ctx.member}
+      visible = Tenancy.members_visible_to(scope) |> Repo.all()
+
+      refute :owner in Enum.map(visible, & &1.type)
+      assert ctx.member.id in Enum.map(visible, & &1.id)
+      refute ctx.owner.id in Enum.map(visible, & &1.id)
+    end
+
+    test "members_visible_to/1 shows everyone to an owner actor", ctx do
+      scope = %Scope{tenant: ctx.tenant, membership: ctx.owner}
+      ids = Tenancy.members_visible_to(scope) |> Repo.all() |> Enum.map(& &1.id)
+
+      assert ctx.owner.id in ids
+      assert ctx.member.id in ids
+    end
+
+    test "assignable_types_for/1 gates the protected type to owners", ctx do
+      assert Tenancy.assignable_types_for(%Scope{tenant: ctx.tenant, membership: ctx.owner}) ==
+               [:owner, :member]
+
+      assert Tenancy.assignable_types_for(%Scope{tenant: ctx.tenant, membership: ctx.member}) ==
+               [:member]
     end
   end
 end

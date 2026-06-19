@@ -5,13 +5,19 @@ defmodule QuoteAssist.PlansTest do
   alias QuoteAssist.Plans.Plan
 
   describe "seed_plans/0" do
-    test "seeds Starter + Growth, idempotently" do
+    test "seeds Starter / Growth / Scale, idempotently, with feature limits" do
       first = Plans.seed_plans()
-      assert length(first) == 2
-      assert first |> Enum.map(& &1.slug) |> Enum.sort() == ["growth", "starter"]
+      assert length(first) == 3
+      assert first |> Enum.map(& &1.slug) |> Enum.sort() == ["growth", "scale", "starter"]
+
+      starter = Plans.get_plan_by_slug("starter")
+      assert starter.price == 0
+      assert starter.interval == :monthly
+      assert starter.limits["seats"] == 3
+      assert starter.limits["custom_domain"] == false
 
       Plans.seed_plans()
-      assert Repo.aggregate(Plan, :count) == 2
+      assert Repo.aggregate(Plan, :count) == 3
     end
   end
 
@@ -47,8 +53,21 @@ defmodule QuoteAssist.PlansTest do
 
   describe "create_plan/1" do
     test "rejects a negative price" do
-      assert {:error, changeset} = Plans.create_plan(%{name: "X", slug: "x", monthly_price: -1})
-      assert errors_on(changeset).monthly_price != []
+      assert {:error, changeset} = Plans.create_plan(%{name: "X", slug: "x", price: -1})
+      assert errors_on(changeset).price != []
+    end
+
+    test "normalizes the limits map to typed values" do
+      assert {:ok, plan} =
+               Plans.create_plan(%{
+                 name: "Lim",
+                 slug: "lim",
+                 limits: %{"seats" => "12", "custom_domain" => "true", "junk" => "drop"}
+               })
+
+      assert plan.limits["seats"] == 12
+      assert plan.limits["custom_domain"] == true
+      refute Map.has_key?(plan.limits, "junk")
     end
 
     test "enforces a unique slug among live plans" do

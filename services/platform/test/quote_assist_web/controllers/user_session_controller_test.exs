@@ -121,7 +121,7 @@ defmodule QuoteAssistWeb.UserSessionControllerTest do
 
     test "confirms an unconfirmed member", %{conn: conn, tenant: tenant} do
       user = unconfirmed_user_fixture()
-      membership_fixture(tenant, user, "viewer")
+      membership_fixture(tenant, user, "agent")
       {token, _hashed_token} = generate_user_magic_link_token(user)
       refute user.confirmed_at
 

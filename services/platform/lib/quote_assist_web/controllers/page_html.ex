@@ -27,18 +27,33 @@ defmodule QuoteAssistWeb.PageHTML do
       {"Site Admin",
        [
          %{id: "R3", desc: "Admin identity + tenant CRUD + 15-day trial", status: :done},
-         %{id: "R4", desc: "Self-registration (trial onboarding)", status: :in_progress}
+         %{id: "R4-retrofit", desc: "Admin RBAC + protected super_admin", status: :pending},
+         %{id: "R5-selfreg", desc: "Self-registration → auto-approve to trial", status: :pending},
+         %{id: "R6-errors", desc: "Branded error pages (401/403/404/500/503)", status: :pending}
        ]},
       {"Tenant Basics",
        [
-         %{id: "R5", desc: "Users, roles, permissions", status: :pending},
-         %{id: "R6", desc: "Account flows (forgot / reset / profile)", status: :pending},
-         %{id: "R-CD", desc: "Custom domain (add, verify, auto-TLS)", status: :pending}
+         %{
+           id: "R7-rbac",
+           desc: "Users, roles, permissions + self:* + requests",
+           status: :pending
+         },
+         %{id: "R8-dashboard", desc: "/app dashboard landing", status: :pending},
+         %{
+           id: "R9-recovery",
+           desc: "Account recovery (forgot / reset / email change)",
+           status: :pending
+         },
+         %{id: "R10-domain", desc: "Custom domain (add, verify, auto-TLS)", status: :pending}
        ]},
       {"Leads / Quotes",
        [
-         %{id: "R7", desc: "Quote request CRUD (lead capture)", status: :pending},
-         %{id: "R8", desc: "Quote reply + AI hook (stub → live)", status: :pending}
+         %{id: "R11-quotes", desc: "Quote request CRUD (lead capture)", status: :pending},
+         %{
+           id: "R12-quote-reply",
+           desc: "Quote detail + AI reply hook (stub → live)",
+           status: :pending
+         }
        ]}
     ]
   end

@@ -197,32 +197,50 @@ defmodule QuoteAssist.TenantsTest do
   end
 
   describe "roles" do
-    test "seed_default_roles/1 seeds five built-in roles, idempotently" do
+    test "seed_default_roles/1 seeds the two built-in member roles, idempotently" do
       tenant = tenant_fixture(%{slug: "roles1"})
       first = Tenants.seed_default_roles(tenant)
-      assert length(first) == 5
+      assert length(first) == 2
 
       # Re-running does not duplicate.
       Tenants.seed_default_roles(tenant)
-      assert Repo.aggregate(from(r in Role, where: r.tenant_id == ^tenant.id), :count) == 5
+      assert Repo.aggregate(from(r in Role, where: r.tenant_id == ^tenant.id), :count) == 2
     end
 
-    test "owner role grants every catalog permission; viewer is read-only; all builtin" do
+    test "manager runs the desk; agent is quote-focused; both builtin (owner is a type, not a role)" do
       tenant = tenant_fixture(%{slug: "roles2"})
-      owner = Tenants.get_role_by_slug(tenant, "owner")
-      viewer = Tenants.get_role_by_slug(tenant, "viewer")
+      manager = Tenants.get_role_by_slug(tenant, "manager")
+      agent = Tenants.get_role_by_slug(tenant, "agent")
 
-      assert Enum.sort(owner.permissions) == Enum.sort(QuoteAssist.Authz.Permissions.keys())
-      assert owner.builtin
-      assert "quotes.view" in viewer.permissions
-      refute "quotes.delete" in viewer.permissions
+      assert manager.builtin
+      assert agent.builtin
+      # owner is a protected membership type, never a seeded role.
+      assert Tenants.get_role_by_slug(tenant, "owner") == nil
+
+      assert "quote:delete" in manager.permissions
+      assert "user:create" in manager.permissions
+      refute "quote:delete" in agent.permissions
+      refute "user:create" in agent.permissions
     end
 
     test "create_role/2 rejects unknown permission keys" do
       tenant = tenant_fixture(%{slug: "roles3"})
 
       assert {:error, changeset} =
-               Tenants.create_role(tenant, %{name: "Bad", slug: "bad", permissions: ["nope.fake"]})
+               Tenants.create_role(tenant, %{name: "Bad", slug: "bad", permissions: ["nope:fake"]})
+
+      assert errors_on(changeset).permissions != []
+    end
+
+    test "create_role/2 rejects the self:* baseline (not role-composable)" do
+      tenant = tenant_fixture(%{slug: "roles3a"})
+
+      assert {:error, changeset} =
+               Tenants.create_role(tenant, %{
+                 name: "Selfy",
+                 slug: "selfy",
+                 permissions: ["self:read"]
+               })
 
       assert errors_on(changeset).permissions != []
     end
@@ -234,10 +252,10 @@ defmodule QuoteAssist.TenantsTest do
                Tenants.create_role(tenant, %{
                  name: "Custom",
                  slug: "custom",
-                 permissions: ["quotes.view"]
+                 permissions: ["quote:list"]
                })
 
-      assert role.permissions == ["quotes.view"]
+      assert role.permissions == ["quote:list"]
     end
   end
 
@@ -264,6 +282,29 @@ defmodule QuoteAssist.TenantsTest do
     test "get_active_membership/2 returns nil for a non-member" do
       tenant = tenant_fixture(%{slug: "mem3"})
       assert Tenants.get_active_membership(tenant, user_fixture()) == nil
+    end
+
+    test "create_membership/3 creates a :member with a role; create_owner_membership/2 a roleless :owner" do
+      tenant = tenant_fixture(%{slug: "mem4"})
+      role = Tenants.get_role_by_slug(tenant, "agent")
+
+      {:ok, member} = Tenants.create_membership(tenant, user_fixture(), role)
+      assert member.type == :member
+      assert member.role_id == role.id
+      assert member.active
+
+      {:ok, owner} = Tenants.create_owner_membership(tenant, user_fixture())
+      assert owner.type == :owner
+      assert owner.role_id == nil
+    end
+
+    test "active_owner_count/1 counts live, active owners only" do
+      tenant = tenant_fixture(%{slug: "mem5"})
+      assert Tenants.active_owner_count(tenant) == 0
+
+      {_user, _owner} = member_fixture(tenant, "owner")
+      member_fixture(tenant, "agent")
+      assert Tenants.active_owner_count(tenant) == 1
     end
   end
 

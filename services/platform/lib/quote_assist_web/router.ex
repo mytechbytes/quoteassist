@@ -174,7 +174,8 @@ defmodule QuoteAssistWeb.Router do
     end
   end
 
-  # NOTE: self-registration (/register) lands in R4; the settings screen and
-  # password change land in R6. Their generated routes/LiveViews/tests were
-  # removed to keep R1 to sign in / out only (see RELEASE_PLAN.md).
+  # NOTE: self-registration (/register) lands in R5-selfreg; the profile/settings and
+  # password-change surface lands in R7-rbac, and account recovery in R9-recovery.
+  # Their generated routes/LiveViews/tests were removed to keep R1 to sign in / out
+  # only (see RELEASE_PLAN.md).
 end

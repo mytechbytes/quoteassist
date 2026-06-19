@@ -2,7 +2,7 @@ defmodule QuoteAssist.Tenants.Role do
   @moduledoc """
   A tenant-scoped role: a named bundle of permission keys drawn from the code-owned
   catalog (`QuoteAssist.Authz.Permissions`). Each tenant gets its own set seeded at
-  creation (see `QuoteAssist.Tenants.seed_default_roles/1`); R5 builds the UI to
+  creation (see `QuoteAssist.Tenants.seed_default_roles/1`); R7-rbac builds the UI to
   compose them. The catalog is never invented in the DB — `permissions` are
   validated against it here.
   """

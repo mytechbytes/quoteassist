@@ -57,18 +57,18 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Show do
       <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
         <div class="mtb-kpi">
           <div class="text-xs font-semibold uppercase tracking-wide" style="color:var(--mc-text-3)">
-            Monthly price
+            Price ({@plan.interval})
           </div>
           <div class="mt-1.5 font-mono text-3xl font-bold" style="color:var(--mc-text)">
-            ${@plan.monthly_price}
+            {price_label(@plan)}
           </div>
         </div>
         <div class="mtb-kpi">
           <div class="text-xs font-semibold uppercase tracking-wide" style="color:var(--mc-text-3)">
-            Seat limit
+            Status
           </div>
           <div class="mt-1.5 font-mono text-3xl font-bold" style="color:var(--mc-text)">
-            {@plan.seat_limit}
+            {if @plan.active, do: "Active", else: "Inactive"}
           </div>
         </div>
         <div class="mtb-kpi">
@@ -79,6 +79,24 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Show do
             {length(@tenants)}
           </div>
         </div>
+      </div>
+
+      <div class="mb-6 mtb-card overflow-hidden">
+        <div
+          class="px-6 py-4 font-semibold"
+          style="font-family:var(--font-display);border-bottom:1px solid var(--mc-border)"
+        >
+          Feature limits
+        </div>
+        <dl class="grid grid-cols-2 gap-px lg:grid-cols-4" style="background:var(--mc-border)">
+          <.limit label="Quotes / month" value={limit_value(@plan, "quotes_per_month")} />
+          <.limit label="Seats" value={limit_value(@plan, "seats")} />
+          <.limit label="AI / month" value={limit_value(@plan, "ai_generations_per_month")} />
+          <.limit
+            label="Custom domain"
+            value={if truthy?(limit_value(@plan, "custom_domain")), do: "Yes", else: "No"}
+          />
+        </dl>
       </div>
 
       <div class="mtb-card overflow-hidden">
@@ -114,4 +132,30 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Show do
     </Layouts.admin>
     """
   end
+
+  attr :label, :string, required: true
+  attr :value, :any, required: true
+
+  defp limit(assigns) do
+    ~H"""
+    <div class="px-6 py-4" style="background:var(--mc-surface)">
+      <div class="text-xs font-semibold uppercase tracking-wide" style="color:var(--mc-text-3)">
+        {@label}
+      </div>
+      <div class="mt-1 font-mono text-lg font-bold" style="color:var(--mc-text)">{@value}</div>
+    </div>
+    """
+  end
+
+  defp price_label(%{price: price}) when price in [0, nil], do: "Free"
+
+  defp price_label(%{price: price}) when is_integer(price) do
+    "₹#{:erlang.float_to_binary(price / 100, decimals: 2)}"
+  end
+
+  defp limit_value(%{limits: limits}, key) when is_map(limits), do: Map.get(limits, key, "—")
+  defp limit_value(_plan, _key), do: "—"
+
+  defp truthy?(value) when value in [true, "true", "on", "1", 1], do: true
+  defp truthy?(_), do: false
 end

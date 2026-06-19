@@ -82,12 +82,21 @@ if deploy_env in ["dev", "staging"] do
     tenant
   end
 
+  # "owner" is the protected membership *type* (no role); other slugs are member roles.
   ensure_member = fn tenant, %User{} = user, role_slug ->
-    role = Tenants.get_role_by_slug(tenant, role_slug)
-
     case Tenants.get_active_membership(tenant, user) do
-      nil -> {:ok, _membership} = Tenants.create_membership(tenant, user, role)
-      _existing -> :ok
+      nil ->
+        case role_slug do
+          "owner" ->
+            {:ok, _membership} = Tenants.create_owner_membership(tenant, user)
+
+          slug ->
+            role = Tenants.get_role_by_slug(tenant, slug)
+            {:ok, _membership} = Tenants.create_membership(tenant, user, role)
+        end
+
+      _existing ->
+        :ok
     end
   end
 
@@ -99,8 +108,9 @@ if deploy_env in ["dev", "staging"] do
       name: "Acme Travel",
       members: [
         %{email: "owner@acme.test", role: "owner"},
+        %{email: "manager@acme.test", role: "manager"},
         %{email: "agent@acme.test", role: "agent"},
-        %{email: "newbie@acme.test", role: "viewer", confirmed: false}
+        %{email: "newbie@acme.test", role: "agent", confirmed: false}
       ]
     },
     %{

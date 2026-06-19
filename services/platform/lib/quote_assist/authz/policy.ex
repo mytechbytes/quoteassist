@@ -1,11 +1,20 @@
 defmodule QuoteAssist.Authz.Policy do
   @moduledoc """
-  Authorization checks against a scope's permissions. A scope's permissions are the
-  set granted by the user's role for the resolved tenant (see
-  `permissions_for_membership/1`). The owner role is seeded with every catalog key,
-  so no role is special-cased here.
+  Tenant-side authorization — the protected-type predicate (RELEASE_PLAN.md, R2):
+
+      can?(actor, perm) =
+        actor.type == :owner            # protected type → always true (computed)
+        or perm in self:* baseline      # implicit, scoped to own row
+        or perm in permissions(role)    # normal type → role-driven
+
+  The `owner` type holds **all** permissions, computed — a short-circuit `true`, never
+  an enumerated list — so any permission added in a future release is held
+  automatically. Members hold the fixed `self:*` baseline plus whatever their role
+  grants. A scope's `permissions` are the keys granted by the membership's role (see
+  `permissions_for_membership/1`); owners carry no role and so no enumerated keys.
   """
   alias QuoteAssist.Accounts.Scope
+  alias QuoteAssist.Authz.Permissions
   alias QuoteAssist.Tenants.{Membership, Role}
 
   @doc """
@@ -15,14 +24,23 @@ defmodule QuoteAssist.Authz.Policy do
   """
   def can?(scope, permission, resource \\ nil)
 
-  def can?(%Scope{permissions: permissions}, permission, _resource)
-      when is_list(permissions) and is_binary(permission) do
-    permission in permissions
+  # Protected type → computed all-access. Checked first, before any role/baseline lookup.
+  def can?(%Scope{membership: %Membership{type: :owner}}, _permission, _resource), do: true
+
+  def can?(%Scope{} = scope, permission, _resource) when is_binary(permission) do
+    Permissions.baseline?(permission) or
+      (is_list(scope.permissions) and permission in scope.permissions)
   end
 
   def can?(_scope, _permission, _resource), do: false
 
-  @doc "The permission keys granted by a membership's role (empty when absent)."
+  @doc """
+  The role-composable permission keys carried by a membership. A member's keys come
+  from its role; an owner carries none here — its all-access is computed in `can?/3`
+  via the protected type, never an enumerated list.
+  """
+  def permissions_for_membership(%Membership{type: :owner}), do: []
+
   def permissions_for_membership(%Membership{role: %Role{permissions: permissions}})
       when is_list(permissions),
       do: permissions

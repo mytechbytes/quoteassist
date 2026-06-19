@@ -50,10 +50,10 @@ defmodule QuoteAssistWeb.AppHomeLiveTest do
       assert html =~ ~p"/logout"
     end
 
-    @tag role: "viewer"
+    @tag role: "agent"
     test "shows the member's role in the shell", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/app")
-      assert html =~ "Viewer"
+      assert html =~ "Agent"
     end
   end
 end

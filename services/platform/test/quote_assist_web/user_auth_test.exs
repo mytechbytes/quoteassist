@@ -408,8 +408,9 @@ defmodule QuoteAssistWeb.UserAuthTest do
         UserAuth.on_mount(:require_tenant_member, %{}, session, %LiveView.Socket{})
 
       assert socket.assigns.current_scope.tenant.id == tenant.id
-      assert socket.assigns.current_scope.membership.role.slug == "owner"
-      assert "quotes.view" in socket.assigns.current_scope.permissions
+      # Owner is the protected type (no role); all-access is computed via Policy.
+      assert socket.assigns.current_scope.membership.type == :owner
+      assert QuoteAssist.Authz.Policy.can?(socket.assigns.current_scope, "quote:list")
     end
 
     test "halt when not logged in", %{conn: conn} do

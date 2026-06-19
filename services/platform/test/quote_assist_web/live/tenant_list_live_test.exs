@@ -47,7 +47,7 @@ defmodule QuoteAssistWeb.TenantListLiveTest do
       {owner, _} = member_fixture(tenant, "owner")
       set_password(owner)
       magic_only = unconfirmed_user_fixture()
-      membership_fixture(tenant, magic_only, "viewer")
+      membership_fixture(tenant, magic_only, "agent")
 
       [t] = Tenants.list_live_tenants_with_members()
       html = rendered_to_string(TenantListLive.directory(%{tenants: [t], dev: true}))
@@ -59,7 +59,7 @@ defmodule QuoteAssistWeb.TenantListLiveTest do
 
       # Members without a password show the magic-link note instead.
       assert html =~ magic_only.email
-      assert html =~ "Viewer"
+      assert html =~ "Agent"
       assert html =~ "magic link only"
     end
 

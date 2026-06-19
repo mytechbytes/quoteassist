@@ -2,7 +2,7 @@ defmodule QuoteAssist.Plans do
   @moduledoc """
   The subscription plan catalog. Plans are platform-level (not tenant-scoped): the
   admin picks one when creating a tenant, and `tenant.plan_id` references it. Seeded
-  with Starter + Growth via `seed_plans/0` (idempotent, called from
+  with Starter / Growth / Scale via `seed_plans/0` (idempotent, called from
   `priv/repo/seeds.exs`).
   """
   import Ecto.Query
@@ -12,12 +12,49 @@ defmodule QuoteAssist.Plans do
   alias QuoteAssist.Plans.Plan
   alias QuoteAssist.Repo
 
-  # Seeded set — "seed two" per the release plan. Prices are monthly, in whole
-  # currency units; seat_limit is informational for now (enforced when team
-  # management lands in R5).
+  # Seeded set — "seed exactly three" with ascending limits (RELEASE_PLAN.md). Prices
+  # are in the smallest currency unit (paise); 0 = free. `limits` are the entitlement
+  # dimensions read by future enforcement.
   @default_plans [
-    %{slug: "starter", name: "Starter", monthly_price: 49, seat_limit: 5},
-    %{slug: "growth", name: "Growth", monthly_price: 149, seat_limit: 25}
+    %{
+      slug: "starter",
+      name: "Starter",
+      price: 0,
+      interval: :monthly,
+      active: true,
+      limits: %{
+        "quotes_per_month" => 50,
+        "seats" => 3,
+        "ai_generations_per_month" => 50,
+        "custom_domain" => false
+      }
+    },
+    %{
+      slug: "growth",
+      name: "Growth",
+      price: 149_900,
+      interval: :monthly,
+      active: true,
+      limits: %{
+        "quotes_per_month" => 500,
+        "seats" => 10,
+        "ai_generations_per_month" => 500,
+        "custom_domain" => true
+      }
+    },
+    %{
+      slug: "scale",
+      name: "Scale",
+      price: 499_900,
+      interval: :monthly,
+      active: true,
+      limits: %{
+        "quotes_per_month" => 5000,
+        "seats" => 50,
+        "ai_generations_per_month" => 5000,
+        "custom_domain" => true
+      }
+    }
   ]
 
   @doc "Live plans, ordered by price then name."
@@ -25,7 +62,7 @@ defmodule QuoteAssist.Plans do
     Repo.all(
       from p in Plan,
         where: is_nil(p.deleted_at),
-        order_by: [asc: p.monthly_price, asc: p.name]
+        order_by: [asc: p.price, asc: p.name]
     )
   end
 
@@ -82,7 +119,7 @@ defmodule QuoteAssist.Plans do
     end)
   end
 
-  @doc "The built-in plan specs (Starter + Growth)."
+  @doc "The built-in plan specs (Starter / Growth / Scale)."
   def default_plan_specs, do: @default_plans
 
   @doc "Seeds the built-in plans, idempotently (skips existing slugs). Returns them."

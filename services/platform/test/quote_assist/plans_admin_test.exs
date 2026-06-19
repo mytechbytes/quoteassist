@@ -15,11 +15,13 @@ defmodule QuoteAssist.PlansAdminTest do
                Plans.admin_create_plan(admin, %{
                  name: "Pro",
                  slug: "pro",
-                 monthly_price: 99,
-                 seat_limit: 20
+                 price: 9900,
+                 interval: :monthly,
+                 limits: %{"seats" => 20}
                })
 
       assert plan.slug == "pro"
+      assert plan.limits["seats"] == 20
       log = Repo.one!(from l in Log, where: l.action == "plan.created")
       assert log.actor_type == :admin
       assert log.actor_id == admin.id
@@ -29,7 +31,7 @@ defmodule QuoteAssist.PlansAdminTest do
       admin = admin_fixture()
 
       assert {:error, _changeset} =
-               Plans.admin_create_plan(admin, %{name: "X", monthly_price: -1})
+               Plans.admin_create_plan(admin, %{name: "X", price: -1})
 
       assert Repo.aggregate(from(l in Log, where: l.action == "plan.created"), :count) == 0
     end
@@ -43,12 +45,12 @@ defmodule QuoteAssist.PlansAdminTest do
       assert {:ok, updated} =
                Plans.admin_update_plan(admin, plan, %{
                  "name" => "Growth Plus",
-                 "monthly_price" => 199,
+                 "price" => 19_900,
                  "slug" => "hacked"
                })
 
       assert updated.name == "Growth Plus"
-      assert updated.monthly_price == 199
+      assert updated.price == 19_900
       assert updated.slug == "growth"
       assert Repo.one!(from l in Log, where: l.action == "plan.updated").actor_id == admin.id
     end

@@ -5,6 +5,8 @@ defmodule QuoteAssistWeb.Layouts do
   """
   use QuoteAssistWeb, :html
 
+  alias QuoteAssist.Tenants.Membership
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -129,7 +131,7 @@ defmodule QuoteAssistWeb.Layouts do
           icon="hero-squares-2x2"
           href={~p"/app"}
         />
-        <%!-- R7 · quote request CRUD --%>
+        <%!-- R11-quotes · quote request CRUD --%>
         <.nav_item
           active={@active}
           key="quotes"
@@ -139,9 +141,9 @@ defmodule QuoteAssistWeb.Layouts do
         />
 
         <div class="mtb-side-section">Account</div>
-        <%!-- R5 · users, roles, permissions --%>
+        <%!-- R7-rbac · users, roles, permissions --%>
         <.nav_item active={@active} key="team" label="Team" icon="hero-users" href="/app/team" />
-        <%!-- R6 · account flows / settings --%>
+        <%!-- R9-recovery · account recovery / settings --%>
         <.nav_item
           active={@active}
           key="settings"
@@ -162,7 +164,7 @@ defmodule QuoteAssistWeb.Layouts do
               {@current_scope.user.email}
             </div>
             <div class="truncate text-[11px]" style="color:var(--mc-text-3)">
-              {@current_scope.tenant.name} · {@current_scope.membership.role.name}
+              {@current_scope.tenant.name} · {Membership.role_label(@current_scope.membership)}
             </div>
           </div>
         </div>

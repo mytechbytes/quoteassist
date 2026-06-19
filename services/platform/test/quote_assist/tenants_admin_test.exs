@@ -38,7 +38,7 @@ defmodule QuoteAssist.TenantsAdminTest do
       user = Accounts.get_user_by_email("owner@acme.test")
       assert user
       membership = Tenants.get_active_membership(tenant, user)
-      assert membership.role.slug == "owner"
+      assert membership.type == :owner
     end
 
     test "reuses an existing user for the owner email", %{admin: admin, plan: plan} do

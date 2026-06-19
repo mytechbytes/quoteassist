@@ -73,17 +73,18 @@ if config_env() == :prod do
   config :quote_assist, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   # LiveView socket origin (R2). Tenants live on their own subdomains
-  # (`*.quoteassist.mytechbytes.in`) and, later, verified custom domains, so the
-  # `/live` websocket must accept those origins — the default `check_origin`
-  # (the platform host only) would reject every tenant subdomain. Allow the
-  # wildcard subdomain; verified custom domains are dynamic, so authorise them with
-  # an MFA that checks the DB (mirrors the Caddy on-demand-TLS `ask` gate in R-CD):
+  # (`*.quoteassist.mytechbytes.in`), so the `/live` websocket must accept those
+  # origins — the default `check_origin` (the platform host only) rejects every
+  # tenant subdomain. Allow the apex host plus the wildcard subdomain.
   #
-  #     check_origin: ["//#{host}", "//*.#{host}", {QuoteAssist.Tenants, :verified_origin?, []}]
+  # Verified custom domains (R10-domain) are dynamic and won't match the wildcard;
+  # when that ships, authorise them by appending an MFA that checks the DB (mirrors
+  # the Caddy on-demand-TLS `ask` gate), e.g.:
   #
-  # Wire this up with the prod deploy (wildcard DNS + TLS); infra is out of R2 scope.
+  #     check_origin: [..., {QuoteAssist.Tenants, :verified_origin?, []}]
   config :quote_assist, QuoteAssistWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
+    check_origin: ["//#{host}", "//*.#{host}"],
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.

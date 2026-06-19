@@ -170,6 +170,8 @@ defmodule QuoteAssistWeb.Router do
       live "/plans/:id", Admin.PlanLive.Show, :show
       live "/admins", Admin.AdminLive.Index, :index
       live "/admins/:id", Admin.AdminLive.Show, :show
+      live "/roles", Admin.AdminRoleLive.Index, :index
+      live "/roles/:id", Admin.AdminRoleLive.Show, :show
       live "/activity", Admin.ActivityLive, :index
     end
   end

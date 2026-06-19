@@ -1,7 +1,9 @@
 defmodule QuoteAssistWeb.Admin.AdminLive.Show do
   @moduledoc """
-  Administrator detail (`/admin/admins/:id`) — read-only: identity, last sign-in, and
-  the audit trail of actions this admin has taken.
+  Administrator detail (`/admin/admins/:id`): identity, type/role/status, last sign-in,
+  and the audit trail of actions this admin has taken. Gated by `admin:read`; a normal
+  admin can never reach a super_admin's page — the lookup is scoped at the query layer
+  (`Accounts.get_admin_visible_to/2`).
   """
   use QuoteAssistWeb, :live_view
 
@@ -12,20 +14,25 @@ defmodule QuoteAssistWeb.Admin.AdminLive.Show do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
-    case Accounts.get_admin(id) do
+    case QuoteAssistWeb.AdminAuth.authorize(socket, "admin:read") do
+      {:cont, socket} -> {:ok, load(socket, id)}
+      {:halt, socket} -> {:ok, socket}
+    end
+  end
+
+  defp load(socket, id) do
+    case Accounts.get_admin_visible_to(socket.assigns.current_admin, id) do
       nil ->
-        {:ok,
-         socket
-         |> put_flash(:error, "That administrator no longer exists.")
-         |> push_navigate(to: ~p"/admin/admins")}
+        socket
+        |> put_flash(:error, "That administrator no longer exists.")
+        |> push_navigate(to: ~p"/admin/admins")
 
       admin ->
-        {:ok,
-         assign(socket,
-           page_title: admin.email,
-           admin: admin,
-           logs: Audit.list_for_admin(admin.id)
-         )}
+        assign(socket,
+          page_title: admin.email,
+          admin: admin,
+          logs: Audit.list_for_admin(admin.id)
+        )
     end
   end
 
@@ -52,12 +59,24 @@ defmodule QuoteAssistWeb.Admin.AdminLive.Show do
         >
           {@admin.email}
         </h1>
+        <div class="mt-2 flex items-center gap-2">
+          <.admin_type_badge type={@admin.type} />
+          <.admin_active_badge active={@admin.active} />
+        </div>
       </div>
 
       <div class="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         <div class="mtb-card p-6">
           <div class="mb-4 font-semibold" style="font-family:var(--font-display)">Details</div>
           <dl class="space-y-3">
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wide" style="color:var(--mc-text-3)">
+                Role
+              </dt>
+              <dd class="mt-0.5 text-sm" style="color:var(--mc-text)">
+                {admin_role_label(@admin)}
+              </dd>
+            </div>
             <div>
               <dt class="text-xs font-semibold uppercase tracking-wide" style="color:var(--mc-text-3)">
                 Last sign-in

@@ -6,7 +6,8 @@ defmodule QuoteAssist.Accounts do
   import Ecto.Query, warn: false
   alias QuoteAssist.Repo
 
-  alias QuoteAssist.Accounts.{Admin, AdminToken, User, UserNotifier, UserToken}
+  alias QuoteAssist.Accounts.{Admin, AdminRole, AdminToken, User, UserNotifier, UserToken}
+  alias QuoteAssist.Audit
 
   ## Database getters
 
@@ -335,8 +336,10 @@ defmodule QuoteAssist.Accounts do
   end
 
   @doc """
-  Registers an admin. The single creation path for an admin identity — called from a
-  Mix task (`mix qa.create_admin`) or an `iex` session, never over HTTP.
+  Registers a **super_admin** — the bootstrap path for the protected root type. Called
+  from a Mix task (`mix qa.create_admin`) or an `iex` session, never over HTTP, so the
+  "≥1 active super_admin" invariant holds from first setup. Scoped, normal admins are
+  created from the console via `create_admin/2`.
   """
   def register_admin(attrs) do
     %Admin{} |> Admin.registration_changeset(attrs) |> Repo.insert()
@@ -361,16 +364,357 @@ defmodule QuoteAssist.Accounts do
     token
   end
 
-  @doc "Gets the admin for a valid session token, or nil."
+  @doc """
+  Gets the admin for a valid session token (with `:role` preloaded so
+  `QuoteAssist.Authz.AdminPolicy` can authorize), or nil.
+  """
   def get_admin_by_session_token(token) do
     {:ok, query} = AdminToken.verify_session_token_query(token)
-    Repo.one(query)
+
+    case Repo.one(query) do
+      nil -> nil
+      admin -> Repo.preload(admin, :role)
+    end
   end
 
   @doc "Deletes an admin session token (logout)."
   def delete_admin_session_token(token) do
     Repo.delete_all(from(AdminToken, where: [token: ^token, context: "session"]))
     :ok
+  end
+
+  ## Admin RBAC — roles (R4-retrofit)
+  #
+  # The platform mirror of the tenant role functions in `QuoteAssist.Tenants`.
+  # `admin_roles` are platform-global (no tenant_id) and only ever hold normal-admin
+  # roles — the `super_admin` protected type carries no role.
+
+  @doc "All live admin roles, ordered by name (for the admin roles console)."
+  def list_admin_roles do
+    Repo.all(from r in AdminRole, where: is_nil(r.deleted_at), order_by: [asc: r.name])
+  end
+
+  @doc "Fetches a live admin role by id, or nil. Safe for untrusted ids (bad UUID -> nil)."
+  def get_admin_role(id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} -> Repo.one(from r in AdminRole, where: r.id == ^uuid and is_nil(r.deleted_at))
+      :error -> nil
+    end
+  end
+
+  @doc "Fetches a live admin role by slug, or nil."
+  def get_admin_role_by_slug(slug) when is_binary(slug) do
+    Repo.one(from r in AdminRole, where: r.slug == ^slug and is_nil(r.deleted_at))
+  end
+
+  @doc "Changeset backing the admin-role create/edit form."
+  def change_admin_role(role \\ %AdminRole{}, attrs \\ %{}) do
+    AdminRole.changeset(role, attrs)
+  end
+
+  @doc "Creates an admin role (audited, actor = admin)."
+  def create_admin_role(%Admin{} = actor, attrs) do
+    Repo.transact(fn ->
+      with {:ok, role} <- %AdminRole{} |> AdminRole.changeset(attrs) |> Repo.insert() do
+        audit_admin(actor, "admin_role.created", "admin_role", role.id, %{"slug" => role.slug})
+        {:ok, role}
+      end
+    end)
+  end
+
+  @doc "Edits an admin role's name/description/permissions (audited)."
+  def update_admin_role(%Admin{} = actor, %AdminRole{} = role, attrs) do
+    Repo.transact(fn ->
+      with {:ok, updated} <- role |> AdminRole.changeset(attrs) |> Repo.update() do
+        audit_admin(actor, "admin_role.updated", "admin_role", role.id, %{"slug" => updated.slug})
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc """
+  Soft-deletes an admin role (audited). Refuses built-in roles (`:builtin`) and roles
+  still assigned to a live admin (`:role_in_use`) — there is no orphaning path.
+  """
+  def soft_delete_admin_role(%Admin{} = actor, %AdminRole{} = role) do
+    cond do
+      role.builtin -> {:error, :builtin}
+      admin_role_in_use?(role) -> {:error, :role_in_use}
+      true -> do_delete_admin_role(actor, role)
+    end
+  end
+
+  defp do_delete_admin_role(actor, role) do
+    Repo.transact(fn ->
+      changeset = Ecto.Changeset.change(role, deleted_at: DateTime.utc_now(:second))
+
+      with {:ok, deleted} <- Repo.update(changeset) do
+        audit_admin(actor, "admin_role.deleted", "admin_role", role.id, %{"slug" => role.slug})
+        {:ok, deleted}
+      end
+    end)
+  end
+
+  @doc "Seeds the built-in admin roles (idempotent — skips existing slugs)."
+  def seed_default_admin_roles do
+    for spec <- default_admin_role_specs() do
+      case get_admin_role_by_slug(spec.slug) do
+        nil ->
+          {:ok, role} =
+            %AdminRole{} |> AdminRole.changeset(Map.put(spec, :builtin, true)) |> Repo.insert()
+
+          role
+
+        %AdminRole{} = role ->
+          role
+      end
+    end
+  end
+
+  @doc """
+  Built-in admin role specs, composed from the code-owned admin catalog
+  (`QuoteAssist.Authz.AdminPermissions`). `super_admin` is a protected *type*, not a
+  role (computed all-access), so it is intentionally absent here.
+  """
+  def default_admin_role_specs do
+    [
+      %{
+        slug: "operations",
+        name: "Operations",
+        description: "Manages agencies and their lifecycle.",
+        permissions: ~w(tenant:list tenant:create tenant:read tenant:update
+                        tenant:activate tenant:deactivate tenant:suspend tenant:cancel
+                        plan:list plan:read admin:list admin:read audit:list audit:read)
+      },
+      %{
+        slug: "support",
+        name: "Support",
+        description: "Read-only platform visibility for support staff.",
+        permissions: ~w(tenant:list tenant:read plan:list plan:read
+                        admin:list admin:read admin_role:list admin_role:read
+                        audit:list audit:read)
+      }
+    ]
+  end
+
+  defp admin_role_in_use?(%AdminRole{id: role_id}) do
+    Repo.exists?(from a in Admin, where: a.role_id == ^role_id and is_nil(a.deleted_at))
+  end
+
+  ## Admin RBAC — admins (R4-retrofit)
+  #
+  # The `super_admin` protected type is enforced at the QUERY layer, not the view: a
+  # non-super-admin's admin lists EXCLUDE super_admins (`list_admins_visible_to/1` +
+  # `get_admin_visible_to/2`), and the last-active-super_admin guard runs in the same
+  # transaction as the mutation (`SELECT … FOR UPDATE`) so it can't be raced past.
+
+  @doc """
+  Live admins visible to `actor`, with `:role` preloaded, ordered by email. A
+  super_admin sees everyone; a normal admin sees only normal admins — the protected
+  type is filtered out in the query, never merely hidden in the template.
+  """
+  def list_admins_visible_to(%Admin{type: :super_admin}) do
+    Repo.all(from a in admins_with_role(), order_by: [asc: a.email])
+  end
+
+  def list_admins_visible_to(%Admin{}) do
+    Repo.all(from a in admins_with_role(), where: a.type == :admin, order_by: [asc: a.email])
+  end
+
+  @doc """
+  A single live admin (with `:role`) visible to `actor`, or nil. A normal admin can
+  never load a super_admin (the exclusion is in the query), so editing/viewing one is
+  impossible by any path — not just hidden in the UI.
+  """
+  def get_admin_visible_to(%Admin{} = actor, id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        base = from a in admins_with_role(), where: a.id == ^uuid
+
+        query =
+          case actor.type do
+            :super_admin -> base
+            :admin -> from a in base, where: a.type == :admin
+          end
+
+        Repo.one(query)
+
+      :error ->
+        nil
+    end
+  end
+
+  @doc "Live admins assigned to a given admin role, ordered by email (for the role detail)."
+  def list_admins_for_role(%AdminRole{id: role_id}) do
+    Repo.all(
+      from a in Admin,
+        where: a.role_id == ^role_id and is_nil(a.deleted_at),
+        order_by: [asc: a.email]
+    )
+  end
+
+  defp admins_with_role do
+    from a in Admin, where: is_nil(a.deleted_at), preload: [:role]
+  end
+
+  @doc "Changeset backing the create-admin form (email + password + role)."
+  def change_admin_creation(attrs \\ %{}) do
+    Admin.create_changeset(%Admin{}, attrs, hash_password: false)
+  end
+
+  @doc "Changeset backing the reassign-role form for a normal admin."
+  def change_admin(%Admin{} = admin, attrs \\ %{}) do
+    Admin.role_changeset(admin, attrs)
+  end
+
+  @doc """
+  Creates a **normal** admin (type `:admin`, with a role), audited. The protected type
+  is never reachable here — `Admin.create_changeset/3` forces `:admin`.
+  """
+  def create_admin(%Admin{} = actor, attrs) do
+    Repo.transact(fn ->
+      with {:ok, admin} <- %Admin{} |> Admin.create_changeset(attrs) |> Repo.insert() do
+        audit_admin(actor, "admin.created", "admin", admin.id, %{
+          "email" => mask_email(admin.email),
+          "role_id" => admin.role_id
+        })
+
+        {:ok, admin}
+      end
+    end)
+  end
+
+  @doc """
+  Reassigns a normal admin's role (audited). Refuses a super_admin target
+  (`:super_admin_has_no_role`) — the protected type's access is computed, not a role.
+  """
+  def update_admin_role_assignment(%Admin{}, %Admin{type: :super_admin}, _attrs) do
+    {:error, :super_admin_has_no_role}
+  end
+
+  def update_admin_role_assignment(%Admin{} = actor, %Admin{} = target, attrs) do
+    Repo.transact(fn ->
+      with {:ok, updated} <- target |> Admin.role_changeset(attrs) |> Repo.update() do
+        audit_admin(actor, "admin.role_changed", "admin", target.id, %{
+          "role_id" => updated.role_id
+        })
+
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc "Reactivates a deactivated admin (audited)."
+  def activate_admin(%Admin{} = actor, %Admin{} = target) do
+    Repo.transact(fn ->
+      with {:ok, updated} <- target |> Ecto.Changeset.change(active: true) |> Repo.update() do
+        audit_admin(actor, "admin.activated", "admin", target.id, %{
+          "email" => mask_email(target.email)
+        })
+
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc """
+  Deactivates an admin and revokes their sessions in the same transaction
+  (cross-cutting session-revocation rule). Refuses the last active super_admin
+  (`:last_super_admin`); the count + mutation run under a row lock so concurrent
+  deactivations can't race past the guard.
+  """
+  def deactivate_admin(%Admin{} = actor, %Admin{} = target) do
+    Repo.transact(fn ->
+      if last_active_super_admin?(target),
+        do: {:error, :last_super_admin},
+        else: do_deactivate_admin(actor, target)
+    end)
+  end
+
+  defp do_deactivate_admin(actor, target) do
+    with {:ok, updated} <- target |> Ecto.Changeset.change(active: false) |> Repo.update() do
+      revoke_admin_sessions(updated)
+
+      audit_admin(actor, "admin.deactivated", "admin", target.id, %{
+        "email" => mask_email(target.email)
+      })
+
+      {:ok, updated}
+    end
+  end
+
+  @doc """
+  Soft-deletes an admin (sets `deleted_at`, flips `active`), revokes their sessions,
+  and audits it. Refuses the last active super_admin (`:last_super_admin`) under the
+  same transactional guard as `deactivate_admin/2`.
+  """
+  def soft_delete_admin(%Admin{} = actor, %Admin{} = target) do
+    Repo.transact(fn ->
+      if last_active_super_admin?(target),
+        do: {:error, :last_super_admin},
+        else: do_soft_delete_admin(actor, target)
+    end)
+  end
+
+  defp do_soft_delete_admin(actor, target) do
+    changeset =
+      Ecto.Changeset.change(target, deleted_at: DateTime.utc_now(:second), active: false)
+
+    with {:ok, deleted} <- Repo.update(changeset) do
+      revoke_admin_sessions(deleted)
+
+      audit_admin(actor, "admin.deleted", "admin", target.id, %{
+        "email" => mask_email(target.email)
+      })
+
+      {:ok, deleted}
+    end
+  end
+
+  @doc "Count of live, active super_admins — the input to the last-active guard."
+  def active_super_admin_count do
+    Repo.aggregate(active_super_admins_query(), :count, :id)
+  end
+
+  # True only when `target` is itself an active super_admin AND it is the last one.
+  # Locks the active super_admin rows (`FOR UPDATE`) so two concurrent deactivations
+  # inside their own transactions serialise on the same rows and can't both pass.
+  defp last_active_super_admin?(%Admin{type: :super_admin, active: true}) do
+    ids = Repo.all(from a in active_super_admins_query(), lock: "FOR UPDATE", select: a.id)
+    length(ids) <= 1
+  end
+
+  defp last_active_super_admin?(_target), do: false
+
+  defp active_super_admins_query do
+    from a in Admin, where: a.type == :super_admin and a.active == true and is_nil(a.deleted_at)
+  end
+
+  defp revoke_admin_sessions(%Admin{id: id}) do
+    Repo.delete_all(from t in AdminToken, where: t.admin_id == ^id)
+    :ok
+  end
+
+  # Append-only audit row for an admin action (platform — tenant_id nil). `actor_subtype`
+  # captures the acting admin's tier (super_admin | admin), per the audit schema.
+  defp audit_admin(%Admin{} = actor, action, target_type, target_id, metadata) do
+    Audit.log!(%{
+      actor_type: :admin,
+      actor_subtype: actor.type,
+      actor_id: actor.id,
+      tenant_id: nil,
+      action: action,
+      target_type: target_type,
+      target_id: target_id,
+      metadata: metadata
+    })
+  end
+
+  defp mask_email(email) when is_binary(email) do
+    case String.split(email, "@", parts: 2) do
+      [local, domain] -> "#{String.first(local)}***@#{domain}"
+      _ -> "***"
+    end
   end
 
   ## Token helper

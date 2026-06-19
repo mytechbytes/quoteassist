@@ -132,6 +132,24 @@ defmodule QuoteAssistWeb.ConnCase do
     |> Plug.Conn.put_session(:admin_token, token)
   end
 
+  @doc """
+  Setup helper that registers a **normal** (scoped) admin and logs them in. The role's
+  permissions come from the `:admin_permissions` tag (default none), so a test can grant
+  exactly the keys it needs. Stores `:conn`, `:admin`, and `:admin_role`.
+
+      @tag admin_permissions: ["admin:list"]
+      setup :register_and_log_in_normal_admin
+  """
+  def register_and_log_in_normal_admin(%{conn: conn} = context) do
+    role =
+      QuoteAssist.AccountsFixtures.admin_role_fixture(%{
+        permissions: context[:admin_permissions] || []
+      })
+
+    admin = QuoteAssist.AccountsFixtures.normal_admin_fixture(role)
+    %{conn: log_in_admin(conn, admin), admin: admin, admin_role: role}
+  end
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do

@@ -5,13 +5,21 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Index do
   """
   use QuoteAssistWeb, :live_view
 
+  import QuoteAssistWeb.Admin.Components
+
   alias QuoteAssist.Plans
   alias QuoteAssist.Plans.Plan
   alias QuoteAssist.Tenants
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(page_title: "Plans", modal: nil, form: nil) |> load()}
+    case QuoteAssistWeb.AdminAuth.authorize(socket, "plan:list") do
+      {:cont, socket} ->
+        {:ok, socket |> assign(page_title: "Plans", modal: nil, form: nil) |> load()}
+
+      {:halt, socket} ->
+        {:ok, socket}
+    end
   end
 
   defp load(socket) do
@@ -37,7 +45,12 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Index do
             Subscription plans agencies can be placed on.
           </p>
         </div>
-        <button id="new-plan" phx-click="new" class="mtb-btn mtb-btn-primary mtb-btn-sm">
+        <button
+          :if={can?(@current_admin, "plan:create")}
+          id="new-plan"
+          phx-click="new"
+          class="mtb-btn mtb-btn-primary mtb-btn-sm"
+        >
           <.icon name="hero-plus" class="size-4" /> New plan
         </button>
       </div>
@@ -101,6 +114,7 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Index do
               </td>
               <td class="px-4 py-3 align-middle text-right">
                 <button
+                  :if={can?(@current_admin, "plan:update")}
                   phx-click="edit"
                   phx-value-id={plan.id}
                   class="mtb-btn mtb-btn-ghost mtb-btn-sm"
@@ -213,17 +227,21 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Index do
 
   @impl true
   def handle_event("new", _params, socket) do
-    {:noreply, assign(socket, modal: :new, form: to_form(Plans.change_plan()))}
+    if can?(socket.assigns.current_admin, "plan:create") do
+      {:noreply, assign(socket, modal: :new, form: to_form(Plans.change_plan()))}
+    else
+      {:noreply, denied(socket)}
+    end
   end
 
   def handle_event("edit", %{"id" => id}, socket) do
-    case Plans.get_plan(id) do
-      nil ->
-        {:noreply, missing(socket)}
-
-      plan ->
-        {:noreply,
-         assign(socket, modal: {:edit, plan}, form: to_form(Plans.change_plan_update(plan)))}
+    with true <- can?(socket.assigns.current_admin, "plan:update"),
+         %{} = plan <- Plans.get_plan(id) do
+      {:noreply,
+       assign(socket, modal: {:edit, plan}, form: to_form(Plans.change_plan_update(plan)))}
+    else
+      false -> {:noreply, denied(socket)}
+      nil -> {:noreply, missing(socket)}
     end
   end
 
@@ -259,6 +277,12 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Index do
 
   def handle_event("close_modal", _params, socket) do
     {:noreply, assign(socket, modal: nil, form: nil)}
+  end
+
+  defp denied(socket) do
+    socket
+    |> put_flash(:error, "You don't have permission to do that.")
+    |> assign(modal: nil, form: nil)
   end
 
   defp missing(socket) do

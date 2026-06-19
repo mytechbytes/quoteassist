@@ -11,20 +11,25 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Show do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
+    case QuoteAssistWeb.AdminAuth.authorize(socket, "plan:read") do
+      {:cont, socket} -> {:ok, load(socket, id)}
+      {:halt, socket} -> {:ok, socket}
+    end
+  end
+
+  defp load(socket, id) do
     case Plans.get_plan(id) do
       nil ->
-        {:ok,
-         socket
-         |> put_flash(:error, "That plan no longer exists.")
-         |> push_navigate(to: ~p"/admin/plans")}
+        socket
+        |> put_flash(:error, "That plan no longer exists.")
+        |> push_navigate(to: ~p"/admin/plans")
 
       plan ->
-        {:ok,
-         assign(socket,
-           page_title: plan.name,
-           plan: plan,
-           tenants: Tenants.list_tenants_for_plan(plan.id)
-         )}
+        assign(socket,
+          page_title: plan.name,
+          plan: plan,
+          tenants: Tenants.list_tenants_for_plan(plan.id)
+        )
     end
   end
 

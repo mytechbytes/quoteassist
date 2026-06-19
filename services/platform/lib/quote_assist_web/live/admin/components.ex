@@ -1,9 +1,53 @@
 defmodule QuoteAssistWeb.Admin.Components do
   @moduledoc """
   Small presentational helpers shared across the admin console LiveViews (status
-  badges, plan name, trial date). Pure functions of tenant data.
+  badges, plan name, trial date, admin type/role badges). Pure functions of admin /
+  tenant data, plus a template-friendly `can?/2` permission check.
   """
   use Phoenix.Component
+
+  alias QuoteAssist.Accounts.Admin
+  alias QuoteAssist.Authz.AdminPolicy
+
+  @doc """
+  Whether `admin` holds `permission` — a template-friendly delegate to
+  `QuoteAssist.Authz.AdminPolicy.can?/2`, so views render only the actions the signed-in
+  admin is allowed (a super_admin sees all; computed all-access).
+  """
+  def can?(admin, permission), do: AdminPolicy.can?(admin, permission)
+
+  @doc "A badge for an admin's protected type (super_admin stands out)."
+  attr :type, :atom, required: true
+
+  def admin_type_badge(assigns) do
+    ~H"""
+    <span class={[
+      "mtb-badge",
+      if(@type == :super_admin, do: "mtb-badge-warning", else: "mtb-badge-neutral")
+    ]}>
+      {Admin.type_label(@type)}
+    </span>
+    """
+  end
+
+  @doc "A badge for an admin's active / inactive state."
+  attr :active, :boolean, required: true
+
+  def admin_active_badge(assigns) do
+    ~H"""
+    <span class={[
+      "mtb-badge",
+      if(@active, do: "mtb-badge-success", else: "mtb-badge-neutral")
+    ]}>
+      {if @active, do: "Active", else: "Inactive"}
+    </span>
+    """
+  end
+
+  @doc "An admin's role name, or an em dash (super_admins carry no role)."
+  def admin_role_label(%{type: :super_admin}), do: "—"
+  def admin_role_label(%{role: %{name: name}}), do: name
+  def admin_role_label(_admin), do: "—"
 
   @doc "A status pill for a tenant status, using the design-system badge colours."
   attr :status, :atom, required: true

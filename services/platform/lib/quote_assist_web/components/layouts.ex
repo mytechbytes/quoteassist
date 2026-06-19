@@ -5,6 +5,7 @@ defmodule QuoteAssistWeb.Layouts do
   """
   use QuoteAssistWeb, :html
 
+  alias QuoteAssist.Authz.AdminPolicy
   alias QuoteAssist.Tenants.Membership
 
   # Embed all files in layouts/* within this module.
@@ -234,6 +235,8 @@ defmodule QuoteAssistWeb.Layouts do
         </div>
 
         <div class="mtb-side-section">Platform</div>
+        <%!-- Nav respects the admin's permissions: a super_admin sees everything
+              (computed all-access), a normal admin only the areas its role grants. --%>
         <.nav_item
           active={@active}
           key="overview"
@@ -242,6 +245,7 @@ defmodule QuoteAssistWeb.Layouts do
           href={~p"/admin"}
         />
         <.nav_item
+          :if={AdminPolicy.can?(@current_admin, "tenant:list")}
           active={@active}
           key="tenants"
           label="Agencies"
@@ -249,6 +253,7 @@ defmodule QuoteAssistWeb.Layouts do
           href={~p"/admin/tenants"}
         />
         <.nav_item
+          :if={AdminPolicy.can?(@current_admin, "plan:list")}
           active={@active}
           key="plans"
           label="Plans"
@@ -256,6 +261,7 @@ defmodule QuoteAssistWeb.Layouts do
           href={~p"/admin/plans"}
         />
         <.nav_item
+          :if={AdminPolicy.can?(@current_admin, "admin:list")}
           active={@active}
           key="admins"
           label="Admins"
@@ -263,6 +269,15 @@ defmodule QuoteAssistWeb.Layouts do
           href={~p"/admin/admins"}
         />
         <.nav_item
+          :if={AdminPolicy.can?(@current_admin, "admin_role:list")}
+          active={@active}
+          key="roles"
+          label="Roles"
+          icon="hero-key"
+          href={~p"/admin/roles"}
+        />
+        <.nav_item
+          :if={AdminPolicy.can?(@current_admin, "audit:list")}
           active={@active}
           key="activity"
           label="Activity"
@@ -282,7 +297,7 @@ defmodule QuoteAssistWeb.Layouts do
               {@current_admin.email}
             </div>
             <div class="truncate text-[11px]" style="color:var(--mc-text-3)">
-              Site administrator
+              {admin_subtitle(@current_admin)}
             </div>
           </div>
         </div>
@@ -335,6 +350,12 @@ defmodule QuoteAssistWeb.Layouts do
     </a>
     """
   end
+
+  # Sidebar subtitle for the signed-in admin: the protected type stands alone, a
+  # normal admin shows its role.
+  defp admin_subtitle(%{type: :super_admin}), do: "Super admin"
+  defp admin_subtitle(%{type: :admin, role: %{name: name}}), do: "Admin · #{name}"
+  defp admin_subtitle(_admin), do: "Administrator"
 
   # First two alphanumeric characters of the email local part, uppercased — the
   # sidebar avatar monogram.

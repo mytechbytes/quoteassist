@@ -11,7 +11,13 @@ defmodule QuoteAssistWeb.Admin.ActivityLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Activity", logs: Audit.list_recent(100))}
+    case QuoteAssistWeb.AdminAuth.authorize(socket, "audit:list") do
+      {:cont, socket} ->
+        {:ok, assign(socket, page_title: "Activity", logs: Audit.list_recent(100))}
+
+      {:halt, socket} ->
+        {:ok, socket}
+    end
   end
 
   @impl true

@@ -16,18 +16,23 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
+    case QuoteAssistWeb.AdminAuth.authorize(socket, "tenant:read") do
+      {:cont, socket} -> {:ok, mount_tenant(socket, id)}
+      {:halt, socket} -> {:ok, socket}
+    end
+  end
+
+  defp mount_tenant(socket, id) do
     case Tenants.get_tenant_for_admin(id) do
       nil ->
-        {:ok,
-         socket
-         |> put_flash(:error, "That agency no longer exists.")
-         |> push_navigate(to: ~p"/admin/tenants")}
+        socket
+        |> put_flash(:error, "That agency no longer exists.")
+        |> push_navigate(to: ~p"/admin/tenants")
 
       tenant ->
-        {:ok,
-         socket
-         |> assign(plans: Plans.list_plans(), modal: nil, form: nil)
-         |> load(tenant)}
+        socket
+        |> assign(plans: Plans.list_plans(), modal: nil, form: nil)
+        |> load(tenant)
     end
   end
 
@@ -77,9 +82,15 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
         </div>
 
         <div class="flex flex-wrap items-center justify-end gap-1.5">
-          <button phx-click="edit" class="mtb-btn mtb-btn-secondary mtb-btn-sm">Edit</button>
           <button
-            :if={@tenant.status in [:trial, :active]}
+            :if={can?(@current_admin, "tenant:update")}
+            phx-click="edit"
+            class="mtb-btn mtb-btn-secondary mtb-btn-sm"
+          >
+            Edit
+          </button>
+          <button
+            :if={show_suspend?(@current_admin, @tenant)}
             phx-click="transition"
             phx-value-to="suspended"
             class="mtb-btn mtb-btn-ghost mtb-btn-sm"
@@ -87,7 +98,7 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
             Suspend
           </button>
           <button
-            :if={@tenant.status == :suspended}
+            :if={show_reactivate?(@current_admin, @tenant)}
             phx-click="transition"
             phx-value-to="active"
             class="mtb-btn mtb-btn-ghost mtb-btn-sm"
@@ -95,14 +106,20 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
             Reactivate
           </button>
           <button
-            :if={@tenant.status in [:trial, :active, :suspended]}
+            :if={show_cancel?(@current_admin, @tenant)}
             phx-click="transition"
             phx-value-to="cancelled"
             class="mtb-btn mtb-btn-ghost mtb-btn-sm"
           >
             Cancel
           </button>
-          <button phx-click="delete" class="mtb-btn mtb-btn-danger-outline mtb-btn-sm">Remove</button>
+          <button
+            :if={can?(@current_admin, "tenant:delete")}
+            phx-click="delete"
+            class="mtb-btn mtb-btn-danger-outline mtb-btn-sm"
+          >
+            Remove
+          </button>
         </div>
       </div>
 
@@ -264,8 +281,12 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
 
   @impl true
   def handle_event("edit", _params, socket) do
-    {:noreply,
-     assign(socket, modal: :edit, form: to_form(Tenants.change_tenant(socket.assigns.tenant)))}
+    if can?(socket.assigns.current_admin, "tenant:update") do
+      {:noreply,
+       assign(socket, modal: :edit, form: to_form(Tenants.change_tenant(socket.assigns.tenant)))}
+    else
+      {:noreply, denied(socket)}
+    end
   end
 
   def handle_event("validate", %{"tenant" => params}, socket) do
@@ -297,34 +318,54 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
         {:noreply, put_flash(socket, :error, "That status change isn't allowed.")}
 
       status ->
-        case Tenants.transition_status(
-               socket.assigns.tenant,
-               status,
-               socket.assigns.current_admin
-             ) do
-          {:ok, _updated} ->
-            {:noreply, socket |> put_flash(:info, "Agency is now #{status}.") |> reload()}
-
-          {:error, _changeset} ->
-            {:noreply, put_flash(socket, :error, "That status change isn't allowed.")}
+        if can?(socket.assigns.current_admin, transition_permission(status)) do
+          apply_transition(socket, status)
+        else
+          {:noreply, denied(socket)}
         end
     end
   end
 
-  def handle_event("delete", _params, socket), do: {:noreply, assign(socket, modal: :delete)}
+  def handle_event("delete", _params, socket) do
+    if can?(socket.assigns.current_admin, "tenant:delete") do
+      {:noreply, assign(socket, modal: :delete)}
+    else
+      {:noreply, denied(socket)}
+    end
+  end
 
   def handle_event("confirm_delete", _params, socket) do
-    tenant = socket.assigns.tenant
-    {:ok, _deleted} = Tenants.soft_delete_tenant(socket.assigns.current_admin, tenant)
+    if can?(socket.assigns.current_admin, "tenant:delete") do
+      tenant = socket.assigns.tenant
+      {:ok, _deleted} = Tenants.soft_delete_tenant(socket.assigns.current_admin, tenant)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "#{tenant.name} removed.")
-     |> push_navigate(to: ~p"/admin/tenants")}
+      {:noreply,
+       socket
+       |> put_flash(:info, "#{tenant.name} removed.")
+       |> push_navigate(to: ~p"/admin/tenants")}
+    else
+      {:noreply, denied(socket)}
+    end
   end
 
   def handle_event("close_modal", _params, socket) do
     {:noreply, assign(socket, modal: nil, form: nil)}
+  end
+
+  defp apply_transition(socket, status) do
+    case Tenants.transition_status(socket.assigns.tenant, status, socket.assigns.current_admin) do
+      {:ok, _updated} ->
+        {:noreply, socket |> put_flash(:info, "Agency is now #{status}.") |> reload()}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "That status change isn't allowed.")}
+    end
+  end
+
+  defp denied(socket) do
+    socket
+    |> put_flash(:error, "You don't have permission to do that.")
+    |> assign(modal: nil, form: nil)
   end
 
   defp plan_options(plans), do: Enum.map(plans, fn plan -> {plan.name, plan.id} end)
@@ -333,4 +374,20 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Show do
   defp parse_status("suspended"), do: :suspended
   defp parse_status("cancelled"), do: :cancelled
   defp parse_status(_other), do: nil
+
+  defp transition_permission(:suspended), do: "tenant:suspend"
+  defp transition_permission(:active), do: "tenant:activate"
+  defp transition_permission(:cancelled), do: "tenant:cancel"
+
+  defp show_suspend?(actor, tenant) do
+    tenant.status in [:trial, :active] and can?(actor, "tenant:suspend")
+  end
+
+  defp show_reactivate?(actor, tenant) do
+    tenant.status == :suspended and can?(actor, "tenant:activate")
+  end
+
+  defp show_cancel?(actor, tenant) do
+    tenant.status in [:trial, :active, :suspended] and can?(actor, "tenant:cancel")
+  end
 end

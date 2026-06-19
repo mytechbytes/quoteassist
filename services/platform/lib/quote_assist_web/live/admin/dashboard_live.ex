@@ -2,7 +2,9 @@ defmodule QuoteAssistWeb.Admin.DashboardLive do
   @moduledoc """
   Admin console landing (`/admin`) — a minimal platform overview: tenant counts by
   status and the most recent tenants. Tenant management lives in
-  `QuoteAssistWeb.Admin.TenantLive.Index`; self-registration review arrives in R4.
+  `QuoteAssistWeb.Admin.TenantLive.Index`. The console home itself is reachable by any
+  authenticated admin (no permission gate), so a permission-denied redirect always has
+  a safe place to land; per-area access is gated on each section's LiveView.
   """
   use QuoteAssistWeb, :live_view
 

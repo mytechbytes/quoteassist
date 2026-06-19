@@ -15,10 +15,16 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(page_title: "Agencies", plans: Plans.list_plans(), modal: nil, form: nil)
-     |> load_tenants()}
+    case QuoteAssistWeb.AdminAuth.authorize(socket, "tenant:list") do
+      {:cont, socket} ->
+        {:ok,
+         socket
+         |> assign(page_title: "Agencies", plans: Plans.list_plans(), modal: nil, form: nil)
+         |> load_tenants()}
+
+      {:halt, socket} ->
+        {:ok, socket}
+    end
   end
 
   defp load_tenants(socket), do: assign(socket, :tenants, Tenants.list_tenants_for_admin())
@@ -47,7 +53,12 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
             Every tenant on QuoteAssist. Create agencies, change plans, suspend or remove.
           </p>
         </div>
-        <button id="new-agency" phx-click="new" class="mtb-btn mtb-btn-primary mtb-btn-sm">
+        <button
+          :if={can?(@current_admin, "tenant:create")}
+          id="new-agency"
+          phx-click="new"
+          class="mtb-btn mtb-btn-primary mtb-btn-sm"
+        >
           <.icon name="hero-plus" class="size-4" /> New agency
         </button>
       </div>
@@ -57,7 +68,11 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
         <p class="mx-auto mt-1 max-w-sm text-sm" style="color:var(--mc-text-3)">
           Create the first agency to onboard an organisation onto QuoteAssist.
         </p>
-        <button phx-click="new" class="mtb-btn mtb-btn-primary mtb-btn-sm mx-auto mt-4">
+        <button
+          :if={can?(@current_admin, "tenant:create")}
+          phx-click="new"
+          class="mtb-btn mtb-btn-primary mtb-btn-sm mx-auto mt-4"
+        >
           <.icon name="hero-plus" class="size-4" /> New agency
         </button>
       </div>
@@ -114,6 +129,7 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
               <td class="px-4 py-3 align-middle">
                 <div class="flex items-center justify-end gap-1.5">
                   <button
+                    :if={can?(@current_admin, "tenant:update")}
                     phx-click="edit"
                     phx-value-id={tenant.id}
                     class="mtb-btn mtb-btn-ghost mtb-btn-sm"
@@ -121,7 +137,7 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
                     Edit
                   </button>
                   <button
-                    :if={tenant.status in [:trial, :active]}
+                    :if={show_suspend?(@current_admin, tenant)}
                     phx-click="transition"
                     phx-value-id={tenant.id}
                     phx-value-to="suspended"
@@ -130,7 +146,7 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
                     Suspend
                   </button>
                   <button
-                    :if={tenant.status == :suspended}
+                    :if={show_reactivate?(@current_admin, tenant)}
                     phx-click="transition"
                     phx-value-id={tenant.id}
                     phx-value-to="active"
@@ -139,6 +155,7 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
                     Reactivate
                   </button>
                   <button
+                    :if={can?(@current_admin, "tenant:delete")}
                     phx-click="delete"
                     phx-value-id={tenant.id}
                     class="mtb-btn mtb-btn-danger-outline mtb-btn-sm"
@@ -287,17 +304,21 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
 
   @impl true
   def handle_event("new", _params, socket) do
-    {:noreply, assign(socket, modal: :new, form: to_form(Tenants.change_tenant_creation()))}
+    if can?(socket.assigns.current_admin, "tenant:create") do
+      {:noreply, assign(socket, modal: :new, form: to_form(Tenants.change_tenant_creation()))}
+    else
+      {:noreply, denied(socket)}
+    end
   end
 
   def handle_event("edit", %{"id" => id}, socket) do
-    case Tenants.get_tenant_for_admin(id) do
-      nil ->
-        {:noreply, missing(socket)}
-
-      tenant ->
-        {:noreply,
-         assign(socket, modal: {:edit, tenant}, form: to_form(Tenants.change_tenant(tenant)))}
+    with true <- can?(socket.assigns.current_admin, "tenant:update"),
+         %{} = tenant <- Tenants.get_tenant_for_admin(id) do
+      {:noreply,
+       assign(socket, modal: {:edit, tenant}, form: to_form(Tenants.change_tenant(tenant)))}
+    else
+      false -> {:noreply, denied(socket)}
+      nil -> {:noreply, missing(socket)}
     end
   end
 
@@ -321,47 +342,38 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
   def handle_event("transition", %{"id" => id, "to" => to}, socket) do
     # Map the incoming string to a known status — never String.to_existing_atom on
     # untrusted input. The state machine still rejects illegal jumps below.
-    case {parse_status(to), Tenants.get_tenant_for_admin(id)} do
-      {nil, _tenant} ->
+    case parse_status(to) do
+      nil ->
         {:noreply, put_flash(socket, :error, "That status change isn't allowed.")}
 
-      {_status, nil} ->
-        {:noreply, missing(socket)}
-
-      {status, tenant} ->
-        case Tenants.transition_status(tenant, status, socket.assigns.current_admin) do
-          {:ok, _updated} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "#{tenant.name} is now #{status}.")
-             |> load_tenants()}
-
-          {:error, _changeset} ->
-            {:noreply, put_flash(socket, :error, "That status change isn't allowed.")}
-        end
+      status ->
+        transition(socket, id, status)
     end
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
-    case Tenants.get_tenant_for_admin(id) do
+    with true <- can?(socket.assigns.current_admin, "tenant:delete"),
+         %{} = tenant <- Tenants.get_tenant_for_admin(id) do
+      {:noreply, assign(socket, modal: {:delete, tenant})}
+    else
+      false -> {:noreply, denied(socket)}
       nil -> {:noreply, missing(socket)}
-      tenant -> {:noreply, assign(socket, modal: {:delete, tenant})}
     end
   end
 
   def handle_event("confirm_delete", %{"id" => id}, socket) do
-    case Tenants.get_tenant_for_admin(id) do
-      nil ->
-        {:noreply, missing(socket)}
+    with true <- can?(socket.assigns.current_admin, "tenant:delete"),
+         %{} = tenant <- Tenants.get_tenant_for_admin(id) do
+      {:ok, _deleted} = Tenants.soft_delete_tenant(socket.assigns.current_admin, tenant)
 
-      tenant ->
-        {:ok, _deleted} = Tenants.soft_delete_tenant(socket.assigns.current_admin, tenant)
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "#{tenant.name} removed.")
-         |> assign(modal: nil)
-         |> load_tenants()}
+      {:noreply,
+       socket
+       |> put_flash(:info, "#{tenant.name} removed.")
+       |> assign(modal: nil)
+       |> load_tenants()}
+    else
+      false -> {:noreply, denied(socket)}
+      nil -> {:noreply, missing(socket)}
     end
   end
 
@@ -397,6 +409,31 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
     end
   end
 
+  # Runs a guarded status transition: the target status maps to a specific permission
+  # (suspend/activate/cancel), checked before the state machine applies it.
+  defp transition(socket, id, status) do
+    with true <- can?(socket.assigns.current_admin, transition_permission(status)),
+         %{} = tenant <- Tenants.get_tenant_for_admin(id) do
+      case Tenants.transition_status(tenant, status, socket.assigns.current_admin) do
+        {:ok, _updated} ->
+          {:noreply,
+           socket |> put_flash(:info, "#{tenant.name} is now #{status}.") |> load_tenants()}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, "That status change isn't allowed.")}
+      end
+    else
+      false -> {:noreply, denied(socket)}
+      nil -> {:noreply, missing(socket)}
+    end
+  end
+
+  defp denied(socket) do
+    socket
+    |> put_flash(:error, "You don't have permission to do that.")
+    |> assign(modal: nil, form: nil)
+  end
+
   defp missing(socket) do
     socket
     |> put_flash(:error, "That agency no longer exists.")
@@ -410,4 +447,16 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
   defp parse_status("suspended"), do: :suspended
   defp parse_status("cancelled"), do: :cancelled
   defp parse_status(_other), do: nil
+
+  defp transition_permission(:suspended), do: "tenant:suspend"
+  defp transition_permission(:active), do: "tenant:activate"
+  defp transition_permission(:cancelled), do: "tenant:cancel"
+
+  defp show_suspend?(actor, tenant) do
+    tenant.status in [:trial, :active] and can?(actor, "tenant:suspend")
+  end
+
+  defp show_reactivate?(actor, tenant) do
+    tenant.status == :suspended and can?(actor, "tenant:activate")
+  end
 end

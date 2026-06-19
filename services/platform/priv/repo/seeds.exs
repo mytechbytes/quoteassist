@@ -30,6 +30,11 @@ deploy_env = Application.get_env(:quote_assist, :deploy_env, "dev")
 unless deploy_env == "test" do
   Plans.seed_plans()
   IO.puts("Seeded plans: #{Enum.map_join(Plans.list_plans(), ", ", & &1.name)}")
+
+  # Built-in admin roles a super_admin can assign to scoped admins (R4-retrofit). The
+  # `super_admin` protected type needs no role, so it is never seeded here.
+  Accounts.seed_default_admin_roles()
+  IO.puts("Seeded admin roles: #{Enum.map_join(Accounts.list_admin_roles(), ", ", & &1.name)}")
 end
 
 if deploy_env in ["dev", "staging"] do

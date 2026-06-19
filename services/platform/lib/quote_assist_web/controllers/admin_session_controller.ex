@@ -35,6 +35,7 @@ defmodule QuoteAssistWeb.AdminSessionController do
   defp log_admin_login(conn, admin) do
     Audit.log(%{
       actor_type: :admin,
+      actor_subtype: admin.type,
       actor_id: admin.id,
       tenant_id: nil,
       action: "admin.login",

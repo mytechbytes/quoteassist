@@ -7,7 +7,7 @@ defmodule QuoteAssist.AccountsFixtures do
   import Ecto.Query
 
   alias QuoteAssist.Accounts
-  alias QuoteAssist.Accounts.Scope
+  alias QuoteAssist.Accounts.{Admin, AdminRole, Scope}
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
@@ -17,6 +17,7 @@ defmodule QuoteAssist.AccountsFixtures do
   def unique_admin_email, do: "admin#{System.unique_integer([:positive])}@example.com"
   def valid_admin_password, do: "admin password 123"
 
+  @doc "A super_admin (the protected root type) — what `register_admin/1` produces."
   def admin_fixture(attrs \\ %{}) do
     attrs =
       Enum.into(attrs, %{
@@ -26,6 +27,41 @@ defmodule QuoteAssist.AccountsFixtures do
 
     {:ok, admin} = Accounts.register_admin(attrs)
     admin
+  end
+
+  @doc "An admin role with the given (or no) permissions — inserted directly."
+  def admin_role_fixture(attrs \\ %{}) do
+    attrs =
+      Enum.into(attrs, %{
+        name: "Role #{System.unique_integer([:positive])}",
+        slug: "adminrole#{System.unique_integer([:positive])}",
+        permissions: []
+      })
+
+    {:ok, role} = %AdminRole{} |> AdminRole.changeset(attrs) |> QuoteAssist.Repo.insert()
+    role
+  end
+
+  @doc """
+  A normal (scoped) admin with a role, with `:role` preloaded. Pass a role, or a list
+  of permission keys (a fresh role is built for them), or nothing (an empty role).
+  """
+  def normal_admin_fixture(role_or_perms \\ [], attrs \\ %{})
+
+  def normal_admin_fixture(%AdminRole{} = role, attrs) do
+    attrs =
+      Enum.into(attrs, %{
+        email: unique_admin_email(),
+        password: valid_admin_password(),
+        role_id: role.id
+      })
+
+    {:ok, admin} = %Admin{} |> Admin.create_changeset(attrs) |> QuoteAssist.Repo.insert()
+    QuoteAssist.Repo.preload(admin, :role)
+  end
+
+  def normal_admin_fixture(permissions, attrs) when is_list(permissions) do
+    normal_admin_fixture(admin_role_fixture(%{permissions: permissions}), attrs)
   end
 
   def valid_user_attributes(attrs \\ %{}) do

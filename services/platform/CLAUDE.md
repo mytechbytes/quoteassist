@@ -6,7 +6,24 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
-**R3 complete / next R4.** Site admin. A separate `admins` identity (own table +
+**R4-retrofit complete / next R5-selfreg.** Admin RBAC + protected `super_admin`. The R3
+`admins` identity gained the protected-type pattern via migration: `type`
+(`super_admin | admin`), `role_id`, `active`, with the bootstrap admin promoted to
+`super_admin` in the same transaction. A code-owned admin catalog
+(`Authz.AdminPermissions`: `tenant`/`plan`/`admin`/`admin_role`/`audit` + the `self:*`
+baseline) is consumed by `Authz.AdminPolicy.can?/3`, mirroring the tenant side; platform
+`admin_roles` (a `permissions` array like tenant `roles`, two built-ins seeded —
+Operations/Support) back normal admins, while `super_admin` carries no role (computed
+all-access). The protected type is enforced at the **query layer**:
+`Accounts.list_admins_visible_to/1` + `get_admin_visible_to/2` exclude super_admins from a
+normal admin, the last-active-super_admin guard runs under `SELECT … FOR UPDATE` in the
+mutation's transaction, and deactivate/remove revoke the target's sessions. New console
+screens: `/admin/admins` (create scoped admins, reassign roles, activate/deactivate/remove)
+and `/admin/roles` (compose roles from the catalog); the R3 tenant/plan/audit screens are
+retro-gated behind `tenant:*` / `plan:*` / `audit:*` via `AdminAuth.authorize/2`, and admin
+actions audit with `actor_subtype`. `mix qa.create_admin` now bootstraps a `super_admin`.
+
+**R3 complete.** Site admin. A separate `admins` identity (own table +
 `admins_tokens`, `Accounts.Admin`/`AdminToken`, `Accounts.register_admin/1`) with its
 own auth pipeline (`QuoteAssistWeb.AdminAuth`: `admin_token` session, `current_admin`
 assign, `on_mount :require_admin`) — independent of `UserAuth`/`Scope`. `/admin/*` is
@@ -72,10 +89,11 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R4** — self-registration (trial onboarding): a public `/register`, email
-verification → set password, and admin review/approval of pending tenants at
-`/admin/registrations`. Reuse the R3 admin console, the `Tenants` create-with-owner
-multi, and the audit log.
+**Next: R5-selfreg** — self-registration → auto-approve to trial: a public `/register`
+(platform host) that creates the tenant directly in `trial` + owner `User`/`Membership`,
+owner email verification via the platform-host `/onboarding/:token` flow, and **no** admin
+approval queue (admins handle bad actors reactively via the R3 tenant suspend/cancel
+controls). Reuse the `Tenants` create-with-owner multi and the audit log.
 
 ## How to run
 
@@ -162,17 +180,20 @@ on `<html>`.
 ## Release order
 
 ```
-R0  walking skeleton (/health, Dockerfile, base layout + mtb.css)
-R0a platform home (/) + tenant list (/tenants)
-R1  auth — tenant users sign in/out (phx.gen.auth, Swoosh mailer, login throttle)
-R2  tenancy + RBAC (TenantResolver, Tenancy.scope, Policy, audit_logs)
-R3  admin identity + tenant CRUD + 15-day trial
-R4  self-registration (trial onboarding)
-R5  users, roles, permissions
-R6  account flows (forgot/reset/profile)
-R-CD custom domain (add, verify, auto-TLS via Caddy on-demand)
-R7  quote request CRUD (lead capture)
-R8  quote reply + AI hook (stub → live)
+R0            walking skeleton (/health, Dockerfile, base layout + mtb.css)        ✅
+R0a           platform home (/) + tenant list (/tenants)                           ✅
+R1            auth — tenant users sign in/out (phx.gen.auth, mailer, throttle)     ✅
+R2            tenancy + RBAC (TenantResolver, Tenancy.scope, Policy, audit_logs)   ✅
+R3            admin identity + tenant CRUD + 15-day trial                          ✅
+R4-retrofit   admin RBAC + protected super_admin (retrofits R3)                    ✅
+R5-selfreg    self-registration → auto-approve to trial
+R6-errors     branded error pages (401/403/404/500/503)
+R7-rbac       tenant users, roles, permissions + self:* + requests
+R8-dashboard  /app dashboard landing
+R9-recovery   account recovery (forgot/reset, email-change)
+R10-domain    custom domain (add, verify, auto-TLS via Caddy on-demand)
+R11-quotes    quote request CRUD (lead capture)
+R12-quote-reply  quote reply + AI hook (stub → live)
 ```
 
 Each arrow is a staging deploy. See [`docs/RELEASE_PLAN.md`](docs/RELEASE_PLAN.md)

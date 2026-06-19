@@ -94,6 +94,30 @@ defmodule QuoteAssistWeb.AdminAuth do
     end
   end
 
+  @doc """
+  Permission gate for an admin LiveView, used inside `mount/3`. Returns
+  `{:cont, socket}` when `current_admin` holds `permission` (a super_admin always
+  does — computed all-access), or `{:halt, socket}` with the socket redirected to the
+  console home and a flash set. Pair it as:
+
+      case AdminAuth.authorize(socket, "admin:list") do
+        {:cont, socket} -> {:ok, assign(socket, ...)}
+        {:halt, socket} -> {:ok, socket}
+      end
+  """
+  def authorize(socket, permission) do
+    if QuoteAssist.Authz.AdminPolicy.can?(socket.assigns.current_admin, permission) do
+      {:cont, socket}
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.put_flash(:error, "You don't have access to that area.")
+        |> Phoenix.LiveView.redirect(to: ~p"/admin")
+
+      {:halt, socket}
+    end
+  end
+
   defp mount_current_admin(socket, session) do
     Phoenix.Component.assign_new(socket, :current_admin, fn ->
       admin_from_session(session["admin_token"])

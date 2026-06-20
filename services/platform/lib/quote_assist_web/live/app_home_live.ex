@@ -58,7 +58,14 @@ defmodule QuoteAssistWeb.AppHomeLive do
       <div class="mtb-card px-6 py-8">
         <p class="text-sm" style="color:var(--mc-text-2)">
           Your workspace is ready and scoped to <span class="font-medium" style="color:var(--mc-text)">{@current_scope.tenant.name}</span>.
-          Team and roles arrive in R7-rbac; quote requests and the AI reply hook follow in R11–R12.
+          Manage your
+          <.link navigate={~p"/app/team"} class="font-medium underline" style="color:var(--mc-brand)">team</.link>
+          and <.link
+            navigate={~p"/app/account"}
+            class="font-medium underline"
+            style="color:var(--mc-brand)"
+          >account</.link>;
+          quote requests and the AI reply hook follow in R11–R12.
         </p>
       </div>
     </Layouts.workspace>

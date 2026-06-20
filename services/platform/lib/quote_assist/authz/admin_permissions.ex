@@ -102,8 +102,74 @@ defmodule QuoteAssist.Authz.AdminPermissions do
              {permission.key, permission.label}
            end)
 
+  # Canonical column order for the admin role-editor matrix (mirrors the tenant side):
+  # the five CRUD actions first, then the admin lifecycle/state-machine extras. Only
+  # actions present in the catalog become columns; everything past the CRUD five is a
+  # "special" permission shown as a chip in the resource row's Special column.
+  @action_order ~w(list create read update delete activate deactivate suspend cancel purge)
+  @base_actions ~w(list create read update delete)
+
+  @action_labels %{
+    "list" => "List",
+    "create" => "Create",
+    "read" => "Read",
+    "update" => "Update",
+    "delete" => "Delete",
+    "activate" => "Activate",
+    "deactivate" => "Deactivate",
+    "suspend" => "Suspend",
+    "cancel" => "Cancel",
+    "purge" => "Purge"
+  }
+
   @doc "The full admin catalog, grouped for display (the admin roles UI renders this)."
   def catalog, do: @catalog
+
+  @doc "All matrix action columns present in the catalog, base-first — `[%{action:, label:}, …]`."
+  def action_columns do
+    present =
+      for group <- @catalog,
+          permission <- group.permissions,
+          uniq: true,
+          do: action_of(permission.key)
+
+    for action <- @action_order,
+        action in present,
+        do: %{action: action, label: action_label(action)}
+  end
+
+  @doc "The base (CRUD) action columns, in canonical order, present-only."
+  def base_action_columns, do: Enum.filter(action_columns(), &(&1.action in @base_actions))
+
+  @doc "A resource's non-CRUD (\"special\") permissions as chips — `[%{key:, action:, label:}, …]`."
+  def special_permissions(resource) do
+    case Enum.find(@catalog, &(&1.resource == resource)) do
+      nil ->
+        []
+
+      group ->
+        for permission <- group.permissions,
+            action = action_of(permission.key),
+            action not in @base_actions,
+            do: %{key: permission.key, action: action, label: action_label(action)}
+    end
+  end
+
+  @doc "Every special (non-CRUD) admin permission key, flat — backs the Special column select-all."
+  def special_keys do
+    for group <- @catalog,
+        permission <- group.permissions,
+        action_of(permission.key) not in @base_actions,
+        do: permission.key
+  end
+
+  @doc "The permission key for a `resource`/`action` pair, e.g. `\"tenant:suspend\"`."
+  def key_for(resource, action), do: "#{resource}:#{action}"
+
+  @doc "Human label for an action suffix (the matrix column / chip label)."
+  def action_label(action), do: Map.get(@action_labels, action, String.capitalize(action))
+
+  defp action_of(key), do: key |> String.split(":") |> List.last()
 
   @doc "Every role-composable admin permission key, flat (excludes the `self:*` baseline)."
   def keys, do: @keys

@@ -119,6 +119,14 @@ defmodule QuoteAssistWeb.Router do
       live "/app", AppHomeLive, :index
       # Owner onboarding (set name + password) after accepting the invite.
       live "/app/welcome", OnboardingLive, :index
+      # R7-rbac · tenant users, roles, self-service, and the requests inbox. Page-level
+      # gates raise → branded 403 (UserAuth.permit!); per-action gates hide/deny.
+      live "/app/team", App.TeamLive.Index, :index
+      live "/app/roles", App.RoleLive.Index, :index
+      live "/app/roles/new", App.RoleLive.Form, :new
+      live "/app/roles/:id/edit", App.RoleLive.Form, :edit
+      live "/app/account", App.AccountLive, :index
+      live "/app/requests", App.RequestLive.Index, :index
     end
   end
 
@@ -199,6 +207,8 @@ defmodule QuoteAssistWeb.Router do
       live "/admins", Admin.AdminLive.Index, :index
       live "/admins/:id", Admin.AdminLive.Show, :show
       live "/roles", Admin.AdminRoleLive.Index, :index
+      live "/roles/new", Admin.AdminRoleLive.Form, :new
+      live "/roles/:id/edit", Admin.AdminRoleLive.Form, :edit
       live "/roles/:id", Admin.AdminRoleLive.Show, :show
       live "/activity", Admin.ActivityLive, :index
     end

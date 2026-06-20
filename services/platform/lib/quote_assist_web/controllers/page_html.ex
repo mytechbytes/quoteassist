@@ -36,7 +36,7 @@ defmodule QuoteAssistWeb.PageHTML do
          %{
            id: "R7-rbac",
            desc: "Users, roles, permissions + self:* + requests",
-           status: :pending
+           status: :done
          },
          %{id: "R8-dashboard", desc: "/app dashboard landing", status: :pending},
          %{

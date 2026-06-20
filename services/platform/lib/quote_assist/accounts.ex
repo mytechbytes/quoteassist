@@ -180,6 +180,73 @@ defmodule QuoteAssist.Accounts do
     |> update_user_and_delete_all_tokens()
   end
 
+  ## Self-service profile & sessions (R7-rbac)
+  #
+  # The `self:*` baseline surface — every authenticated member manages their own
+  # record regardless of role. Scoped to the actor's own row, so it grants no access
+  # to anyone else's data.
+
+  @doc "Changeset backing the self-service profile form (display name, avatar, timezone)."
+  def change_user_profile(%User{} = user, attrs \\ %{}) do
+    User.profile_changeset(user, attrs)
+  end
+
+  @doc "Updates the user's own profile (`self:update`). Returns `{:ok, user}` / `{:error, changeset}`."
+  def update_user_profile(%User{} = user, attrs) do
+    user |> User.profile_changeset(attrs) |> Repo.update()
+  end
+
+  @doc "Whether `password` is the user's current password — used to authorise self-service changes."
+  def valid_user_password?(%User{} = user, password) when is_binary(password) do
+    User.valid_password?(user, password)
+  end
+
+  def valid_user_password?(_user, _password), do: false
+
+  @doc "The user's live session tokens, newest first (`self:sessions` — list own sessions)."
+  def list_user_sessions(%User{} = user) do
+    Repo.all(
+      from t in UserToken,
+        where: t.user_id == ^user.id and t.context == "session",
+        order_by: [desc: t.authenticated_at, desc: t.inserted_at]
+    )
+  end
+
+  @doc "Fetches one of the user's own session tokens by id, or nil. Safe for untrusted ids."
+  def get_user_session(%User{} = user, id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        Repo.one(
+          from t in UserToken,
+            where: t.id == ^uuid and t.user_id == ^user.id and t.context == "session"
+        )
+
+      :error ->
+        nil
+    end
+  end
+
+  @doc """
+  Revokes one of the user's own sessions (`self:sessions`). Returns `{:ok, token}` or
+  `{:error, :not_found}` — a member can only ever revoke their own (the query is scoped
+  to `user_id`).
+  """
+  def revoke_user_session(%User{} = user, id) do
+    case get_user_session(user, id) do
+      nil -> {:error, :not_found}
+      %UserToken{} = token -> Repo.delete(token)
+    end
+  end
+
+  @doc "The id of the session-token row for a raw session `token`, or nil (to flag the current one)."
+  def session_token_id(token) when is_binary(token) do
+    Repo.one(
+      from t in UserToken, where: t.token == ^token and t.context == "session", select: t.id
+    )
+  end
+
+  def session_token_id(_token), do: nil
+
   ## Onboarding
 
   @doc """

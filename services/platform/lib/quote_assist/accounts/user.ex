@@ -9,6 +9,8 @@ defmodule QuoteAssist.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :display_name, :string
+    field :avatar_url, :string
+    field :timezone, :string
     field :confirmed_at, :utc_datetime
     field :deleted_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
@@ -45,6 +47,21 @@ defmodule QuoteAssist.Accounts.User do
     |> validate_email(opts)
     |> validate_required([:display_name])
     |> validate_length(:display_name, min: 1, max: 80)
+  end
+
+  @doc """
+  Changeset for the R7-rbac self-service profile (`self:update`): display name, avatar,
+  and timezone. These are the only member-editable identity fields; email change goes
+  through the verified `email_changeset/3` path and password through
+  `password_changeset/3`, so neither can be swapped here.
+  """
+  def profile_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:display_name, :avatar_url, :timezone])
+    |> validate_required([:display_name])
+    |> validate_length(:display_name, min: 1, max: 80)
+    |> validate_length(:avatar_url, max: 500)
+    |> validate_length(:timezone, max: 60)
   end
 
   defp validate_email(changeset, opts) do

@@ -1,55 +1,54 @@
-defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
+defmodule QuoteAssistWeb.App.RoleLive.Index do
   @moduledoc """
-  Admin role management (`/admin/roles`): list admin roles and link out to the dedicated
-  create / edit pages (`QuoteAssistWeb.Admin.AdminRoleLive.Form`), where permissions are
-  composed in a matrix over the code-owned admin catalog. Gated by the `admin_role:*`
-  permissions; a super_admin holds them all (computed). Built-in roles can't be deleted;
-  the `super_admin` protected type is not a role and never appears here. Every mutation is
-  audited (actor = admin).
+  Tenant roles (`/app/roles`): list roles and link out to the dedicated create / edit
+  pages (`QuoteAssistWeb.App.RoleLive.Form`), where permissions are composed in a matrix
+  over the code-owned catalog. Gated by the `role:*` permissions (owner-only by default —
+  `manager` holds only `role:list`/`role:read`). The `self:*` baseline is never shown
+  (implicit, non-composable); built-in roles can't be deleted; the owner protected type is
+  not a role and never appears here. Every mutation is audited.
   """
   use QuoteAssistWeb, :live_view
 
-  import QuoteAssistWeb.Admin.Components
+  import QuoteAssistWeb.App.Components
 
-  alias QuoteAssist.Accounts
+  alias QuoteAssist.Tenants
+  alias QuoteAssist.Tenants.Role
+  alias QuoteAssistWeb.UserAuth
 
   @impl true
   def mount(_params, _session, socket) do
-    case QuoteAssistWeb.AdminAuth.authorize(socket, "admin_role:list") do
-      {:cont, socket} ->
-        {:ok, socket |> assign(page_title: "Admin roles", delete: nil) |> load_roles()}
-
-      {:halt, socket} ->
-        {:ok, socket}
-    end
+    UserAuth.permit!(socket.assigns.current_scope, "role:list")
+    {:ok, socket |> assign(page_title: "Roles", delete: nil) |> load_roles()}
   end
 
-  defp load_roles(socket), do: assign(socket, :roles, Accounts.list_admin_roles())
+  defp load_roles(socket) do
+    assign(socket, :roles, Tenants.list_roles(socket.assigns.current_scope.tenant))
+  end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.admin flash={@flash} current_admin={@current_admin} active="roles" breadcrumb="Roles">
+    <Layouts.workspace flash={@flash} current_scope={@current_scope} active="roles" breadcrumb="Roles">
       <div class="mb-6 flex items-end justify-between gap-4">
         <div>
           <div class="text-xs font-bold uppercase tracking-widest" style="color:var(--mc-text-3)">
-            Platform
+            Account
           </div>
           <h1
             class="mt-1.5 text-3xl font-bold tracking-tight"
             style="font-family:var(--font-display);color:var(--mc-text)"
           >
-            Admin roles
+            Roles
           </h1>
           <p class="mt-1.5 text-sm" style="color:var(--mc-text-2)">
-            Bundles of platform permissions assigned to scoped administrators. Super admins
-            hold every permission and need no role.
+            Bundles of permissions assigned to members. Owners hold every permission and need no
+            role; everyone keeps the implicit self-service baseline.
           </p>
         </div>
         <.link
-          :if={can?(@current_admin, "admin_role:create")}
+          :if={can?(@current_scope, "role:create")}
           id="new-role"
-          navigate={~p"/admin/roles/new"}
+          navigate={~p"/app/roles/new"}
           class="mtb-btn mtb-btn-primary mtb-btn-sm"
         >
           <.icon name="hero-plus" class="size-4" /> New role
@@ -81,13 +80,7 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
               style="border-top:1px solid var(--mc-border)"
             >
               <td class="px-5 py-3 align-middle">
-                <.link
-                  navigate={~p"/admin/roles/#{role.id}"}
-                  class="text-sm font-semibold no-underline hover:underline"
-                  style="color:var(--mc-text)"
-                >
-                  {role.name}
-                </.link>
+                <div class="text-sm font-semibold" style="color:var(--mc-text)">{role.name}</div>
                 <div class="text-[11px]" style="color:var(--mc-text-3)">
                   <span class="font-mono">{role.slug}</span>
                 </div>
@@ -106,14 +99,14 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
               <td class="px-4 py-3 align-middle">
                 <div class="flex items-center justify-end gap-1.5">
                   <.link
-                    :if={can?(@current_admin, "admin_role:update")}
-                    navigate={~p"/admin/roles/#{role.id}/edit"}
+                    :if={can?(@current_scope, "role:update")}
+                    navigate={~p"/app/roles/#{role.id}/edit"}
                     class="mtb-btn mtb-btn-ghost mtb-btn-sm"
                   >
                     Edit
                   </.link>
                   <button
-                    :if={not role.builtin and can?(@current_admin, "admin_role:delete")}
+                    :if={not role.builtin and can?(@current_scope, "role:delete")}
                     phx-click="delete"
                     phx-value-id={role.id}
                     class="mtb-btn mtb-btn-danger-outline mtb-btn-sm"
@@ -128,7 +121,7 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
       </div>
 
       <.delete_modal :if={@delete} role={@delete} />
-    </Layouts.admin>
+    </Layouts.workspace>
     """
   end
 
@@ -155,7 +148,7 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
           <p class="text-sm" style="color:var(--mc-text-2);line-height:1.55">
             This removes the
             <span class="font-semibold" style="color:var(--mc-text)">{@role.name}</span>
-            role. It can only be removed while no administrator is assigned to it.
+            role. It can only be removed while no member is assigned to it.
           </p>
         </div>
         <div class="mtb-modal-foot">
@@ -177,8 +170,8 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    with true <- can?(socket.assigns.current_admin, "admin_role:delete"),
-         %{} = role <- Accounts.get_admin_role(id) do
+    with true <- can?(socket.assigns.current_scope, "role:delete"),
+         %Role{} = role <- fetch(socket, id) do
       {:noreply, assign(socket, delete: role)}
     else
       false -> {:noreply, denied(socket)}
@@ -187,8 +180,8 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
   end
 
   def handle_event("confirm_delete", %{"id" => id}, socket) do
-    with true <- can?(socket.assigns.current_admin, "admin_role:delete"),
-         %{} = role <- Accounts.get_admin_role(id) do
+    with true <- can?(socket.assigns.current_scope, "role:delete"),
+         %Role{} = role <- fetch(socket, id) do
       remove_role(socket, role)
     else
       false -> {:noreply, denied(socket)}
@@ -201,8 +194,8 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
   end
 
   defp remove_role(socket, role) do
-    case Accounts.soft_delete_admin_role(socket.assigns.current_admin, role) do
-      {:ok, _deleted} ->
+    case Tenants.soft_delete_role(socket.assigns.current_scope, role) do
+      {:ok, _} ->
         {:noreply,
          socket
          |> put_flash(:info, "#{role.name} removed.")
@@ -216,10 +209,12 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Index do
         {:noreply,
          close_with_error(
            socket,
-           "That role is still assigned to an admin — reassign them first."
+           "That role is still assigned to a member — reassign them first."
          )}
     end
   end
+
+  defp fetch(socket, id), do: Tenants.get_role(socket.assigns.current_scope.tenant, id)
 
   defp denied(socket) do
     socket |> put_flash(:error, "You don't have permission to do that.") |> assign(delete: nil)

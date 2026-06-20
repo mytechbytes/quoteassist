@@ -79,6 +79,43 @@ defmodule QuoteAssist.Tenants.Membership do
     |> common_validations()
   end
 
+  @doc """
+  Changeset for reassigning a **member's** role (R7-rbac). Casts only `role_id`, so it
+  can neither change the `type` nor touch an owner: the context refuses an owner target
+  before this is ever reached (an owner has no role — its access is computed).
+  """
+  def role_changeset(membership, attrs) do
+    membership
+    |> cast(attrs, [:role_id])
+    |> validate_required([:role_id])
+    |> assoc_constraint(:role)
+  end
+
+  @doc """
+  Changeset promoting a member to the protected **owner** type (R7-rbac, owner-only):
+  clears `role_id` (owners carry no role — computed all-access). Type is set directly,
+  never cast, so promotion is only reachable through this function.
+  """
+  def promote_changeset(membership) do
+    membership
+    |> change()
+    |> put_change(:type, :owner)
+    |> put_change(:role_id, nil)
+  end
+
+  @doc """
+  Changeset demoting an owner back to a normal **member** (R7-rbac, owner-only): a
+  `role_id` becomes required (a member's access is role-driven). The last-active-owner
+  guard runs in the context's transaction, never here.
+  """
+  def demote_changeset(membership, attrs) do
+    membership
+    |> cast(attrs, [:role_id])
+    |> put_change(:type, :member)
+    |> validate_required([:role_id])
+    |> assoc_constraint(:role)
+  end
+
   defp common_validations(changeset) do
     changeset
     |> assoc_constraint(:tenant)

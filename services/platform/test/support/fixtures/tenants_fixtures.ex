@@ -4,10 +4,11 @@ defmodule QuoteAssist.TenantsFixtures do
   `QuoteAssist.Tenants` context.
   """
 
-  alias QuoteAssist.Accounts.User
+  alias QuoteAssist.Accounts.{Scope, User}
   alias QuoteAssist.AccountsFixtures
+  alias QuoteAssist.Authz.Policy
   alias QuoteAssist.Tenants
-  alias QuoteAssist.Tenants.Tenant
+  alias QuoteAssist.Tenants.{Membership, Tenant}
 
   def unique_tenant_slug, do: "t#{System.unique_integer([:positive])}"
 
@@ -93,5 +94,33 @@ defmodule QuoteAssist.TenantsFixtures do
   def member_fixture(%Tenant{} = tenant, role_or_owner \\ "owner") do
     user = AccountsFixtures.user_fixture()
     {user, membership_fixture(tenant, user, role_or_owner)}
+  end
+
+  @doc """
+  A `Scope` for a membership — the actor passed to the R7-rbac context functions. The
+  membership's role is preloaded so the scope carries real permission keys.
+  """
+  def scope_fixture(%Tenant{} = tenant, %User{} = user, %Membership{} = membership) do
+    membership = QuoteAssist.Repo.preload(membership, :role)
+
+    Scope.put_tenant(
+      Scope.for_user(user),
+      tenant,
+      membership,
+      Policy.permissions_for_membership(membership)
+    )
+  end
+
+  @doc "A tenant + its owner ({tenant, user, membership, scope}) — the common R7 setup."
+  def owner_scope_fixture(attrs \\ %{}) do
+    tenant = active_tenant_fixture(attrs)
+    {user, membership} = member_fixture(tenant, "owner")
+
+    %{
+      tenant: tenant,
+      user: user,
+      membership: membership,
+      scope: scope_fixture(tenant, user, membership)
+    }
   end
 end

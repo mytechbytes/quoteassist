@@ -39,7 +39,7 @@ defmodule QuoteAssist.Tenants.Role do
     |> validate_format(:slug, @slug_format)
     |> validate_permissions()
     |> assoc_constraint(:tenant)
-    |> unique_constraint([:tenant_id, :slug], name: :roles_tenant_slug_live_index)
+    |> unique_constraint(:slug, name: :roles_tenant_slug_live_index)
   end
 
   # Rejects any permission key not in the code-owned catalog.

@@ -6,6 +6,36 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
+**R7-rbac complete.** Tenant users, roles, the `self:*` baseline, and the generic requests
+inbox. The owner protected type mirrors admin `super_admin`, enforced at the **query layer**
+(`Tenancy.members_visible_to/1`): `Tenants.list_members_visible_to/1` + `get_member_visible_to/2`
+exclude owners from a member, so even a member with `user:update` can't see or act on one. New
+`Tenants` member/role ops (scope-actor, audited, `actor_subtype: owner|member`): `invite_member/2`
+(reuse-or-register user → `member` membership + onboarding/magic-link invite), `update_member_role/3`,
+`activate_member`/`deactivate_member`/`remove_member` (session-revoking — delete the user's
+`session` tokens), `promote_member`/`demote_owner`, and audited `create_role`/`update_role`/
+`soft_delete_role` over the R2 catalog. The last-active-owner guard runs under `SELECT … FOR
+UPDATE`; `member?/2` + `get_active_membership/2` now also require `active = true`, so a deactivated
+member is bounced at the next request. A new `QuoteAssist.Requests` context + `Tenants.Request`
+schema back the `requests` table (`leave` first type; `open → approved|declined|cancelled` FSM,
+partial-unique one-open-per-type) — `request:create` is a member baseline in `Authz.Policy`, and
+approving a leave removes the membership via `remove_member`. `Accounts` gained the self-service
+surface: `update_user_profile` (display_name/avatar_url/timezone), `list_user_sessions` +
+`revoke_user_session` + `session_token_id`, `valid_user_password?`. New LiveViews under
+`/app/{team,roles,account,requests}` (page gates raise → branded 403 via `UserAuth.permit!`; per-
+action gates hide/deny) with `App.Components`; the workspace sidebar gates Team/Roles by permission
+and always shows Requests/Account. Role **create/edit** lives on dedicated pages
+(`/app/roles/new`, `/app/roles/:id/edit` → `App.RoleLive.Form`), not a modal: permissions are
+composed in a resource × action **matrix**: five CRUD columns (`Permissions.base_action_columns/0`,
+ragged — a cell only where `resource:action` is real) plus a single **Special permissions** column
+that renders each resource's non-CRUD permissions (`special_permissions/1`) as chips, with select-all,
+per-column (action), per-row (resource) and per-special toggles; the selection is held server-side in
+a `MapSet`. The index keeps the list + delete confirm. The **admin console** mirrors this exactly —
+`/admin/roles/new`, `/admin/roles/:id/edit` → `Admin.AdminRoleLive.Form` over `AdminPermissions`
+(its specials being `tenant:suspend/cancel/purge`, `*:activate/deactivate`). Email-change is **initiation-only** here (sends a verification
+link to the new address) — the confirm/alert token mechanics land in R9-recovery. Migrations:
+`users.avatar_url`/`timezone`, `requests`.
+
 **R6-errors complete.** Branded error pages (401/403/404/500/503) wired to real Phoenix
 error handling. `ErrorHTML` renders one parametric `error_page` document (ported from
 `designs/quoteassist/error-*.html`, `mc-*`/`qa-*` → `mtb-*`) per status, with a plain-text
@@ -123,12 +153,10 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R7-rbac** — tenant users, roles, permissions + the `self:*` baseline + the generic
-`requests` inbox (`leave` first). Build the roles UI over the R2 code-owned catalog, member
-invite/assign/activate/deactivate/remove (session-revoking), the self-service profile/
-password/email/sessions surface, and the owner protected-type query-layer guards (mirroring
-admin `super_admin`). The R6 `UserAuth.permit!/2` raise→403 primitive and the platform-host
-`/onboarding/:token` flow (now reusable for invited members) are already in place.
+**Next: R8-dashboard** — the post-login `/app` landing: stat cards (open quote requests, quoted
+this month, team size) + a recent-activity list from `audit_logs` (tenant-scoped) + quick links,
+all gated by permissions, with friendly empty states for a brand-new tenant. Reads only; no new
+tables. Fills the R2 shell that currently links to Team/Account.
 
 ## How to run
 
@@ -231,7 +259,7 @@ R3            admin identity + tenant CRUD + 15-day trial                       
 R4-retrofit   admin RBAC + protected super_admin (retrofits R3)                    ✅
 R5-selfreg    self-registration → auto-approve to trial                            ✅
 R6-errors     branded error pages (401/403/404/500/503)                            ✅
-R7-rbac       tenant users, roles, permissions + self:* + requests
+R7-rbac       tenant users, roles, permissions + self:* + requests               ✅
 R8-dashboard  /app dashboard landing
 R9-recovery   account recovery (forgot/reset, email-change)
 R10-domain    custom domain (add, verify, auto-TLS via Caddy on-demand)

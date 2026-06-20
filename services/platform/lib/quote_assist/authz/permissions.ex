@@ -108,6 +108,13 @@ defmodule QuoteAssist.Authz.Permissions do
   # a `self:*` key.
   @baseline ~w(self:read self:update self:password self:email self:sessions)
 
+  # Catalog permissions implicitly granted to EVERY member, regardless of role
+  # (RELEASE_PLAN.md, R7-rbac): raising a request (`request:create`) is something any
+  # member can do. Unlike `self:*` these DO live in the catalog (so owners can also
+  # compose them into roles), but they're also baseline so an empty-role member can
+  # still raise a leave request. Consumed by `QuoteAssist.Authz.Policy`.
+  @member_baseline ~w(request:create)
+
   @baseline_labels %{
     "self:read" => "View own profile",
     "self:update" => "Edit own profile",
@@ -121,8 +128,85 @@ defmodule QuoteAssist.Authz.Permissions do
              {permission.key, permission.label}
            end)
 
+  # Canonical column order for the role-editor permission matrix (R7-rbac): the five
+  # base actions first, then the lifecycle / state-machine extras. Only actions that
+  # actually appear in the catalog become columns (the grid is ragged — a resource
+  # gets a checkbox only where `resource:action` is a real permission).
+  @action_order ~w(list create read update delete activate deactivate status reply ai_generate manage verify)
+
+  # The CRUD actions get their own matrix columns; everything else is a "special"
+  # permission shown as a chip in the row's Special column (R7-rbac role editor).
+  @base_actions ~w(list create read update delete)
+
+  @action_labels %{
+    "list" => "List",
+    "create" => "Create",
+    "read" => "Read",
+    "update" => "Update",
+    "delete" => "Delete",
+    "activate" => "Activate",
+    "deactivate" => "Deactivate",
+    "status" => "Status",
+    "reply" => "Reply",
+    "ai_generate" => "AI",
+    "manage" => "Manage",
+    "verify" => "Verify"
+  }
+
   @doc "The full catalog, grouped for display (the R7-rbac roles UI renders this)."
   def catalog, do: @catalog
+
+  @doc """
+  The action columns for the role-editor matrix — `[%{action: "create", label: "Create"}, …]`,
+  in canonical order, restricted to actions that appear somewhere in the catalog.
+  """
+  def action_columns do
+    present =
+      for group <- @catalog,
+          permission <- group.permissions,
+          uniq: true,
+          do: action_of(permission.key)
+
+    for action <- @action_order,
+        action in present,
+        do: %{action: action, label: action_label(action)}
+  end
+
+  @doc "The base (CRUD) action columns for the matrix, in canonical order, present-only."
+  def base_action_columns, do: Enum.filter(action_columns(), &(&1.action in @base_actions))
+
+  @doc """
+  The non-CRUD ("special") permissions of a `resource` — `[%{key:, action:, label:}, …]`,
+  rendered as chips in the role editor's Special column. Empty for a CRUD-only resource.
+  """
+  def special_permissions(resource) do
+    case Enum.find(@catalog, &(&1.resource == resource)) do
+      nil ->
+        []
+
+      group ->
+        for permission <- group.permissions,
+            action = action_of(permission.key),
+            action not in @base_actions,
+            do: %{key: permission.key, action: action, label: action_label(action)}
+    end
+  end
+
+  @doc "Every special (non-CRUD) permission key, flat — backs the Special column's select-all."
+  def special_keys do
+    for group <- @catalog,
+        permission <- group.permissions,
+        action_of(permission.key) not in @base_actions,
+        do: permission.key
+  end
+
+  @doc "The permission key for a `resource`/`action` pair, e.g. `\"quote:create\"`."
+  def key_for(resource, action), do: "#{resource}:#{action}"
+
+  @doc "Human label for an action suffix (the matrix column header)."
+  def action_label(action), do: Map.get(@action_labels, action, String.capitalize(action))
+
+  defp action_of(key), do: key |> String.split(":") |> List.last()
 
   @doc "Every role-composable permission key, flat (excludes the `self:*` baseline)."
   def keys, do: @keys
@@ -133,6 +217,13 @@ defmodule QuoteAssist.Authz.Permissions do
   @doc "Whether `key` is part of the implicit `self:*` baseline."
   def baseline?(key) when is_binary(key), do: key in @baseline
   def baseline?(_), do: false
+
+  @doc "Catalog keys every member holds implicitly regardless of role (e.g. `request:create`)."
+  def member_baseline, do: @member_baseline
+
+  @doc "Whether `key` is granted to every member by baseline (the `self:*` or member baseline)."
+  def member_baseline?(key) when is_binary(key), do: key in @baseline or key in @member_baseline
+  def member_baseline?(_), do: false
 
   @doc "Whether `key` is a known, role-composable permission (the `self:*` baseline is not)."
   def valid?(key) when is_binary(key), do: key in @keys

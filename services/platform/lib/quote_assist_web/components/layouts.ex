@@ -5,7 +5,7 @@ defmodule QuoteAssistWeb.Layouts do
   """
   use QuoteAssistWeb, :html
 
-  alias QuoteAssist.Authz.AdminPolicy
+  alias QuoteAssist.Authz.{AdminPolicy, Policy}
   alias QuoteAssist.Tenants.Membership
 
   # Embed all files in layouts/* within this module.
@@ -78,7 +78,7 @@ defmodule QuoteAssistWeb.Layouts do
 
       <footer class="border-t" style="border-color:var(--mc-border)">
         <div
-          class="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-5 text-xs sm:px-6"
+          class="mx-auto flex w-full items-center justify-between px-4 py-5 text-xs sm:px-6"
           style="color:var(--mc-text-3)"
         >
           <span>QuoteAssist · multi-tenant quote assistant</span>
@@ -142,15 +142,38 @@ defmodule QuoteAssistWeb.Layouts do
         />
 
         <div class="mtb-side-section">Account</div>
-        <%!-- R7-rbac · users, roles, permissions --%>
-        <.nav_item active={@active} key="team" label="Team" icon="hero-users" href="/app/team" />
-        <%!-- R9-recovery · account recovery / settings --%>
+        <%!-- R7-rbac · team, roles, requests, self-service. Team/Roles respect the
+              member's permissions (owners see all — computed all-access); Requests and
+              Account are open to everyone (request:create + self:* baselines). --%>
+        <.nav_item
+          :if={Policy.can?(@current_scope, "user:list")}
+          active={@active}
+          key="team"
+          label="Team"
+          icon="hero-users"
+          href={~p"/app/team"}
+        />
+        <.nav_item
+          :if={Policy.can?(@current_scope, "role:list")}
+          active={@active}
+          key="roles"
+          label="Roles"
+          icon="hero-key"
+          href={~p"/app/roles"}
+        />
         <.nav_item
           active={@active}
-          key="settings"
-          label="Settings"
-          icon="hero-cog-6-tooth"
-          href="/app/settings"
+          key="requests"
+          label="Requests"
+          icon="hero-inbox"
+          href={~p"/app/requests"}
+        />
+        <.nav_item
+          active={@active}
+          key="account"
+          label="Account"
+          icon="hero-user-circle"
+          href={~p"/app/account"}
         />
 
         <div class="mtb-side-footer">

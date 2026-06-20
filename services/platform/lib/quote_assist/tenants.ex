@@ -10,10 +10,11 @@ defmodule QuoteAssist.Tenants do
 
   alias Ecto.Multi
   alias QuoteAssist.Accounts
-  alias QuoteAssist.Accounts.{Admin, User}
+  alias QuoteAssist.Accounts.{Admin, Scope, User, UserToken}
   alias QuoteAssist.Audit
   alias QuoteAssist.Plans
   alias QuoteAssist.Repo
+  alias QuoteAssist.Tenancy
   alias QuoteAssist.Tenants.{Membership, Role, Tenant}
 
   # ── Host resolution ───────────────────────────────────────────────────────────
@@ -212,11 +213,26 @@ defmodule QuoteAssist.Tenants do
     ]
   end
 
-  @doc "Creates a tenant-scoped role."
+  @doc """
+  Creates a tenant-scoped role. The `%Tenant{}` head is the low-level seed/test path
+  (no audit); the `%Scope{}` head is the audited R7-rbac console path (`role:create`),
+  acting as the signed-in member.
+  """
   def create_role(%Tenant{} = tenant, attrs) do
     %Role{}
     |> Role.changeset(Map.merge(attrs, %{tenant_id: tenant.id}))
     |> Repo.insert()
+  end
+
+  def create_role(%Scope{} = scope, attrs) do
+    Repo.transact(fn ->
+      changeset = Role.changeset(%Role{}, Map.put(stringify(attrs), "tenant_id", scope.tenant.id))
+
+      with {:ok, role} <- Repo.insert(changeset) do
+        audit_member(scope, "role.created", role.id, %{"slug" => role.slug}, "role")
+        {:ok, role}
+      end
+    end)
   end
 
   @doc "Fetches a live role by slug within a tenant, or nil."
@@ -230,25 +246,31 @@ defmodule QuoteAssist.Tenants do
   # ── Memberships ──────────────────────────────────────────────────────────────────
 
   @doc """
-  Whether the user has a live membership for the tenant. A lean existence check used
-  to gate login (you can only sign in to a tenant you belong to).
+  Whether the user has a live, **active** membership for the tenant. A lean existence
+  check used to gate login (you can only sign in to a tenant you belong to, and a
+  deactivated member can't — `active` gates future logins per the cross-cutting rule).
   """
   def member?(%Tenant{} = tenant, %User{} = user) do
     Repo.exists?(
       from m in Membership,
-        where: m.tenant_id == ^tenant.id and m.user_id == ^user.id and is_nil(m.deleted_at)
+        where:
+          m.tenant_id == ^tenant.id and m.user_id == ^user.id and m.active == true and
+            is_nil(m.deleted_at)
     )
   end
 
   @doc """
-  The user's live membership for a tenant, with role preloaded — or nil. This is the
-  access gate: no live membership for the resolved tenant means no access. (Owners
-  carry no role, so the preload is simply nil for them.)
+  The user's live, **active** membership for a tenant, with role preloaded — or nil.
+  This is the access gate (re-run on every LiveView mount): no live, active membership
+  for the resolved tenant means no access, so a member deactivated mid-session is
+  bounced at the next request. (Owners carry no role, so the preload is nil for them.)
   """
   def get_active_membership(%Tenant{} = tenant, %User{} = user) do
     Repo.one(
       from m in Membership,
-        where: m.tenant_id == ^tenant.id and m.user_id == ^user.id and is_nil(m.deleted_at),
+        where:
+          m.tenant_id == ^tenant.id and m.user_id == ^user.id and m.active == true and
+            is_nil(m.deleted_at),
         preload: [:role]
     )
   end
@@ -287,6 +309,413 @@ defmodule QuoteAssist.Tenants do
       :count,
       :id
     )
+  end
+
+  # ── Member & role management (R7-rbac) ────────────────────────────────────────────
+  #
+  # The tenant mirror of the admin RBAC functions. The protected `owner` type is
+  # enforced at the QUERY layer (`QuoteAssist.Tenancy.members_visible_to/1`): a member's
+  # member/role lists EXCLUDE owners, so they can't see, edit, or act on one by any
+  # path. The last-active-owner guard runs in the same transaction as the mutation
+  # (`SELECT … FOR UPDATE`), and deactivate/remove revoke the member's sessions. Every
+  # mutation is audited (actor = user, subtype = owner | member).
+
+  @doc """
+  Live memberships visible to `scope`'s actor, with `:user` + `:role` preloaded,
+  oldest first. An owner sees every member; a normal member sees only members — owners
+  are filtered out in the query, never merely hidden in the template.
+  """
+  def list_members_visible_to(%Scope{} = scope) do
+    scope
+    |> Tenancy.members_visible_to()
+    |> order_by([m], asc: m.inserted_at)
+    |> preload([:user, :role])
+    |> Repo.all()
+  end
+
+  @doc """
+  A single live membership (with `:user` + `:role`) visible to `scope`'s actor, or nil.
+  A member can never load an owner (the exclusion is in the query), so editing/acting on
+  one is impossible by any path — not just hidden in the UI.
+  """
+  def get_member_visible_to(%Scope{} = scope, id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        scope
+        |> Tenancy.members_visible_to()
+        |> where([m], m.id == ^uuid)
+        |> preload([:user, :role])
+        |> Repo.one()
+
+      :error ->
+        nil
+    end
+  end
+
+  @doc "A live membership in `tenant` by id (with `:user`), or nil. Visibility-agnostic."
+  def get_membership(%Tenant{} = tenant, id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        Repo.one(
+          from m in Membership,
+            where: m.id == ^uuid and m.tenant_id == ^tenant.id and is_nil(m.deleted_at),
+            preload: [:user, :role]
+        )
+
+      :error ->
+        nil
+    end
+  end
+
+  @doc "Changeset backing the invite-member form (email + role)."
+  def change_member_invite(attrs \\ %{}) do
+    invite_changeset(attrs)
+  end
+
+  @doc """
+  Invites a member by email (`user:create`): reuses the global `User` if the email is
+  already known, else registers a new unconfirmed user; adds a live `member`
+  membership with the chosen role; and emails an invite link — the platform-host
+  onboarding link for a not-yet-set-up user, or a tenant-host magic link for one who
+  already has an account. Atomic + audited. Returns `{:ok, membership}` or
+  `{:error, changeset | :already_member | :role_not_found}`.
+  """
+  def invite_member(%Scope{} = scope, attrs) do
+    changeset = invite_changeset(attrs)
+
+    if changeset.valid?,
+      do: do_invite(scope, changeset),
+      else: {:error, %{changeset | action: :insert}}
+  end
+
+  # Same well-known `Ecto.Multi` opaque false positive suppressed on
+  # `create_tenant_with_owner/2` — see the note there.
+  @dialyzer {:no_opaque, do_invite: 2}
+
+  defp do_invite(scope, changeset) do
+    tenant = scope.tenant
+    email = Ecto.Changeset.get_field(changeset, :email)
+    role_id = Ecto.Changeset.get_field(changeset, :role_id)
+
+    multi =
+      Multi.new()
+      |> Multi.run(:role, fn _repo, _ -> fetch_tenant_role(tenant, role_id) end)
+      |> Multi.run(:user, fn _repo, _ -> {:ok, ensure_member_user(email)} end)
+      |> Multi.run(:membership, fn _repo, %{user: user, role: role} ->
+        create_membership(tenant, user, role)
+      end)
+      |> Multi.run(:audit, fn _repo, %{user: user, membership: membership} ->
+        audit_member(scope, "user.invited", membership.id, %{
+          "email" => mask_email(user.email),
+          "role_id" => role_id
+        })
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, %{user: user, membership: membership}} ->
+        deliver_member_invite(user, tenant)
+        {:ok, membership}
+
+      {:error, :role, :role_not_found, _} ->
+        {:error, :role_not_found}
+
+      {:error, :membership, %Ecto.Changeset{} = failed, _} ->
+        invite_conflict(failed, changeset)
+
+      {:error, _step, _reason, _} ->
+        {:error, %{changeset | action: :insert}}
+    end
+  end
+
+  defp invite_conflict(failed, changeset) do
+    if member_taken?(failed),
+      do: {:error, :already_member},
+      else: {:error, %{changeset | action: :insert}}
+  end
+
+  @doc """
+  Reassigns a **member's** role (`user:update`). Refuses an owner target
+  (`:owner_has_no_role`) — the protected type carries no role. Audited.
+  """
+  def update_member_role(%Scope{}, %Membership{type: :owner}, _attrs) do
+    {:error, :owner_has_no_role}
+  end
+
+  def update_member_role(%Scope{} = scope, %Membership{} = membership, attrs) do
+    with {:ok, role} <- fetch_tenant_role(scope.tenant, role_id_param(attrs)) do
+      Repo.transact(fn -> reassign_role(scope, membership, role) end)
+    end
+  end
+
+  defp reassign_role(scope, membership, role) do
+    with {:ok, updated} <-
+           membership |> Membership.role_changeset(%{role_id: role.id}) |> Repo.update() do
+      audit_member(scope, "user.role_changed", membership.id, %{"role_id" => role.id})
+      {:ok, updated}
+    end
+  end
+
+  @doc "Reactivates a deactivated member (`user:activate`). Audited."
+  def activate_member(%Scope{} = scope, %Membership{} = membership) do
+    Repo.transact(fn ->
+      with {:ok, updated} <-
+             membership |> Ecto.Changeset.change(active: true) |> Repo.update() do
+        audit_member(scope, "user.activated", membership.id, member_meta(membership))
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc """
+  Deactivates a member (`user:deactivate`) and revokes their sessions in the same
+  transaction (cross-cutting session-revocation rule). Refuses the last active owner
+  (`:last_owner`) under a row lock so concurrent deactivations can't race past it.
+  """
+  def deactivate_member(%Scope{} = scope, %Membership{} = membership) do
+    Repo.transact(fn ->
+      if last_active_owner?(membership),
+        do: {:error, :last_owner},
+        else: do_deactivate_member(scope, membership)
+    end)
+  end
+
+  defp do_deactivate_member(scope, membership) do
+    with {:ok, updated} <- membership |> Ecto.Changeset.change(active: false) |> Repo.update() do
+      revoke_member_sessions(membership)
+      audit_member(scope, "user.deactivated", membership.id, member_meta(membership))
+      {:ok, updated}
+    end
+  end
+
+  @doc """
+  Soft-removes a member (`user:delete`): sets `deleted_at`, flips `active`, revokes
+  their sessions, and audits it. Refuses the last active owner (`:last_owner`) under
+  the same transactional guard as `deactivate_member/2`.
+  """
+  def remove_member(%Scope{} = scope, %Membership{} = membership) do
+    Repo.transact(fn ->
+      if last_active_owner?(membership),
+        do: {:error, :last_owner},
+        else: do_remove_member(scope, membership)
+    end)
+  end
+
+  defp do_remove_member(scope, membership) do
+    changeset =
+      Ecto.Changeset.change(membership, deleted_at: DateTime.utc_now(:second), active: false)
+
+    with {:ok, removed} <- Repo.update(changeset) do
+      revoke_member_sessions(membership)
+      audit_member(scope, "user.removed", membership.id, member_meta(membership))
+      {:ok, removed}
+    end
+  end
+
+  @doc """
+  Promotes a member to the protected **owner** type (owner-only; the LiveView gates
+  this). Clears the role — owners hold computed all-access. Audited.
+  """
+  def promote_member(%Scope{} = scope, %Membership{} = membership) do
+    Repo.transact(fn ->
+      with {:ok, updated} <- membership |> Membership.promote_changeset() |> Repo.update() do
+        audit_member(scope, "user.promoted", membership.id, member_meta(membership))
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc """
+  Demotes an owner back to a normal member with a role (owner-only). Refuses the last
+  active owner (`:last_owner`) — demoting them would leave the tenant ownerless — under
+  the same transactional guard. Audited.
+  """
+  def demote_owner(%Scope{} = scope, %Membership{} = membership, attrs) do
+    with {:ok, role} <- fetch_tenant_role(scope.tenant, role_id_param(attrs)) do
+      Repo.transact(fn -> demote_txn(scope, membership, role) end)
+    end
+  end
+
+  defp demote_txn(scope, membership, role) do
+    if last_active_owner?(membership),
+      do: {:error, :last_owner},
+      else: do_demote_owner(scope, membership, role)
+  end
+
+  defp do_demote_owner(scope, membership, role) do
+    with {:ok, updated} <-
+           membership |> Membership.demote_changeset(%{role_id: role.id}) |> Repo.update() do
+      audit_member(scope, "user.demoted", membership.id, %{"role_id" => role.id})
+      {:ok, updated}
+    end
+  end
+
+  # ── Tenant roles (R7-rbac) ────────────────────────────────────────────────────────
+
+  @doc "Live roles for a tenant, ordered by name (the roles console)."
+  def list_roles(%Tenant{} = tenant) do
+    Repo.all(
+      from r in Role,
+        where: r.tenant_id == ^tenant.id and is_nil(r.deleted_at),
+        order_by: [asc: r.name]
+    )
+  end
+
+  @doc "Fetches a live role within a tenant by id, or nil. Safe for untrusted ids."
+  def get_role(%Tenant{} = tenant, id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        Repo.one(
+          from r in Role,
+            where: r.id == ^uuid and r.tenant_id == ^tenant.id and is_nil(r.deleted_at)
+        )
+
+      :error ->
+        nil
+    end
+  end
+
+  @doc "Changeset backing the role create/edit form (seeded with the tenant)."
+  def change_tenant_role(%Tenant{} = tenant, %Role{} = role \\ %Role{}, attrs \\ %{}) do
+    Role.changeset(role, Map.put(stringify(attrs), "tenant_id", tenant.id))
+  end
+
+  @doc "Edits a tenant role's name/description/permissions (`role:update`). Audited."
+  def update_role(%Scope{} = scope, %Role{} = role, attrs) do
+    Repo.transact(fn ->
+      with {:ok, updated} <-
+             role
+             |> Role.changeset(Map.put(stringify(attrs), "tenant_id", role.tenant_id))
+             |> Repo.update() do
+        audit_member(scope, "role.updated", role.id, %{"slug" => updated.slug}, "role")
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc """
+  Soft-deletes a tenant role (`role:delete`). Refuses built-ins (`:builtin`) and roles
+  still assigned to a live member (`:role_in_use`) — there is no orphaning path.
+  Audited.
+  """
+  def soft_delete_role(%Scope{} = scope, %Role{} = role) do
+    cond do
+      role.builtin -> {:error, :builtin}
+      role_in_use?(role) -> {:error, :role_in_use}
+      true -> do_delete_role(scope, role)
+    end
+  end
+
+  defp do_delete_role(scope, role) do
+    Repo.transact(fn ->
+      changeset = Ecto.Changeset.change(role, deleted_at: DateTime.utc_now(:second))
+
+      with {:ok, deleted} <- Repo.update(changeset) do
+        audit_member(scope, "role.deleted", role.id, %{"slug" => role.slug}, "role")
+        {:ok, deleted}
+      end
+    end)
+  end
+
+  defp role_in_use?(%Role{id: role_id}) do
+    Repo.exists?(from m in Membership, where: m.role_id == ^role_id and is_nil(m.deleted_at))
+  end
+
+  # ── R7 helpers ───────────────────────────────────────────────────────────────────
+
+  # Schemaless changeset for the invite form (email + role).
+  defp invite_changeset(attrs) do
+    types = %{email: :string, role_id: :binary_id}
+
+    {%{email: nil, role_id: nil}, types}
+    |> Ecto.Changeset.cast(stringify(attrs), [:email, :role_id])
+    |> Ecto.Changeset.update_change(:email, fn email ->
+      email && email |> String.trim() |> String.downcase()
+    end)
+    |> Ecto.Changeset.validate_required([:email, :role_id])
+    |> Ecto.Changeset.validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> Ecto.Changeset.validate_length(:email, max: 160)
+  end
+
+  defp role_id_param(attrs), do: attrs["role_id"] || attrs[:role_id]
+
+  defp fetch_tenant_role(_tenant, nil), do: {:error, :role_not_found}
+
+  defp fetch_tenant_role(%Tenant{} = tenant, role_id) do
+    case get_role(tenant, role_id) do
+      %Role{} = role -> {:ok, role}
+      nil -> {:error, :role_not_found}
+    end
+  end
+
+  # Reuse the existing global user untouched, or register a fresh unconfirmed one.
+  defp ensure_member_user(email) do
+    case Accounts.get_user_by_email(email) do
+      %User{} = user -> user
+      nil -> elem(Accounts.register_user(%{email: email}), 1)
+    end
+  end
+
+  # An already-set-up user (has a password + confirmed email) gets a tenant-host magic
+  # link to reach the new workspace; a fresh one gets the platform-host onboarding link
+  # to set their password (which also confirms the email).
+  defp deliver_member_invite(%User{} = user, %Tenant{} = tenant) do
+    if onboarded?(user) do
+      Accounts.deliver_login_instructions(user, fn token ->
+        tenant_url(tenant, "/login/#{token}")
+      end)
+    else
+      deliver_owner_onboarding(user)
+    end
+  end
+
+  defp member_taken?(%Ecto.Changeset{errors: errors}) do
+    Enum.any?(errors, fn {field, _} -> field in [:tenant_id, :user_id] end)
+  end
+
+  defp member_meta(%Membership{user: %User{email: email}}), do: %{"email" => mask_email(email)}
+  defp member_meta(_membership), do: %{}
+
+  # True only when `target` is itself an active owner AND it is the last one. Locks the
+  # active-owner rows (`FOR UPDATE`) so concurrent owner deactivations serialise on the
+  # same rows and can't both pass the guard.
+  defp last_active_owner?(%Membership{type: :owner, active: true, tenant_id: tenant_id}) do
+    ids = Repo.all(from m in active_owners_query(tenant_id), lock: "FOR UPDATE", select: m.id)
+    length(ids) <= 1
+  end
+
+  defp last_active_owner?(_membership), do: false
+
+  defp active_owners_query(tenant_id) do
+    from m in Membership,
+      where:
+        m.tenant_id == ^tenant_id and m.type == :owner and m.active == true and
+          is_nil(m.deleted_at)
+  end
+
+  # Deletes the member's session tokens (context "session") so a deactivation / removal
+  # kills their live sessions; invite / onboarding / reset tokens are left intact.
+  defp revoke_member_sessions(%Membership{user_id: user_id}) do
+    Repo.delete_all(from t in UserToken, where: t.user_id == ^user_id and t.context == "session")
+    :ok
+  end
+
+  defp audit_member(scope, action, target_id, metadata, target_type \\ "user") do
+    Audit.log(%{
+      actor_type: :user,
+      actor_subtype: scope.membership.type,
+      actor_id: scope.user.id,
+      tenant_id: scope.tenant.id,
+      action: action,
+      target_type: target_type,
+      target_id: to_string(target_id),
+      metadata: metadata
+    })
+  end
+
+  defp stringify(attrs) do
+    Map.new(attrs, fn {k, v} -> {to_string(k), v} end)
   end
 
   # ── Admin tenant console (R3) ─────────────────────────────────────────────────────

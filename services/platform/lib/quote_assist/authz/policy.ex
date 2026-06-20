@@ -4,13 +4,14 @@ defmodule QuoteAssist.Authz.Policy do
 
       can?(actor, perm) =
         actor.type == :owner            # protected type → always true (computed)
-        or perm in self:* baseline      # implicit, scoped to own row
+        or perm in member baseline      # self:* + request:create, held by every member
         or perm in permissions(role)    # normal type → role-driven
 
   The `owner` type holds **all** permissions, computed — a short-circuit `true`, never
   an enumerated list — so any permission added in a future release is held
-  automatically. Members hold the fixed `self:*` baseline plus whatever their role
-  grants. A scope's `permissions` are the keys granted by the membership's role (see
+  automatically. Members hold the member baseline (the fixed `self:*` keys plus
+  `request:create`, so any member can raise a request) plus whatever their role grants.
+  A scope's `permissions` are the keys granted by the membership's role (see
   `permissions_for_membership/1`); owners carry no role and so no enumerated keys.
   """
   alias QuoteAssist.Accounts.Scope
@@ -28,7 +29,7 @@ defmodule QuoteAssist.Authz.Policy do
   def can?(%Scope{membership: %Membership{type: :owner}}, _permission, _resource), do: true
 
   def can?(%Scope{} = scope, permission, _resource) when is_binary(permission) do
-    Permissions.baseline?(permission) or
+    Permissions.member_baseline?(permission) or
       (is_list(scope.permissions) and permission in scope.permissions)
   end
 

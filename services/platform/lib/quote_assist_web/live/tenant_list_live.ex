@@ -41,7 +41,7 @@ defmodule QuoteAssistWeb.TenantListLive do
 
   def directory(assigns) do
     ~H"""
-    <div class="mx-auto max-w-3xl">
+    <div class="mx-auto">
       <div class="mb-7">
         <span class="mtb-badge mtb-badge-brand">Directory</span>
         <h1

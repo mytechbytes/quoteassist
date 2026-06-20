@@ -6,6 +6,19 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
+**Cross-cutting UI conventions (post-R7).** Three rules now apply to every resource, admin
+and tenant: (1) **forms with >3 fields live on dedicated pages**, not modals — Plan
+(`/admin/plans/new` · `/admin/plans/:id/edit` → `Admin.PlanLive.Form`), Tenant
+(`/admin/tenants/{new,:id/edit}` → `Admin.TenantLive.Form`), and the role editors already
+moved; smaller forms (admin create, member-invite, request-raise) stay as modals. (2) **slug
+auto-fills from the name on create**, live, via `QuoteAssist.Slug.{slugify/1,auto/4}` wired into
+each create form's `phx-change` (tenant + admin role, plan, tenant) — it stops the moment the
+user edits the slug. (3) **every collection resource has a detail route with an activity feed**,
+gated by `*:read`: tenant `App.{RoleLive,TeamLive,RequestLive}.Show` at `/app/{roles,team,requests}/:id`
+(member detail is owner-protected via `get_member_visible_to/2`), and the admin detail pages all
+carry one (added to plan + admin_role shows). Activity is `Audit.list_for_target(target_type,
+target_id)`, rendered by `App.Components.audit_timeline` (tenant) / `Admin.Components.audit_timeline`.
+
 **R7-rbac complete.** Tenant users, roles, the `self:*` baseline, and the generic requests
 inbox. The owner protected type mirrors admin `super_admin`, enforced at the **query layer**
 (`Tenancy.members_visible_to/1`): `Tenants.list_members_visible_to/1` + `get_member_visible_to/2`

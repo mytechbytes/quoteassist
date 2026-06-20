@@ -10,17 +10,13 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
 
   import QuoteAssistWeb.Admin.Components
 
-  alias QuoteAssist.Plans
   alias QuoteAssist.Tenants
 
   @impl true
   def mount(_params, _session, socket) do
     case QuoteAssistWeb.AdminAuth.authorize(socket, "tenant:list") do
       {:cont, socket} ->
-        {:ok,
-         socket
-         |> assign(page_title: "Agencies", plans: Plans.list_plans(), modal: nil, form: nil)
-         |> load_tenants()}
+        {:ok, socket |> assign(page_title: "Agencies", modal: nil) |> load_tenants()}
 
       {:halt, socket} ->
         {:ok, socket}
@@ -53,14 +49,14 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
             Every tenant on QuoteAssist. Create agencies, change plans, suspend or remove.
           </p>
         </div>
-        <button
+        <.link
           :if={can?(@current_admin, "tenant:create")}
           id="new-agency"
-          phx-click="new"
+          navigate={~p"/admin/tenants/new"}
           class="mtb-btn mtb-btn-primary mtb-btn-sm"
         >
           <.icon name="hero-plus" class="size-4" /> New agency
-        </button>
+        </.link>
       </div>
 
       <div :if={@tenants == []} class="mtb-card px-6 py-14 text-center">
@@ -68,13 +64,13 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
         <p class="mx-auto mt-1 max-w-sm text-sm" style="color:var(--mc-text-3)">
           Create the first agency to onboard an organisation onto QuoteAssist.
         </p>
-        <button
+        <.link
           :if={can?(@current_admin, "tenant:create")}
-          phx-click="new"
+          navigate={~p"/admin/tenants/new"}
           class="mtb-btn mtb-btn-primary mtb-btn-sm mx-auto mt-4"
         >
           <.icon name="hero-plus" class="size-4" /> New agency
-        </button>
+        </.link>
       </div>
 
       <div :if={@tenants != []} class="mtb-card overflow-hidden">
@@ -137,14 +133,13 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
               </td>
               <td class="px-4 py-3 align-middle">
                 <div class="flex items-center justify-end gap-1.5">
-                  <button
+                  <.link
                     :if={can?(@current_admin, "tenant:update")}
-                    phx-click="edit"
-                    phx-value-id={tenant.id}
+                    navigate={~p"/admin/tenants/#{tenant.id}/edit"}
                     class="mtb-btn mtb-btn-ghost mtb-btn-sm"
                   >
                     Edit
-                  </button>
+                  </.link>
                   <button
                     :if={show_suspend?(@current_admin, tenant)}
                     phx-click="transition"
@@ -178,92 +173,8 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
         </table>
       </div>
 
-      <.new_or_edit_modal
-        :if={@modal in [:new] or match?({:edit, _}, @modal)}
-        form={@form}
-        plans={@plans}
-        modal={@modal}
-      />
       <.delete_modal :if={match?({:delete, _}, @modal)} tenant={elem(@modal, 1)} />
     </Layouts.admin>
-    """
-  end
-
-  attr :form, :any, required: true
-  attr :plans, :list, required: true
-  attr :modal, :any, required: true
-
-  defp new_or_edit_modal(assigns) do
-    assigns = assign(assigns, :new?, assigns.modal == :new)
-
-    ~H"""
-    <div class="mtb-modal-backdrop" phx-window-keydown="close_modal" phx-key="Escape">
-      <div class="mtb-modal" style="max-width:520px">
-        <div class="mtb-modal-head">
-          <div>
-            <div class="font-semibold" style="font-family:var(--font-display);font-size:1.05rem">
-              {if @new?, do: "New agency", else: "Edit agency"}
-            </div>
-            <div class="mt-0.5 text-xs" style="color:var(--mc-text-3)">
-              {if @new?,
-                do: "Onboard a new tenant. The owner gets an email invite to set up access.",
-                else: "Update the agency name and plan."}
-            </div>
-          </div>
-          <button
-            type="button"
-            phx-click="close_modal"
-            class="mtb-btn mtb-btn-sm mtb-btn-icon mtb-btn-ghost"
-            aria-label="Close"
-          >
-            <.icon name="hero-x-mark" class="size-4" />
-          </button>
-        </div>
-
-        <.form for={@form} id="tenant-form" phx-change="validate" phx-submit="save">
-          <div class="mtb-modal-body space-y-1">
-            <.input field={@form[:name]} type="text" label="Agency name" placeholder="Acme Travel" />
-
-            <.input
-              :if={@new?}
-              field={@form[:slug]}
-              type="text"
-              label="Subdomain (slug)"
-              placeholder="acme"
-            />
-
-            <.input
-              :if={@new?}
-              field={@form[:owner_email]}
-              type="email"
-              label="Owner email"
-              placeholder="owner@acme.com"
-            />
-
-            <.input
-              field={@form[:plan_id]}
-              type="select"
-              label="Plan"
-              prompt="Select a plan"
-              options={plan_options(@plans)}
-            />
-          </div>
-
-          <div class="mtb-modal-foot">
-            <button
-              type="button"
-              phx-click="close_modal"
-              class="mtb-btn mtb-btn-ghost mtb-btn-sm"
-            >
-              Cancel
-            </button>
-            <.button class="mtb-btn mtb-btn-primary mtb-btn-sm" phx-disable-with="Saving…">
-              {if @new?, do: "Create agency", else: "Save changes"}
-            </.button>
-          </div>
-        </.form>
-      </div>
-    </div>
     """
   end
 
@@ -312,42 +223,6 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
   end
 
   @impl true
-  def handle_event("new", _params, socket) do
-    if can?(socket.assigns.current_admin, "tenant:create") do
-      {:noreply, assign(socket, modal: :new, form: to_form(Tenants.change_tenant_creation()))}
-    else
-      {:noreply, denied(socket)}
-    end
-  end
-
-  def handle_event("edit", %{"id" => id}, socket) do
-    with true <- can?(socket.assigns.current_admin, "tenant:update"),
-         %{} = tenant <- Tenants.get_tenant_for_admin(id) do
-      {:noreply,
-       assign(socket, modal: {:edit, tenant}, form: to_form(Tenants.change_tenant(tenant)))}
-    else
-      false -> {:noreply, denied(socket)}
-      nil -> {:noreply, missing(socket)}
-    end
-  end
-
-  def handle_event("validate", %{"tenant" => params}, socket) do
-    changeset =
-      case socket.assigns.modal do
-        :new -> Tenants.change_tenant_creation(params)
-        {:edit, tenant} -> Tenants.change_tenant(tenant, params)
-      end
-
-    {:noreply, assign(socket, form: to_form(Map.put(changeset, :action, :validate)))}
-  end
-
-  def handle_event("save", %{"tenant" => params}, socket) do
-    case socket.assigns.modal do
-      :new -> create_tenant(socket, params)
-      {:edit, tenant} -> update_tenant(socket, tenant, params)
-    end
-  end
-
   def handle_event("transition", %{"id" => id, "to" => to}, socket) do
     # Map the incoming string to a known status — never String.to_existing_atom on
     # untrusted input. The state machine still rejects illegal jumps below.
@@ -390,34 +265,6 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
     {:noreply, assign(socket, modal: nil, form: nil)}
   end
 
-  defp create_tenant(socket, params) do
-    case Tenants.create_tenant_with_owner(socket.assigns.current_admin, params) do
-      {:ok, tenant} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "#{tenant.name} created — an invite was emailed to the owner.")
-         |> assign(modal: nil, form: nil)
-         |> load_tenants()}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
-    end
-  end
-
-  defp update_tenant(socket, tenant, params) do
-    case Tenants.update_tenant(socket.assigns.current_admin, tenant, params) do
-      {:ok, updated} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "#{updated.name} updated.")
-         |> assign(modal: nil, form: nil)
-         |> load_tenants()}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
-    end
-  end
-
   # Runs a guarded status transition: the target status maps to a specific permission
   # (suspend/activate/cancel), checked before the state machine applies it.
   defp transition(socket, id, status) do
@@ -449,8 +296,6 @@ defmodule QuoteAssistWeb.Admin.TenantLive.Index do
     |> assign(modal: nil, form: nil)
     |> load_tenants()
   end
-
-  defp plan_options(plans), do: Enum.map(plans, fn plan -> {plan.name, plan.id} end)
 
   defp parse_status("active"), do: :active
   defp parse_status("suspended"), do: :suspended

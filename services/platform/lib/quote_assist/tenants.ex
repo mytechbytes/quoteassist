@@ -352,6 +352,16 @@ defmodule QuoteAssist.Tenants do
     end
   end
 
+  @doc "Live members assigned to a role, oldest first (with `:user`) — the role detail page."
+  def list_members_for_role(%Role{id: role_id, tenant_id: tenant_id}) do
+    Repo.all(
+      from m in Membership,
+        where: m.role_id == ^role_id and m.tenant_id == ^tenant_id and is_nil(m.deleted_at),
+        order_by: [asc: m.inserted_at],
+        preload: [:user]
+    )
+  end
+
   @doc "A live membership in `tenant` by id (with `:user`), or nil. Visibility-agnostic."
   def get_membership(%Tenant{} = tenant, id) do
     case Ecto.UUID.cast(id) do

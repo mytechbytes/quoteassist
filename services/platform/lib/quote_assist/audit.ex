@@ -44,6 +44,22 @@ defmodule QuoteAssist.Audit do
     Repo.all(from l in Log, order_by: [desc: l.inserted_at, desc: l.id], limit: ^limit)
   end
 
+  @doc """
+  Recent audit rows about a specific target resource, newest first — the activity feed on
+  a resource's detail page. Keyed on `target_type` + `target_id` (ids are UUIDs, globally
+  unique, so this is safe across tenants).
+  """
+  def list_for_target(target_type, target_id, limit \\ 50) when is_binary(target_type) do
+    target_id = to_string(target_id)
+
+    Repo.all(
+      from l in Log,
+        where: l.target_type == ^target_type and l.target_id == ^target_id,
+        order_by: [desc: l.inserted_at, desc: l.id],
+        limit: ^limit
+    )
+  end
+
   @doc "Recent audit rows for a specific admin actor, newest first (the admin detail page)."
   def list_for_admin(admin_id, limit \\ 50) do
     Repo.all(

@@ -60,5 +60,38 @@ defmodule QuoteAssistWeb.App.RequestLiveTest do
       assert Requests.get_request(tenant, req.id).status == :declined
       assert Tenants.get_active_membership(tenant, member_user)
     end
+
+    test "the request detail page shows the request and its activity", %{
+      conn: conn,
+      tenant: tenant
+    } do
+      {member_user, member} = member_fixture(tenant, "agent")
+      member_scope = scope_fixture(tenant, member_user, member)
+
+      {:ok, req} =
+        Requests.create_request(member_scope, %{"type" => "leave", "note" => "Moving on"})
+
+      {:ok, _lv, html} = live(conn, ~p"/app/requests/#{req.id}")
+      assert html =~ "Leave workspace"
+      assert html =~ "Moving on"
+      refute html =~ "No activity for this request yet."
+    end
+  end
+
+  describe "request detail gating" do
+    setup :register_and_log_in_member
+
+    @tag role: "agent"
+    test "is gated by request:read", %{
+      conn: conn,
+      tenant: tenant,
+      user: user,
+      membership: membership
+    } do
+      scope = scope_fixture(tenant, user, membership)
+      {:ok, req} = Requests.create_request(scope, %{"type" => "leave"})
+      # an agent can raise (baseline) but holds no request:read → the detail 403s
+      assert_error_sent 403, fn -> get(conn, ~p"/app/requests/#{req.id}") end
+    end
   end
 end

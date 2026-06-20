@@ -11,6 +11,7 @@ defmodule QuoteAssistWeb.App.RoleLive.Form do
   use QuoteAssistWeb, :live_view
 
   alias QuoteAssist.Authz.Permissions
+  alias QuoteAssist.Slug
   alias QuoteAssist.Tenants
   alias QuoteAssist.Tenants.Role
   alias QuoteAssistWeb.UserAuth
@@ -34,6 +35,7 @@ defmodule QuoteAssistWeb.App.RoleLive.Form do
       %Role{} = role ->
         socket
         |> assign(action: :edit, role: role, selected: MapSet.new(role.permissions))
+        |> assign(slug_auto: false, slug_last: role.slug)
         |> assign_form(Tenants.change_tenant_role(tenant, role))
 
       nil ->
@@ -49,6 +51,7 @@ defmodule QuoteAssistWeb.App.RoleLive.Form do
 
     socket
     |> assign(action: :new, role: %Role{}, selected: MapSet.new())
+    |> assign(slug_auto: true, slug_last: "")
     |> assign_form(Tenants.change_tenant_role(tenant, %Role{}))
   end
 
@@ -75,7 +78,13 @@ defmodule QuoteAssistWeb.App.RoleLive.Form do
         {if @action == :new, do: "New role", else: "Edit role"}
       </h1>
 
-      <.form for={@form} id="role-form" phx-submit="save" class="space-y-5">
+      <.form
+        for={@form}
+        id="role-form"
+        phx-change={@action == :new && "validate"}
+        phx-submit="save"
+        class="space-y-5"
+      >
         <div class="mtb-card space-y-1 p-6">
           <.input field={@form[:name]} type="text" label="Role name" placeholder="Senior agent" />
           <.input
@@ -247,6 +256,20 @@ defmodule QuoteAssistWeb.App.RoleLive.Form do
   end
 
   @impl true
+  def handle_event("validate", %{"role" => params}, socket) do
+    {params, slug_auto, slug_last} = apply_slug(params, socket)
+
+    changeset =
+      socket.assigns.current_scope.tenant
+      |> Tenants.change_tenant_role(%Role{}, params)
+      |> Map.put(:action, :validate)
+
+    {:noreply,
+     socket
+     |> assign(slug_auto: slug_auto, slug_last: slug_last)
+     |> assign_form(changeset)}
+  end
+
   def handle_event("toggle_perm", %{"key" => key}, socket) do
     {:noreply, update(socket, :selected, &toggle(&1, key))}
   end
@@ -312,6 +335,20 @@ defmodule QuoteAssistWeb.App.RoleLive.Form do
         group.resource == resource,
         perm <- group.permissions,
         do: perm.key
+  end
+
+  # Live slug auto-fill for the create form: derives the slug from the name until the user
+  # edits the slug themselves (see `QuoteAssist.Slug.auto/4`).
+  defp apply_slug(params, socket) do
+    {slug, auto?, last} =
+      Slug.auto(
+        params["name"] || "",
+        params["slug"] || "",
+        socket.assigns.slug_last,
+        socket.assigns.slug_auto
+      )
+
+    {Map.put(params, "slug", slug), auto?, last}
   end
 
   defp all_selected?(set), do: filled?(set, Permissions.keys())

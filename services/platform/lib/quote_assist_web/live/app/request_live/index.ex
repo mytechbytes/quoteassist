@@ -91,14 +91,23 @@ defmodule QuoteAssistWeb.App.RequestLive.Index do
                 </td>
                 <td class="px-4 py-3 align-middle"><.request_status_badge status={req.status} /></td>
                 <td class="px-4 py-3 align-middle text-right">
-                  <button
-                    :if={req.status == :open}
-                    phx-click="cancel"
-                    phx-value-id={req.id}
-                    class="mtb-btn mtb-btn-ghost mtb-btn-sm"
-                  >
-                    Cancel
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5">
+                    <.link
+                      :if={can?(@current_scope, "request:read")}
+                      navigate={~p"/app/requests/#{req.id}"}
+                      class="mtb-btn mtb-btn-ghost mtb-btn-sm"
+                    >
+                      View
+                    </.link>
+                    <button
+                      :if={req.status == :open}
+                      phx-click="cancel"
+                      phx-value-id={req.id}
+                      class="mtb-btn mtb-btn-ghost mtb-btn-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -144,6 +153,13 @@ defmodule QuoteAssistWeb.App.RequestLive.Index do
                 <td class="px-4 py-3 align-middle"><.request_status_badge status={req.status} /></td>
                 <td class="px-4 py-3 align-middle">
                   <div class="flex items-center justify-end gap-1.5">
+                    <.link
+                      :if={can?(@current_scope, "request:read")}
+                      navigate={~p"/app/requests/#{req.id}"}
+                      class="mtb-btn mtb-btn-ghost mtb-btn-sm"
+                    >
+                      View
+                    </.link>
                     <button
                       :if={req.status == :open and can?(@current_scope, "request:manage")}
                       phx-click="approve"

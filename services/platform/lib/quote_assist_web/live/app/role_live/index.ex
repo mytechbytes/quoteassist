@@ -80,7 +80,21 @@ defmodule QuoteAssistWeb.App.RoleLive.Index do
               style="border-top:1px solid var(--mc-border)"
             >
               <td class="px-5 py-3 align-middle">
-                <div class="text-sm font-semibold" style="color:var(--mc-text)">{role.name}</div>
+                <.link
+                  :if={can?(@current_scope, "role:read")}
+                  navigate={~p"/app/roles/#{role.id}"}
+                  class="text-sm font-semibold no-underline hover:underline"
+                  style="color:var(--mc-text)"
+                >
+                  {role.name}
+                </.link>
+                <div
+                  :if={not can?(@current_scope, "role:read")}
+                  class="text-sm font-semibold"
+                  style="color:var(--mc-text)"
+                >
+                  {role.name}
+                </div>
                 <div class="text-[11px]" style="color:var(--mc-text-3)">
                   <span class="font-mono">{role.slug}</span>
                 </div>

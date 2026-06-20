@@ -122,11 +122,14 @@ defmodule QuoteAssistWeb.Router do
       # R7-rbac · tenant users, roles, self-service, and the requests inbox. Page-level
       # gates raise → branded 403 (UserAuth.permit!); per-action gates hide/deny.
       live "/app/team", App.TeamLive.Index, :index
+      live "/app/team/:id", App.TeamLive.Show, :show
       live "/app/roles", App.RoleLive.Index, :index
       live "/app/roles/new", App.RoleLive.Form, :new
       live "/app/roles/:id/edit", App.RoleLive.Form, :edit
+      live "/app/roles/:id", App.RoleLive.Show, :show
       live "/app/account", App.AccountLive, :index
       live "/app/requests", App.RequestLive.Index, :index
+      live "/app/requests/:id", App.RequestLive.Show, :show
     end
   end
 
@@ -201,8 +204,12 @@ defmodule QuoteAssistWeb.Router do
       on_mount: [{QuoteAssistWeb.AdminAuth, :require_admin}] do
       live "/", Admin.DashboardLive, :index
       live "/tenants", Admin.TenantLive.Index, :index
+      live "/tenants/new", Admin.TenantLive.Form, :new
+      live "/tenants/:id/edit", Admin.TenantLive.Form, :edit
       live "/tenants/:id", Admin.TenantLive.Show, :show
       live "/plans", Admin.PlanLive.Index, :index
+      live "/plans/new", Admin.PlanLive.Form, :new
+      live "/plans/:id/edit", Admin.PlanLive.Form, :edit
       live "/plans/:id", Admin.PlanLive.Show, :show
       live "/admins", Admin.AdminLive.Index, :index
       live "/admins/:id", Admin.AdminLive.Show, :show

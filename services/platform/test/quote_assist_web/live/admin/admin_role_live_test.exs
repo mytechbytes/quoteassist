@@ -99,6 +99,12 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLiveTest do
                live(conn, ~p"/admin/roles/#{Ecto.UUID.generate()}/edit")
     end
 
+    test "the slug auto-fills from the name on create", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/roles/new")
+      html = lv |> form("#role-form", admin_role: %{name: "Billing Ops"}) |> render_change()
+      assert html =~ "billing-ops"
+    end
+
     test "soft-deletes a custom role via the confirm modal", %{conn: conn} do
       role = admin_role_fixture(%{name: "Temp", slug: "temp"})
       {:ok, lv, _html} = live(conn, ~p"/admin/roles")
@@ -116,13 +122,19 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLiveTest do
       refute has_element?(lv, "#role-#{builtin.id} button", "Remove")
     end
 
-    test "shows a role's detail with its permissions", %{conn: conn} do
-      role =
-        admin_role_fixture(%{name: "Support", slug: "support", permissions: ["tenant:list"]})
+    test "shows a role's detail with its permissions and activity", %{conn: conn, admin: admin} do
+      {:ok, role} =
+        Accounts.create_admin_role(admin, %{
+          name: "Support",
+          slug: "support",
+          permissions: ["tenant:list"]
+        })
 
       {:ok, _lv, html} = live(conn, ~p"/admin/roles/#{role.id}")
       assert html =~ "Support"
       assert html =~ "View agency list"
+      assert html =~ "Activity"
+      refute html =~ "No activity for this role yet."
     end
 
     test "redirects for an unknown role", %{conn: conn} do

@@ -28,4 +28,46 @@ defmodule QuoteAssist.AuditReadsTest do
 
     assert [%{action: "admin.did"}] = Audit.list_for_admin(admin_id)
   end
+
+  test "list_for_target/3 filters to a single resource by type + id" do
+    role_id = Ecto.UUID.generate()
+
+    {:ok, _} =
+      Audit.log(%{
+        actor_type: :user,
+        action: "role.created",
+        target_type: "role",
+        target_id: role_id
+      })
+
+    {:ok, _} =
+      Audit.log(%{
+        actor_type: :user,
+        action: "role.updated",
+        target_type: "role",
+        target_id: role_id
+      })
+
+    {:ok, _} =
+      Audit.log(%{
+        actor_type: :user,
+        action: "role.created",
+        target_type: "role",
+        target_id: Ecto.UUID.generate()
+      })
+
+    {:ok, _} =
+      Audit.log(%{
+        actor_type: :user,
+        action: "user.removed",
+        target_type: "user",
+        target_id: role_id
+      })
+
+    actions = "role" |> Audit.list_for_target(role_id) |> Enum.map(& &1.action)
+    assert "role.created" in actions
+    assert "role.updated" in actions
+    # different target_id and different target_type are both excluded
+    assert length(actions) == 2
+  end
 end

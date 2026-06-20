@@ -8,6 +8,7 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Show do
   import QuoteAssistWeb.Admin.Components
 
   alias QuoteAssist.Accounts
+  alias QuoteAssist.Audit
   alias QuoteAssist.Authz.AdminPermissions
 
   @impl true
@@ -29,7 +30,8 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Show do
         assign(socket,
           page_title: role.name,
           role: role,
-          admins: Accounts.list_admins_for_role(role)
+          admins: Accounts.list_admins_for_role(role),
+          logs: Audit.list_for_target("admin_role", role.id)
         )
     end
   end
@@ -104,6 +106,11 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Show do
             </li>
           </ul>
         </div>
+      </div>
+
+      <div class="mt-6 mtb-card p-6">
+        <div class="mb-4 font-semibold" style="font-family:var(--font-display)">Activity</div>
+        <.audit_timeline logs={@logs} empty="No activity for this role yet." />
       </div>
     </Layouts.admin>
     """

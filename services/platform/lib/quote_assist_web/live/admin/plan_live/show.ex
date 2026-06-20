@@ -6,6 +6,7 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Show do
 
   import QuoteAssistWeb.Admin.Components
 
+  alias QuoteAssist.Audit
   alias QuoteAssist.Plans
   alias QuoteAssist.Tenants
 
@@ -28,7 +29,8 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Show do
         assign(socket,
           page_title: plan.name,
           plan: plan,
-          tenants: Tenants.list_tenants_for_plan(plan.id)
+          tenants: Tenants.list_tenants_for_plan(plan.id),
+          logs: Audit.list_for_target("plan", plan.id)
         )
     end
   end
@@ -133,6 +135,11 @@ defmodule QuoteAssistWeb.Admin.PlanLive.Show do
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="mt-6 mtb-card p-6">
+        <div class="mb-4 font-semibold" style="font-family:var(--font-display)">Activity</div>
+        <.audit_timeline logs={@logs} empty="No activity for this plan yet." />
       </div>
     </Layouts.admin>
     """

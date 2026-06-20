@@ -34,6 +34,13 @@ defmodule QuoteAssistWeb.App.RoleLiveTest do
       conn = log_in_role(conn, tenant, ["role:list", "role:read"])
       assert_error_sent 403, fn -> get(conn, ~p"/app/roles/new") end
     end
+
+    test "the detail page is gated by role:read", %{conn: conn} do
+      tenant = active_tenant_fixture(%{slug: "acme"})
+      role = role_fixture(tenant, %{permissions: []})
+      conn = log_in_role(conn, tenant, ["role:list"])
+      assert_error_sent 403, fn -> get(conn, ~p"/app/roles/#{role.id}") end
+    end
   end
 
   describe "index, as an owner" do
@@ -187,6 +194,48 @@ defmodule QuoteAssistWeb.App.RoleLiveTest do
     test "redirects when editing a missing role", %{conn: conn} do
       assert {:error, {:redirect, %{to: "/app/roles"}}} =
                live(conn, ~p"/app/roles/#{Ecto.UUID.generate()}/edit")
+    end
+
+    test "the slug auto-fills from the name on create", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/app/roles/new")
+      html = lv |> form("#role-form", role: %{name: "Senior Agent"}) |> render_change()
+      assert html =~ "senior-agent"
+    end
+  end
+
+  describe "role detail page" do
+    setup :register_and_log_in_member
+
+    test "shows permissions, members, and activity", %{
+      conn: conn,
+      tenant: tenant,
+      user: user,
+      membership: membership
+    } do
+      scope = scope_fixture(tenant, user, membership)
+
+      {:ok, role} =
+        Tenants.create_role(scope, %{
+          "name" => "Desk",
+          "slug" => "desk",
+          "permissions" => ["quote:list"]
+        })
+
+      member_user = user_fixture()
+      {:ok, _} = Tenants.create_membership(tenant, member_user, role)
+
+      {:ok, _lv, html} = live(conn, ~p"/app/roles/#{role.id}")
+      assert html =~ "Desk"
+      assert html =~ "View quote list"
+      assert html =~ member_user.email
+      refute html =~ "No activity for this role yet."
+    end
+
+    test "redirects for a missing role", %{conn: conn} do
+      assert {:error, {kind, %{to: "/app/roles"}}} =
+               live(conn, ~p"/app/roles/#{Ecto.UUID.generate()}")
+
+      assert kind in [:redirect, :live_redirect]
     end
   end
 end

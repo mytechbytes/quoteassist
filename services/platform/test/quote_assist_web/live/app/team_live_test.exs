@@ -141,6 +141,41 @@ defmodule QuoteAssistWeb.App.TeamLiveTest do
       # An agent holds user:list/read but not user:create → no invite button.
       refute has_element?(lv, "#invite-member")
     end
+
+    @tag role: "agent"
+    test "a member cannot open an owner's detail page", %{conn: conn, tenant: tenant} do
+      {_owner_user, owner} = member_fixture(tenant, "owner")
+
+      assert {:error, {kind, %{to: "/app/team"}}} = live(conn, ~p"/app/team/#{owner.id}")
+      assert kind in [:redirect, :live_redirect]
+    end
+  end
+
+  describe "member detail page" do
+    setup :register_and_log_in_member
+
+    test "shows the member's identity and activity", %{
+      conn: conn,
+      tenant: tenant,
+      user: user,
+      membership: membership
+    } do
+      scope = scope_fixture(tenant, user, membership)
+      {member_user, member} = member_fixture(tenant, "agent")
+      {:ok, _} = Tenants.deactivate_member(scope, member)
+
+      {:ok, _lv, html} = live(conn, ~p"/app/team/#{member.id}")
+      assert html =~ member_user.email
+      assert html =~ "Inactive"
+      refute html =~ "No activity for this member yet."
+    end
+
+    test "the detail page is gated by user:read", %{conn: conn} do
+      tenant = active_tenant_fixture(%{slug: "beta"})
+      # a member with an empty role holds no user:read → any member detail 403s
+      conn = log_in_role(conn, tenant, []).conn
+      assert_error_sent 403, fn -> get(conn, ~p"/app/team/#{Ecto.UUID.generate()}") end
+    end
   end
 
   defp fetch_membership(tenant, email) do

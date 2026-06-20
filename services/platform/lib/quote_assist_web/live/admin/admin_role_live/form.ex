@@ -14,6 +14,7 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Form do
   alias QuoteAssist.Accounts
   alias QuoteAssist.Accounts.AdminRole
   alias QuoteAssist.Authz.AdminPermissions
+  alias QuoteAssist.Slug
   alias QuoteAssistWeb.AdminAuth
 
   @impl true
@@ -37,6 +38,7 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Form do
       %AdminRole{} = role ->
         socket
         |> assign(action: :edit, role: role, selected: MapSet.new(role.permissions))
+        |> assign(slug_auto: false, slug_last: role.slug)
         |> assign_form(Accounts.change_admin_role(role))
 
       nil ->
@@ -49,6 +51,7 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Form do
   defp prepare(socket, _params) do
     socket
     |> assign(action: :new, role: %AdminRole{}, selected: MapSet.new())
+    |> assign(slug_auto: true, slug_last: "")
     |> assign_form(Accounts.change_admin_role())
   end
 
@@ -75,7 +78,13 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Form do
         {if @action == :new, do: "New admin role", else: "Edit admin role"}
       </h1>
 
-      <.form for={@form} id="role-form" phx-submit="save" class="space-y-5">
+      <.form
+        for={@form}
+        id="role-form"
+        phx-change={@action == :new && "validate"}
+        phx-submit="save"
+        class="space-y-5"
+      >
         <div class="mtb-card space-y-1 p-6">
           <.input field={@form[:name]} type="text" label="Role name" placeholder="Operations" />
           <.input
@@ -251,6 +260,26 @@ defmodule QuoteAssistWeb.Admin.AdminRoleLive.Form do
   end
 
   @impl true
+  def handle_event("validate", %{"admin_role" => params}, socket) do
+    {slug, slug_auto, slug_last} =
+      Slug.auto(
+        params["name"] || "",
+        params["slug"] || "",
+        socket.assigns.slug_last,
+        socket.assigns.slug_auto
+      )
+
+    changeset =
+      %AdminRole{}
+      |> Accounts.change_admin_role(Map.put(params, "slug", slug))
+      |> Map.put(:action, :validate)
+
+    {:noreply,
+     socket
+     |> assign(slug_auto: slug_auto, slug_last: slug_last)
+     |> assign_form(changeset)}
+  end
+
   def handle_event("toggle_perm", %{"key" => key}, socket) do
     {:noreply, update(socket, :selected, &toggle(&1, key))}
   end

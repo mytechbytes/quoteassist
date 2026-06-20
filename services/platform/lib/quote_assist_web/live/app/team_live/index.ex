@@ -94,7 +94,19 @@ defmodule QuoteAssistWeb.App.TeamLive.Index do
               style="border-top:1px solid var(--mc-border)"
             >
               <td class="px-5 py-3 align-middle">
-                <div class="text-sm font-semibold" style="color:var(--mc-text)">
+                <.link
+                  :if={can?(@current_scope, "user:read")}
+                  navigate={~p"/app/team/#{member.id}"}
+                  class="text-sm font-semibold no-underline hover:underline"
+                  style="color:var(--mc-text)"
+                >
+                  {member_name(member)}
+                </.link>
+                <div
+                  :if={not can?(@current_scope, "user:read")}
+                  class="text-sm font-semibold"
+                  style="color:var(--mc-text)"
+                >
                   {member_name(member)}
                 </div>
                 <div class="text-[11px]" style="color:var(--mc-text-3)">

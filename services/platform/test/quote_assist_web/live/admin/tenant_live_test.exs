@@ -24,25 +24,26 @@ defmodule QuoteAssistWeb.Admin.TenantLiveTest do
       assert render(lv) =~ "owner@acme.test"
     end
 
-    test "creates a tenant + owner via the modal", %{conn: conn, plan: plan} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tenants")
+    test "creates a tenant + owner on the dedicated page (slug auto-fills)", %{
+      conn: conn,
+      plan: plan
+    } do
+      {:ok, lv, _html} = live(conn, ~p"/admin/tenants/new")
 
-      lv |> element("#new-agency") |> render_click()
+      # the slug derives from the name as you type
+      html = lv |> form("#tenant-form", tenant: %{name: "Globex Inc"}) |> render_change()
+      assert html =~ "globex-inc"
 
-      html =
-        lv
-        |> form("#tenant-form",
-          tenant: %{
-            name: "Globex",
-            slug: "globex",
-            owner_email: "owner@globex.test",
-            plan_id: plan.id
-          }
-        )
-        |> render_submit()
-
-      assert html =~ "Globex"
-      assert html =~ "invite was emailed"
+      lv
+      |> form("#tenant-form",
+        tenant: %{
+          name: "Globex",
+          slug: "globex",
+          owner_email: "owner@globex.test",
+          plan_id: plan.id
+        }
+      )
+      |> render_submit()
 
       tenant = Tenants.get_tenant_by_slug("globex")
       assert tenant.status == :trial
@@ -51,8 +52,7 @@ defmodule QuoteAssistWeb.Admin.TenantLiveTest do
     end
 
     test "shows validation errors for an invalid create", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tenants")
-      lv |> element("#new-agency") |> render_click()
+      {:ok, lv, _html} = live(conn, ~p"/admin/tenants/new")
 
       html =
         lv
@@ -84,18 +84,15 @@ defmodule QuoteAssistWeb.Admin.TenantLiveTest do
       refute Tenants.get_tenant_for_admin(tenant.id)
     end
 
-    test "edits a tenant's name", %{conn: conn, admin: admin, plan: plan} do
+    test "edits a tenant's name on the dedicated page", %{conn: conn, admin: admin, plan: plan} do
       {:ok, tenant} = create(admin, plan, "Acme", "acme", "o@acme.test")
-      {:ok, lv, _html} = live(conn, ~p"/admin/tenants")
+      {:ok, lv, _html} = live(conn, ~p"/admin/tenants/#{tenant.id}/edit")
 
-      lv |> element("#tenant-#{tenant.id} button", "Edit") |> render_click()
+      lv
+      |> form("#tenant-form", tenant: %{name: "Acme Renamed", plan_id: plan.id})
+      |> render_submit()
 
-      html =
-        lv
-        |> form("#tenant-form", tenant: %{name: "Acme Renamed", plan_id: plan.id})
-        |> render_submit()
-
-      assert html =~ "Acme Renamed"
+      assert Tenants.get_tenant_for_admin(tenant.id).name == "Acme Renamed"
     end
   end
 

@@ -21,33 +21,43 @@ defmodule QuoteAssistWeb.Admin.PlanLiveTest do
       assert html =~ "Starter"
     end
 
-    test "creates a plan via the modal", %{conn: conn} do
+    test "New plan links to the dedicated create page", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/admin/plans")
-      lv |> element("#new-plan") |> render_click()
+      assert has_element?(lv, ~s{#new-plan[href="/admin/plans/new"]})
+    end
 
-      html =
-        lv
-        |> form("#plan-form",
-          plan: %{name: "Enterprise", slug: "enterprise", price: 49_900, interval: "monthly"}
-        )
-        |> render_submit()
+    test "creates a plan on the dedicated page (slug auto-fills from the name)", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/plans/new")
 
-      assert html =~ "Enterprise"
+      # typing the name live-derives the slug
+      html = lv |> form("#plan-form", plan: %{name: "Enterprise Tier"}) |> render_change()
+      assert html =~ "enterprise-tier"
+
+      lv
+      |> form("#plan-form",
+        plan: %{name: "Enterprise", slug: "enterprise", price: 49_900, interval: "monthly"}
+      )
+      |> render_submit()
+
       assert Plans.get_plan_by_slug("enterprise")
     end
 
-    test "edits a plan via the modal", %{conn: conn} do
+    test "edits a plan on the dedicated page", %{conn: conn} do
       plan = plan_fixture(%{name: "Growth", slug: "growth"})
-      {:ok, lv, _html} = live(conn, ~p"/admin/plans")
+      {:ok, lv, _html} = live(conn, ~p"/admin/plans/#{plan.id}/edit")
 
-      lv |> element("#plan-#{plan.id} button", "Edit") |> render_click()
+      lv |> form("#plan-form", plan: %{name: "Growth Plus", price: 19_900}) |> render_submit()
 
-      html =
-        lv
-        |> form("#plan-form", plan: %{name: "Growth Plus", price: 19_900})
-        |> render_submit()
+      assert Plans.get_plan(plan.id).name == "Growth Plus"
+    end
 
-      assert html =~ "Growth Plus"
+    test "detail page shows the plan's activity", %{conn: conn, admin: admin} do
+      plan = plan_fixture(%{name: "Growth", slug: "growth"})
+      {:ok, _} = Plans.admin_update_plan(admin, plan, %{"name" => "Growth Plus"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/plans/#{plan.id}")
+      assert html =~ "Activity"
+      refute html =~ "No activity for this plan yet."
     end
 
     test "detail page lists tenants on the plan", %{conn: conn, admin: admin} do
@@ -70,6 +80,16 @@ defmodule QuoteAssistWeb.Admin.PlanLiveTest do
       assert {:error, {kind, %{to: "/admin/plans"}}} =
                live(conn, ~p"/admin/plans/#{Ecto.UUID.generate()}")
 
+      assert kind in [:redirect, :live_redirect]
+    end
+  end
+
+  describe "permission gating" do
+    @describetag admin_permissions: ["plan:list"]
+    setup :register_and_log_in_normal_admin
+
+    test "the create page is gated by plan:create", %{conn: conn} do
+      assert {:error, {kind, %{to: "/admin"}}} = live(conn, ~p"/admin/plans/new")
       assert kind in [:redirect, :live_redirect]
     end
   end

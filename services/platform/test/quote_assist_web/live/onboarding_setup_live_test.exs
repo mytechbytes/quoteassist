@@ -42,7 +42,7 @@ defmodule QuoteAssistWeb.OnboardingSetupLiveTest do
         )
         |> render_submit()
 
-      assert html =~ "You're all set"
+      assert html =~ "You&#39;re all set"
       # The sign-in link points at the tenant's own subdomain login.
       assert html =~ "http://skyline.example.com/login"
 
@@ -66,7 +66,7 @@ defmodule QuoteAssistWeb.OnboardingSetupLiveTest do
         extract_user_token(fn url -> Accounts.deliver_onboarding_instructions(user, url) end)
 
       {:ok, _lv, html} = live(conn, ~p"/onboarding/#{fresh}")
-      assert html =~ "You're all set"
+      assert html =~ "You&#39;re all set"
     end
   end
 

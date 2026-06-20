@@ -44,7 +44,7 @@ defmodule QuoteAssistWeb.RegistrationLiveTest do
 
     owner = Accounts.get_user_by_email("rana@skyline.test")
     assert owner.display_name == "Rana Aziz"
-    assert Repo.get_by(UserToken, user_id: owner.id, context: "onboarding")
+    assert QuoteAssist.Repo.get_by(UserToken, user_id: owner.id, context: "onboarding")
   end
 
   test "shows a validation error for a reserved slug", %{conn: conn} do

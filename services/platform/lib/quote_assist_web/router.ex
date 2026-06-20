@@ -128,6 +128,9 @@ defmodule QuoteAssistWeb.Router do
       live "/app/roles/:id/edit", App.RoleLive.Form, :edit
       live "/app/roles/:id", App.RoleLive.Show, :show
       live "/app/account", App.AccountLive, :index
+      # R9-recovery · confirm an email change from the link sent to the new address.
+      # Authenticated so the swap is verified against the signed-in user's current email.
+      live "/account/confirm-email/:token", App.EmailConfirmationLive, :confirm
       live "/app/requests", App.RequestLive.Index, :index
       live "/app/requests/:id", App.RequestLive.Show, :show
     end
@@ -145,11 +148,13 @@ defmodule QuoteAssistWeb.Router do
     end
   end
 
-  # ── Self-registration + onboarding (R5-selfreg) — platform host only ──────────────
+  # ── Self-registration, onboarding + account recovery — platform host only ─────────
   # Public pages: a company self-registers at /register (tenant created directly on a
   # 15-day trial), then the owner sets a password on the platform-host onboarding link
-  # (/onboarding/:token) and is sent to their tenant's own-host login. RequirePlatform
-  # 404s these on tenant hosts so onboarding always lives on the apex.
+  # (/onboarding/:token) and is sent to their tenant's own-host login. R9-recovery adds
+  # the logged-out password reset (/forgot → /reset/:token). All live on the platform
+  # host (RequirePlatform 404s tenant hosts) so they keep working even when a tenant is
+  # suspended.
   scope "/", QuoteAssistWeb do
     pipe_through [:browser, :require_platform]
 
@@ -157,6 +162,8 @@ defmodule QuoteAssistWeb.Router do
       on_mount: [{QuoteAssistWeb.UserAuth, :mount_current_scope}] do
       live "/register", RegistrationLive, :new
       live "/onboarding/:token", OnboardingSetupLive, :new
+      live "/forgot", ForgotPasswordLive, :new
+      live "/reset/:token", ResetPasswordLive, :new
     end
   end
 

@@ -396,20 +396,74 @@ defmodule QuoteAssist.Accounts do
   end
 
   @doc ~S"""
-  Delivers the update email instructions to the given user.
+  Delivers the update-email instructions (R9-recovery). `user` carries the **new** email
+  (the applied change) and `current_email` is the **old** one. Two messages go out:
+
+    * a confirm link to the **new** address (the change only lands once it's clicked), and
+    * an alert to the **old** address, so a hijacked session can't silently move the
+      account — the real owner is always notified.
 
   ## Examples
 
-      iex> deliver_user_update_email_instructions(user, current_email, &url(~p"/users/settings/confirm-email/#{&1}"))
+      iex> deliver_user_update_email_instructions(user, current_email, &url(~p"/account/confirm-email/#{&1}"))
       {:ok, %{to: ..., body: ...}}
 
+  Returns the confirm email's delivery result (so callers can extract the token in
+  tests); the old-address alert is a side effect.
   """
   def deliver_user_update_email_instructions(%User{} = user, current_email, update_email_url_fun)
       when is_function(update_email_url_fun, 1) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "change:#{current_email}")
 
     Repo.insert!(user_token)
-    UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+
+    result =
+      UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+
+    UserNotifier.deliver_email_change_alert(current_email, user.email)
+    result
+  end
+
+  ## Password reset (R9-recovery)
+  #
+  # The logged-out recovery flow. Reset links are issued on, and confirmed from, the
+  # platform host so they survive a tenant suspension. Tokens are short-lived (60 min)
+  # and single-use — a successful reset deletes all of the user's tokens, which also
+  # revokes every active session (cross-cutting session-revocation rule).
+
+  @doc """
+  Issues a `reset_password` token for `user` and emails the reset link built by
+  `url_fun`. Callers look the user up by email first and respond neutrally whether or
+  not one was found, so this is never an account-enumeration oracle.
+  """
+  def deliver_user_reset_password_instructions(%User{} = user, url_fun)
+      when is_function(url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "reset_password")
+    Repo.insert!(user_token)
+    UserNotifier.deliver_reset_password_instructions(user, url_fun.(encoded_token))
+  end
+
+  @doc "Gets the user for a valid reset-password token, or nil (expired / unknown / used)."
+  def get_user_by_reset_password_token(token) when is_binary(token) do
+    with {:ok, query} <- UserToken.verify_reset_password_token_query(token),
+         {user, _token} <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Resets the user's password and revokes all of their tokens (sessions + the reset link
+  itself, so it's single-use). Returns `{:ok, user}` or `{:error, changeset}`.
+  """
+  def reset_user_password(%User{} = user, attrs) do
+    case user
+         |> User.password_changeset(attrs)
+         |> update_user_and_delete_all_tokens() do
+      {:ok, {user, _expired_tokens}} -> {:ok, user}
+      {:error, changeset} -> {:error, changeset}
+    end
   end
 
   @doc """

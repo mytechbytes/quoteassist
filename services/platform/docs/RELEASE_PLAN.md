@@ -366,9 +366,9 @@ resequenced into a clean R4–R12 order (the suffixes are descriptive labels).
 | R4-retrofit    | Site Admin    | Admin RBAC + protected `super_admin` (retrofits R3) ✅ done |
 | R5-selfreg     | Site Admin    | Self-registration → auto-approve to trial  ✅ done |
 | R6-errors      | Foundation    | Error pages (401/403/404/500/503)          ✅ done |
-| R7-rbac        | Tenant Basics | Users, roles, permissions + self:* + requests |
-| R8-dashboard   | Tenant Basics | `/app` dashboard landing                   |
-| R9-recovery    | Tenant Basics | Account recovery (forgot/reset, email-change) |
+| R7-rbac        | Tenant Basics | Users, roles, permissions + self:* + requests ✅ done |
+| R8-dashboard   | Tenant Basics | `/app` dashboard landing                   ✅ done |
+| R9-recovery    | Tenant Basics | Account recovery (forgot/reset, email-change) ✅ done |
 | R10-domain     | Tenant Basics | Custom domain (add, verify, auto-TLS)      |
 | R11-quotes     | Leads/Quotes  | Quote request CRUD (lead capture)          |
 | R12-quote-reply| Leads/Quotes  | Quote detail + AI reply hook (stub → live) |
@@ -1092,9 +1092,9 @@ R0 → R0a → R1 → R2 → R3   foundation + site admin: skeleton · home+tena
 
 [resequenced, shipped]
 R4-retrofit → R5-selfreg → R6-errors    admin RBAC (retrofits R3) · self-reg (auto-trial) · error pages ✅
+R7-rbac → R8-dashboard → R9-recovery    tenant users/roles/self/requests · dashboard · account recovery ✅
 
 [resequenced, to build]
-  → R7-rbac → R8-dashboard → R9-recovery   tenant users/roles/self/requests · dashboard · account recovery
   → R10-domain                             custom domain
   → R11-quotes → R12-quote-reply           quote CRUD · AI reply hook
 ```

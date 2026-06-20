@@ -131,8 +131,14 @@ defmodule QuoteAssistWeb.UserLive.Login do
             <div>
               <div class="mb-1.5 flex items-center justify-between">
                 <label for={f[:password].id} class="mtb-label" style="margin:0">Password</label>
-                <%!-- /forgot lands in R6 (account flows) --%>
-                <a href="/forgot" class="text-xs font-semibold" style="color:var(--mc-brand)">
+                <%!-- Password reset lives on the platform host (R9-recovery) so it works
+                      even if this tenant is suspended; link there explicitly rather than
+                      to a tenant-host /forgot (which RequirePlatform 404s). --%>
+                <a
+                  href={Tenants.platform_url("/forgot")}
+                  class="text-xs font-semibold"
+                  style="color:var(--mc-brand)"
+                >
                   Forgot?
                 </a>
               </div>

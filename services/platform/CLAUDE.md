@@ -6,6 +6,34 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
+**R9-recovery complete.** The logged-out / email-changing token flows. **Forgot password**
+(`/forgot`, platform host) → `Accounts.deliver_user_reset_password_instructions/2` issues a
+short-lived (60 min) single-use `reset_password` `UserToken` and emails a link built on the
+*platform* host (so it survives a tenant suspension); the response is always neutral and the
+send is throttled (`LoginThrottle.reset_password_throttled?/1`). **Reset** (`/reset/:token`,
+platform host) → `ResetPasswordLive` validates via `Accounts.get_user_by_reset_password_token/1`,
+and `reset_user_password/2` sets the password through `update_user_and_delete_all_tokens` (so
+every session is revoked + the link is consumed), then links the user to their newest tenant's
+own-host login (`Tenants.newest_tenant_for_user/1` → `tenant_login_url/1`, falling back to
+`/tenants`). **Email change** now completes: `deliver_user_update_email_instructions/3` sends the
+confirm link to the *new* address **and** an alert to the *old* one
+(`UserNotifier.deliver_email_change_alert/2`); the R7 initiation in `App.AccountLive` is
+unchanged, and the new `App.EmailConfirmationLive` (`/account/confirm-email/:token`, tenant host,
+authenticated) calls `Accounts.update_user_email/2` to swap it. The login page's "Forgot?" link
+now points at `Tenants.platform_url("/forgot")` (made public) rather than a tenant-host path that
+RequirePlatform would 404. No new migrations (`users_tokens` carries the `reset_password` +
+`change:*` contexts).
+
+**R8-dashboard complete.** `/app` (`AppHomeLive`) is the post-login dashboard, filling the R2
+shell: a greeting, three permission-gated stat cards (open requests + quoted-this-month, gated
+`quote:list`; team size from `Tenants.active_member_count/1`, gated `user:list`), a tenant-scoped
+recent-activity feed (`Audit.list_for_tenant/2` → `App.Components.audit_timeline`), and quick
+links (Team/Roles gated, Requests/Account always). Owners see everything (computed all-access);
+an empty-role member sees only the activity feed + Account. Reads only, no new tables. **Quote
+counts are `0` placeholders until R11-quotes** (`dashboard_quote_stats/1` — the `quote_requests`
+table doesn't exist yet), which is exactly the brand-new-tenant empty state; R11 swaps the body
+with the real aggregate, no UI change. The un-onboarded-owner setup banner from R2 is kept.
+
 **Cross-cutting UI conventions (post-R7).** Three rules now apply to every resource, admin
 and tenant: (1) **forms with >3 fields live on dedicated pages**, not modals — Plan
 (`/admin/plans/new` · `/admin/plans/:id/edit` → `Admin.PlanLive.Form`), Tenant
@@ -166,10 +194,12 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R8-dashboard** — the post-login `/app` landing: stat cards (open quote requests, quoted
-this month, team size) + a recent-activity list from `audit_logs` (tenant-scoped) + quick links,
-all gated by permissions, with friendly empty states for a brand-new tenant. Reads only; no new
-tables. Fills the R2 shell that currently links to Team/Account.
+**Next: R10-domain** — custom domain: a tenant owner adds their own domain
+(`/app/settings/domain`, gated `domain:read`/`domain:update`), verifies ownership via a DNS TXT
+lookup (`domain:verify`), and the app serves on it with Caddy on-demand TLS gated by an internal
+`/tls/check?domain=` endpoint. The `TenantResolver` already handles the verified custom-domain
+path (R2); this release populates + verifies the data it reads. The subdomain stays a permanent
+fallback.
 
 ## How to run
 
@@ -273,8 +303,8 @@ R4-retrofit   admin RBAC + protected super_admin (retrofits R3)                 
 R5-selfreg    self-registration → auto-approve to trial                            ✅
 R6-errors     branded error pages (401/403/404/500/503)                            ✅
 R7-rbac       tenant users, roles, permissions + self:* + requests               ✅
-R8-dashboard  /app dashboard landing
-R9-recovery   account recovery (forgot/reset, email-change)
+R8-dashboard  /app dashboard landing                                              ✅
+R9-recovery   account recovery (forgot/reset, email-change)                       ✅
 R10-domain    custom domain (add, verify, auto-TLS via Caddy on-demand)
 R11-quotes    quote request CRUD (lead capture)
 R12-quote-reply  quote reply + AI hook (stub → live)

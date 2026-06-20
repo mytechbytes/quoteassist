@@ -3,7 +3,7 @@ defmodule QuoteAssistWeb.App.AccountLive do
   Self-service account (`/app/account`) — the `self:*` baseline surface (R7-rbac). Every
   authenticated member manages their **own** record regardless of role: profile
   (`self:read`/`self:update`), password (`self:password`), email (`self:email` — the
-  verified-change request; the confirm/alert token mechanics land in R9-recovery), and
+  verified-change request; the confirm + old-address alert mechanics live in R9-recovery), and
   their active sessions (`self:sessions`). No permission gate — a member with an empty
   role can still do all of this, because it's scoped to their own row.
   """
@@ -281,8 +281,9 @@ defmodule QuoteAssistWeb.App.AccountLive do
   end
 
   # Applies the new email to a throwaway changeset (validates format / uniqueness / that
-  # it changed) and, on success, emails a confirmation link to the new address. The
-  # actual swap + old-address alert land in R9-recovery; here we only initiate it.
+  # it changed) and, on success, initiates the change (R9-recovery): a confirm link to the
+  # new address plus an alert to the old one. The actual swap happens when the new-address
+  # link is confirmed in `App.EmailConfirmationLive`.
   defp deliver_email_change(socket, user, new_email) do
     case Ecto.Changeset.apply_action(
            Accounts.change_user_email(user, %{email: new_email}),
@@ -303,8 +304,9 @@ defmodule QuoteAssistWeb.App.AccountLive do
     end
   end
 
-  # The confirmation link's target lands in R9-recovery; built as a plain tenant-host URL
-  # string so this release doesn't depend on a route that doesn't exist yet.
+  # The confirmation link targets `App.EmailConfirmationLive` (R9-recovery). Built as a
+  # plain tenant-host URL string (not a `~p` route) so it lands on *this* tenant's host —
+  # `url/1` would use the endpoint host, not the resolved subdomain / custom domain.
   defp email_confirm_url(socket, token) do
     tenant = socket.assigns.current_scope.tenant
     scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "https")

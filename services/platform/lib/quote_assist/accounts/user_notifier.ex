@@ -39,6 +39,51 @@ defmodule QuoteAssist.Accounts.UserNotifier do
   end
 
   @doc """
+  Deliver an alert to the user's **old** address when an email change is requested
+  (R9-recovery), so a hijacked session can't silently move the account — the real owner
+  gets a heads-up even though the confirm link goes to the new address.
+  """
+  def deliver_email_change_alert(old_email, new_email) do
+    deliver(old_email, "Your QuoteAssist email is being changed", """
+
+    ==============================
+
+    Hi #{old_email},
+
+    Someone requested to change the email on your QuoteAssist account to:
+
+    #{new_email}
+
+    The change only takes effect once it's confirmed from that new address. If this
+    wasn't you, change your password immediately — your account may be compromised.
+
+    ==============================
+    """)
+  end
+
+  @doc """
+  Deliver password-reset instructions (R9-recovery). The link targets the platform host
+  so it keeps working even if the user's tenant is suspended.
+  """
+  def deliver_reset_password_instructions(user, url) do
+    deliver(user.email, "Reset your QuoteAssist password", """
+
+    ==============================
+
+    Hi #{user.email},
+
+    You can reset your password by visiting the URL below:
+
+    #{url}
+
+    This link expires in 60 minutes and can only be used once. If you didn't request a
+    password reset, please ignore this email — your password won't change.
+
+    ==============================
+    """)
+  end
+
+  @doc """
   Deliver instructions to log in with a magic link.
   """
   def deliver_login_instructions(user, url) do

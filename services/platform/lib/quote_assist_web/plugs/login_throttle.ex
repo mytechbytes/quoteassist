@@ -79,6 +79,21 @@ defmodule QuoteAssistWeb.Plugs.LoginThrottle do
       limited()
   end
 
+  @doc """
+  Per-email throttle for the forgot-password *send* path (R9-recovery), called from
+  `QuoteAssistWeb.ForgotPasswordLive`. Like `magic_link_throttled?/1` the socket has no
+  client IP, so this limits per-email only — on its own bucket so resets don't share a
+  budget with logins. Records a hit and returns `true` once the limit for the window is
+  exceeded.
+  """
+  @spec reset_password_throttled?(String.t()) :: boolean()
+  def reset_password_throttled?(email) when is_binary(email) do
+    cfg = config([])
+
+    RateLimiter.hit({:reset_email, normalize(email)}, cfg.email_limit, cfg.window_ms) ==
+      limited()
+  end
+
   defp limited, do: {:error, :rate_limited}
 
   defp config(opts) do

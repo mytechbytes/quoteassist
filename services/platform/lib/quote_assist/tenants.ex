@@ -293,6 +293,23 @@ defmodule QuoteAssist.Tenants do
   end
 
   @doc """
+  Count of live, active memberships (owners + members) for a tenant — the "team size"
+  stat on the R8-dashboard. A plain headcount, so it is not visibility-filtered (unlike
+  the member lists, which exclude owners from a member).
+  """
+  def active_member_count(%Tenant{id: tenant_id}), do: active_member_count(tenant_id)
+
+  def active_member_count(tenant_id) when is_binary(tenant_id) do
+    Repo.aggregate(
+      from(m in Membership,
+        where: m.tenant_id == ^tenant_id and m.active == true and is_nil(m.deleted_at)
+      ),
+      :count,
+      :id
+    )
+  end
+
+  @doc """
   Count of live, active owners for a tenant. The last-active-owner guard reads this
   inside the same transaction as any owner deactivation / removal / demotion (R7-rbac)
   so the "≥1 active owner per tenant" invariant can never be raced past.
@@ -1035,6 +1052,25 @@ defmodule QuoteAssist.Tenants do
     )
   end
 
+  @doc """
+  The tenant of the user's most recent live, active membership (owner *or* member), or
+  nil. Used after a platform-host password reset (R9-recovery) to send the user back to
+  the right tenant login — they may belong to several.
+  """
+  def newest_tenant_for_user(%User{id: user_id}) do
+    Repo.one(
+      from m in Membership,
+        join: t in Tenant,
+        on: t.id == m.tenant_id,
+        where:
+          m.user_id == ^user_id and m.active == true and is_nil(m.deleted_at) and
+            is_nil(t.deleted_at),
+        order_by: [desc: m.inserted_at],
+        limit: 1,
+        select: t
+    )
+  end
+
   @doc "The tenant's own-host login URL (subdomain). Public so onboarding can link to it."
   def tenant_login_url(%Tenant{} = tenant), do: tenant_url(tenant, "/login")
 
@@ -1065,9 +1101,12 @@ defmodule QuoteAssist.Tenants do
 
   defp onboarding_url(token), do: platform_url("/onboarding/#{token}")
 
-  # Builds a URL on the platform host (apex, no subdomain) from config — the
-  # onboarding flow always lives there, regardless of any tenant's host state.
-  defp platform_url(path) do
+  @doc """
+  Builds a URL on the platform host (apex, no subdomain) from config. The onboarding and
+  account-recovery flows always live there, regardless of any tenant's host state — so
+  e.g. the "Forgot password?" link on a tenant login points back to the platform host.
+  """
+  def platform_url(path) do
     scheme = Application.get_env(:quote_assist, :tenant_url_scheme, "https")
     base = Application.get_env(:quote_assist, :tenant_base_domain, "quoteassist.mytechbytes.in")
     "#{scheme}://#{base}#{path}"

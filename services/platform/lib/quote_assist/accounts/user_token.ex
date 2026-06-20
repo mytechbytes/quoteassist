@@ -11,6 +11,9 @@ defmodule QuoteAssist.Accounts.UserToken do
   @magic_link_validity_in_minutes 15
   @change_email_validity_in_days 7
   @session_validity_in_days 14
+  # Password-reset links are the highest-value logged-out token (anyone with the email
+  # can take over the account), so keep the window short and single-use (R9-recovery).
+  @reset_password_validity_in_minutes 60
   # Onboarding links sit in an inbox waiting to be clicked, so they live longer than
   # a magic link — long enough not to strand a self-registered owner, short enough to
   # bound exposure (R5-selfreg). Expiry is never a dead end: the onboarding page can
@@ -149,6 +152,34 @@ defmodule QuoteAssist.Accounts.UserToken do
           from token in by_token_and_context_query(hashed_token, "onboarding"),
             join: user in assoc(token, :user),
             where: token.inserted_at > ago(@onboarding_validity_in_days, "day"),
+            where: token.sent_to == user.email,
+            where: is_nil(user.deleted_at),
+            select: {user, token}
+
+        {:ok, query}
+
+      :error ->
+        :error
+    end
+  end
+
+  @doc """
+  Checks if a password-reset token is valid and returns its lookup query (R9-recovery).
+
+  Mirrors the magic-link verification (hashed token, `sent_to == user.email`,
+  soft-deleted users excluded) but with context `"reset_password"` and the short reset
+  TTL. If found, the query returns `{user, token}`. Single-use is enforced by the caller
+  deleting all the user's tokens on a successful reset.
+  """
+  def verify_reset_password_token_query(token) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
+        query =
+          from token in by_token_and_context_query(hashed_token, "reset_password"),
+            join: user in assoc(token, :user),
+            where: token.inserted_at > ago(^@reset_password_validity_in_minutes, "minute"),
             where: token.sent_to == user.email,
             where: is_nil(user.deleted_at),
             select: {user, token}

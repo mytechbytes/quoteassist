@@ -38,11 +38,11 @@ defmodule QuoteAssistWeb.PageHTML do
            desc: "Users, roles, permissions + self:* + requests",
            status: :done
          },
-         %{id: "R8-dashboard", desc: "/app dashboard landing", status: :pending},
+         %{id: "R8-dashboard", desc: "/app dashboard landing", status: :done},
          %{
            id: "R9-recovery",
            desc: "Account recovery (forgot / reset / email change)",
-           status: :pending
+           status: :done
          },
          %{id: "R10-domain", desc: "Custom domain (add, verify, auto-TLS)", status: :pending}
        ]},

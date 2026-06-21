@@ -7,6 +7,7 @@ defmodule QuoteAssistWeb.App.Components do
   use Phoenix.Component
 
   alias QuoteAssist.Authz.Policy
+  alias QuoteAssist.Quotes.QuoteRequest
   alias QuoteAssist.Tenants.{Membership, Request}
 
   @doc """
@@ -55,6 +56,23 @@ defmodule QuoteAssistWeb.App.Components do
   defp request_status_class(:declined), do: "mtb-badge-error"
   defp request_status_class(:cancelled), do: "mtb-badge-neutral"
   defp request_status_class(_status), do: "mtb-badge-neutral"
+
+  @doc "A badge for a quote-request status, using the design-system colours."
+  attr :status, :atom, required: true
+
+  def quote_status_badge(assigns) do
+    ~H"""
+    <span class={["mtb-badge", quote_status_class(@status)]}>
+      {QuoteRequest.status_label(@status)}
+    </span>
+    """
+  end
+
+  defp quote_status_class(:open), do: "mtb-badge-warning"
+  defp quote_status_class(:in_progress), do: "mtb-badge-brand"
+  defp quote_status_class(:quoted), do: "mtb-badge-success"
+  defp quote_status_class(:closed), do: "mtb-badge-neutral"
+  defp quote_status_class(_status), do: "mtb-badge-neutral"
 
   @doc "A member's display name (falls back to the email local part)."
   def member_name(%Membership{user: %{display_name: name}}) when is_binary(name) and name != "",

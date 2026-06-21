@@ -44,15 +44,15 @@ defmodule QuoteAssistWeb.PageHTML do
            desc: "Account recovery (forgot / reset / email change)",
            status: :done
          },
-         %{id: "R10-domain", desc: "Custom domain (add, verify, auto-TLS)", status: :pending}
+         %{id: "R10-domain", desc: "Custom domain (add, verify, auto-TLS)", status: :done}
        ]},
       {"Leads / Quotes",
        [
-         %{id: "R11-quotes", desc: "Quote request CRUD (lead capture)", status: :pending},
+         %{id: "R11-quotes", desc: "Quote request CRUD (lead capture)", status: :done},
          %{
            id: "R12-quote-reply",
            desc: "Quote detail + AI reply hook (stub → live)",
-           status: :pending
+           status: :done
          }
        ]}
     ]

@@ -87,6 +87,10 @@ defmodule QuoteAssistWeb.Router do
 
     get "/health", HealthController, :liveness
     get "/health/ready", HealthController, :readiness
+
+    # On-demand TLS gate (R10-domain): Caddy asks here before issuing a cert for a host;
+    # 200 only for a verified custom domain, else 403. No session / tenant resolution.
+    get "/tls/check", TlsController, :check
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
@@ -119,6 +123,12 @@ defmodule QuoteAssistWeb.Router do
       live "/app", AppHomeLive, :index
       # Owner onboarding (set name + password) after accepting the invite.
       live "/app/welcome", OnboardingLive, :index
+      # R11-quotes + R12-quote-reply · quote request CRUD, status FSM, reply thread + AI hook.
+      # Page gates raise → branded 403 (UserAuth.permit!); per-action gates hide/deny.
+      live "/app/quotes", App.QuoteLive.Index, :index
+      live "/app/quotes/new", App.QuoteLive.Form, :new
+      live "/app/quotes/:id/edit", App.QuoteLive.Form, :edit
+      live "/app/quotes/:id", App.QuoteLive.Show, :show
       # R7-rbac · tenant users, roles, self-service, and the requests inbox. Page-level
       # gates raise → branded 403 (UserAuth.permit!); per-action gates hide/deny.
       live "/app/team", App.TeamLive.Index, :index
@@ -128,6 +138,8 @@ defmodule QuoteAssistWeb.Router do
       live "/app/roles/:id/edit", App.RoleLive.Form, :edit
       live "/app/roles/:id", App.RoleLive.Show, :show
       live "/app/account", App.AccountLive, :index
+      # R10-domain · custom domain (add, verify, auto-TLS). Gated by domain:read.
+      live "/app/settings/domain", App.SettingsLive.Domain, :index
       # R9-recovery · confirm an email change from the link sent to the new address.
       # Authenticated so the swap is verified against the signed-in user's current email.
       live "/account/confirm-email/:token", App.EmailConfirmationLive, :confirm

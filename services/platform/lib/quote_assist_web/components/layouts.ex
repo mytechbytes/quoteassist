@@ -132,13 +132,14 @@ defmodule QuoteAssistWeb.Layouts do
           icon="hero-squares-2x2"
           href={~p"/app"}
         />
-        <%!-- R11-quotes · quote request CRUD --%>
+        <%!-- R11-quotes · quote request CRUD (gated by quote:list; owners see all). --%>
         <.nav_item
+          :if={Policy.can?(@current_scope, "quote:list")}
           active={@active}
           key="quotes"
           label="Quotes"
           icon="hero-document-text"
-          href="/app/quotes"
+          href={~p"/app/quotes"}
         />
 
         <div class="mtb-side-section">Account</div>
@@ -174,6 +175,15 @@ defmodule QuoteAssistWeb.Layouts do
           label="Account"
           icon="hero-user-circle"
           href={~p"/app/account"}
+        />
+        <%!-- R10-domain · custom domain settings (gated by domain:read; owners see all). --%>
+        <.nav_item
+          :if={Policy.can?(@current_scope, "domain:read")}
+          active={@active}
+          key="settings"
+          label="Settings"
+          icon="hero-cog-6-tooth"
+          href={~p"/app/settings/domain"}
         />
 
         <div class="mtb-side-footer">

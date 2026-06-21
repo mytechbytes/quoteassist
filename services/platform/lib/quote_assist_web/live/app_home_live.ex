@@ -22,6 +22,7 @@ defmodule QuoteAssistWeb.AppHomeLive do
   import QuoteAssistWeb.App.Components
 
   alias QuoteAssist.Audit
+  alias QuoteAssist.Quotes
   alias QuoteAssist.Tenants
 
   @activity_limit 8
@@ -29,7 +30,7 @@ defmodule QuoteAssistWeb.AppHomeLive do
   @impl true
   def mount(_params, _session, socket) do
     scope = socket.assigns.current_scope
-    quote_stats = dashboard_quote_stats(scope.tenant)
+    quote_stats = Quotes.dashboard_stats(scope)
 
     {:ok,
      socket
@@ -38,15 +39,10 @@ defmodule QuoteAssistWeb.AppHomeLive do
        team_size: Tenants.active_member_count(scope.tenant),
        open_quotes: quote_stats.open,
        quoted_this_month: quote_stats.quoted_this_month,
+       has_quotes: quote_stats.open > 0 or quote_stats.quoted_this_month > 0,
        activity: Audit.list_for_tenant(scope.tenant.id, @activity_limit)
      )}
   end
-
-  # Quote-request stats for the dashboard. The `quote_requests` table lands in
-  # R11-quotes; until then every tenant has zero, which is exactly the empty-state we
-  # render. R11 replaces this body with the real aggregate (open count + quoted-this-
-  # month count) — the assigns and template stay the same.
-  defp dashboard_quote_stats(_tenant), do: %{open: 0, quoted_this_month: 0}
 
   @impl true
   def render(assigns) do
@@ -133,7 +129,7 @@ defmodule QuoteAssistWeb.AppHomeLive do
         <%!-- QUOTES EMPTY-STATE + QUICK LINKS. --%>
         <div class="space-y-4">
           <div
-            :if={can?(@current_scope, "quote:list")}
+            :if={can?(@current_scope, "quote:list") and not @has_quotes}
             class="mtb-card flex flex-col items-start gap-2 px-6 py-6"
           >
             <div
@@ -146,8 +142,15 @@ defmodule QuoteAssistWeb.AppHomeLive do
               No quote requests yet
             </div>
             <p class="text-sm" style="color:var(--mc-text-2);line-height:1.5">
-              Lead capture arrives in an upcoming release. Inbound enquiries will land here ready to quote.
+              Capture your first inbound enquiry to start quoting.
             </p>
+            <.link
+              :if={can?(@current_scope, "quote:create")}
+              navigate={~p"/app/quotes/new"}
+              class="mtb-btn mtb-btn-primary mtb-btn-sm mt-1"
+            >
+              New quote <span aria-hidden="true">→</span>
+            </.link>
           </div>
 
           <div class="mtb-card px-6 py-5">
@@ -158,6 +161,12 @@ defmodule QuoteAssistWeb.AppHomeLive do
               Quick links
             </div>
             <div class="flex flex-col gap-1">
+              <.quick_link
+                :if={can?(@current_scope, "quote:list")}
+                href={~p"/app/quotes"}
+                icon="hero-document-text"
+                label="Quote requests"
+              />
               <.quick_link
                 :if={can?(@current_scope, "user:list")}
                 href={~p"/app/team"}

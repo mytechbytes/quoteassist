@@ -15,9 +15,8 @@ defmodule QuoteAssistWeb.PageControllerTest do
     assert body =~ "R10-domain"
     assert body =~ "R12-quote-reply"
 
-    # Status labels: R0–R3 are done, later releases pending.
+    # Status labels — all of R0–R12 have now shipped.
     assert body =~ "Done"
-    assert body =~ "Pending"
 
     # Public chrome: Admin login points at the (R3) admin route.
     assert body =~ "Admin login"

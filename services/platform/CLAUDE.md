@@ -6,6 +6,43 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
+**R12-quote-reply complete.** The reply thread + AI hook on the quote detail. A
+`quote_messages` table (tenant-scoped, soft-delete-aware, append-only) backs an ordered
+thread of `human`/`ai` messages. `QuoteAssist.AIService.generate_reply/1` is the boundary
+to the Python AI service — a **stub** returning a placeholder draft; when the real service
+lands, only that function changes (no schema/context/UI changes). On the detail page
+(`App.QuoteLive.Show`) "Generate with AI" (`quote:ai_generate`) only **fills the composer**
+with a draft (human-in-the-loop, never auto-sends); "Send reply" (`quote:reply`) appends a
+`human` message and advances the lead `→ quoted` via the state machine. `Quotes` gained
+`list_messages/2`, `generate_ai_reply/2`, and `send_reply/3` (atomic + audited).
+
+**R11-quotes complete.** Quote requests = inbound leads. New `QuoteAssist.Quotes` context
++ `Quotes.QuoteRequest` schema (tenant-scoped via `Tenancy.scope/2`, soft-deleted, status
+FSM `open → in_progress → quoted → closed` guarded by `can_transition?/2`). Context ops are
+scope-actor + audited (`actor_subtype`): `list_quote_requests/2` (status filter + search),
+`get_quote_request/2`, `create_quote_request/2`, `update_quote_request/3`,
+`transition_status/3`, `soft_delete_quote_request/2`, and `dashboard_stats/1` (which now
+backs the R8 dashboard's open / quoted-this-month cards — the R8 placeholder is gone).
+LiveViews under `/app/quotes`: `Index` (list + filter, gated `quote:list`), `Form`
+(dedicated create/edit page, `quote:create`/`quote:update`), `Show` (detail + status
+controls `quote:status` + activity feed + delete `quote:delete`). `App.Components` gained
+`quote_status_badge`; the workspace sidebar's Quotes item is gated by `quote:list`.
+Migrations: `quote_requests`, `quote_messages`.
+
+**R10-domain complete.** Custom domains. A tenant owner (or a role with `domain:*`) adds a
+domain at `/app/settings/domain` (`App.SettingsLive.Domain`, gated `domain:read`), which
+stores it `pending` with a DNS token; "Verify" (`domain:verify`) does a TXT lookup via
+`QuoteAssist.Dns` (`:inet_res`, behind the `:dns_resolver` app env so tests use
+`QuoteAssist.DnsStub` — no network) and flips it to `verified`. `Tenants` gained
+`set_custom_domain/3`, `verify_custom_domain/2`, `clear_custom_domain/2`,
+`verified_custom_domain?/1`, and the `custom_domain_cname_target/1` + `custom_domain_txt_value/1`
+display helpers; the `Tenant` schema's `custom_domain*` changesets advance status/token only
+after a real check (never from a form). On-demand TLS is gated by `GET /tls/check?domain=`
+(`TlsController`, `:api` pipeline) → 200 only for a verified custom domain, else 403, so Caddy
+only ever mints certs for owned domains. The `TenantResolver` already served the verified
+custom-domain path (R2). New Settings nav item (gated `domain:read`). No new migration
+(`tenants.custom_domain*` shipped in R2).
+
 **R9-recovery complete.** The logged-out / email-changing token flows. **Forgot password**
 (`/forgot`, platform host) → `Accounts.deliver_user_reset_password_instructions/2` issues a
 short-lived (60 min) single-use `reset_password` `UserToken` and emails a link built on the
@@ -194,12 +231,12 @@ overridden at runtime by `DEPLOY_ENV`) and `:tenant_base_domain` /
 `mtb-*` utilities, DaisyUI removed), base layout wired to mtb.css + Google
 Fonts + dark mode, `citext` migration.
 
-**Next: R10-domain** — custom domain: a tenant owner adds their own domain
-(`/app/settings/domain`, gated `domain:read`/`domain:update`), verifies ownership via a DNS TXT
-lookup (`domain:verify`), and the app serves on it with Caddy on-demand TLS gated by an internal
-`/tls/check?domain=` endpoint. The `TenantResolver` already handles the verified custom-domain
-path (R2); this release populates + verifies the data it reads. The subdomain stays a permanent
-fallback.
+**All releases R0–R12 shipped.** The full lead-to-quote slice is in place: foundation, site
+admin, tenant basics (users/roles/self/requests, dashboard, recovery, custom domain), and
+leads/quotes (request CRUD + reply thread with the AI hook stubbed). The next real work is
+swapping `QuoteAssist.AIService.generate_reply/1` for the live Python `ai-service` over HTTP
+(no UI/schema changes), plus the deferred items in the root `CLAUDE.md` ("What's intentionally
+absent"): plan-limit enforcement, versioned config/prompt management, Terraform/cloud infra.
 
 ## How to run
 
@@ -305,9 +342,9 @@ R6-errors     branded error pages (401/403/404/500/503)                         
 R7-rbac       tenant users, roles, permissions + self:* + requests               ✅
 R8-dashboard  /app dashboard landing                                              ✅
 R9-recovery   account recovery (forgot/reset, email-change)                       ✅
-R10-domain    custom domain (add, verify, auto-TLS via Caddy on-demand)
-R11-quotes    quote request CRUD (lead capture)
-R12-quote-reply  quote reply + AI hook (stub → live)
+R10-domain    custom domain (add, verify, auto-TLS via Caddy on-demand)            ✅
+R11-quotes    quote request CRUD (lead capture)                                   ✅
+R12-quote-reply  quote reply + AI hook (stub → live)                              ✅
 ```
 
 Each arrow is a staging deploy. See [`docs/RELEASE_PLAN.md`](docs/RELEASE_PLAN.md)

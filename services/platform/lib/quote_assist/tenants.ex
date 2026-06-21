@@ -1112,6 +1112,129 @@ defmodule QuoteAssist.Tenants do
     "#{scheme}://#{base}#{path}"
   end
 
+  # ── Custom domain (R10-domain) ────────────────────────────────────────────────────
+  #
+  # A tenant owner (or a role with `domain:*`) adds their own domain, proves ownership
+  # via a DNS TXT record, and the app then serves on it with auto-TLS. The subdomain
+  # stays a permanent fallback. `custom_domain_status`/`_token` are advanced only here
+  # (after a real DNS check), never from a form — see the Tenant changesets.
+
+  @doc "Changeset backing the custom-domain form (the domain field only)."
+  def change_custom_domain(%Tenant{} = tenant, attrs \\ %{}) do
+    Tenant.custom_domain_changeset(tenant, stringify(attrs), base_host())
+  end
+
+  @doc """
+  Requests a custom domain (`domain:update`): stores the normalised domain as `pending`
+  and mints a fresh DNS verification token. Audited. Returns `{:ok, tenant}` or
+  `{:error, changeset}`.
+  """
+  def set_custom_domain(%Scope{} = scope, %Tenant{} = tenant, attrs) do
+    attrs = Map.put(stringify(attrs), "custom_domain_token", generate_domain_token())
+    changeset = Tenant.custom_domain_changeset(tenant, attrs, base_host())
+
+    Repo.transact(fn ->
+      with {:ok, updated} <- Repo.update(changeset) do
+        audit_member(
+          scope,
+          "domain.requested",
+          tenant.id,
+          %{"domain" => updated.custom_domain},
+          "tenant"
+        )
+
+        {:ok, updated}
+      end
+    end)
+  end
+
+  @doc """
+  Verifies a pending custom domain (`domain:verify`) by looking up its TXT records and
+  matching the expected token value. On a match, flips the status to `verified` (audited);
+  re-checkable. Returns `{:ok, tenant}`, `{:error, :no_domain}` (nothing pending), or
+  `{:error, :not_found}` (the TXT record isn't present yet).
+  """
+  def verify_custom_domain(%Scope{} = scope, %Tenant{} = tenant) do
+    cond do
+      tenant.custom_domain_status == :verified ->
+        {:ok, tenant}
+
+      is_nil(tenant.custom_domain) or is_nil(tenant.custom_domain_token) ->
+        {:error, :no_domain}
+
+      custom_domain_txt_value(tenant) in resolve_txt(tenant.custom_domain) ->
+        do_verify_custom_domain(scope, tenant)
+
+      true ->
+        {:error, :not_found}
+    end
+  end
+
+  defp do_verify_custom_domain(scope, tenant) do
+    Repo.transact(fn ->
+      with {:ok, verified} <- Repo.update(Tenant.verify_custom_domain_changeset(tenant)) do
+        audit_member(
+          scope,
+          "domain.verified",
+          tenant.id,
+          %{"domain" => verified.custom_domain},
+          "tenant"
+        )
+
+        {:ok, verified}
+      end
+    end)
+  end
+
+  @doc "Clears the custom domain (`domain:update`), back to the subdomain-only state. Audited."
+  def clear_custom_domain(%Scope{} = scope, %Tenant{} = tenant) do
+    Repo.transact(fn ->
+      with {:ok, cleared} <- Repo.update(Tenant.clear_custom_domain_changeset(tenant)) do
+        audit_member(
+          scope,
+          "domain.cleared",
+          tenant.id,
+          %{"domain" => tenant.custom_domain},
+          "tenant"
+        )
+
+        {:ok, cleared}
+      end
+    end)
+  end
+
+  @doc "The CNAME target a tenant points their custom domain at: `<slug>.<base host>`."
+  def custom_domain_cname_target(%Tenant{slug: slug}), do: "#{slug}.#{base_host()}"
+
+  @doc "The exact TXT record value a tenant must publish to prove domain ownership."
+  def custom_domain_txt_value(%Tenant{custom_domain_token: token}),
+    do: "quoteassist-site-verification=#{token}"
+
+  @doc """
+  Whether `host` is a live tenant's **verified** custom domain — the authority behind the
+  on-demand-TLS gate (`/tls/check`), so certs are only ever issued for domains a tenant
+  actually owns.
+  """
+  def verified_custom_domain?(host) when is_binary(host) do
+    host = String.downcase(host)
+
+    Repo.exists?(
+      from t in Tenant,
+        where:
+          t.custom_domain == ^host and t.custom_domain_status == :verified and
+            is_nil(t.deleted_at)
+    )
+  end
+
+  def verified_custom_domain?(_host), do: false
+
+  defp generate_domain_token,
+    do: 16 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
+
+  defp resolve_txt(domain) do
+    Application.get_env(:quote_assist, :dns_resolver, QuoteAssist.Dns).txt_records(domain)
+  end
+
   # ── Trial expiry ──────────────────────────────────────────────────────────────────
 
   @doc "Whether a tenant's trial has lapsed (still `trial`, and the deadline has passed)."

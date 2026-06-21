@@ -369,9 +369,9 @@ resequenced into a clean R4–R12 order (the suffixes are descriptive labels).
 | R7-rbac        | Tenant Basics | Users, roles, permissions + self:* + requests ✅ done |
 | R8-dashboard   | Tenant Basics | `/app` dashboard landing                   ✅ done |
 | R9-recovery    | Tenant Basics | Account recovery (forgot/reset, email-change) ✅ done |
-| R10-domain     | Tenant Basics | Custom domain (add, verify, auto-TLS)      |
-| R11-quotes     | Leads/Quotes  | Quote request CRUD (lead capture)          |
-| R12-quote-reply| Leads/Quotes  | Quote detail + AI reply hook (stub → live) |
+| R10-domain     | Tenant Basics | Custom domain (add, verify, auto-TLS)      ✅ done |
+| R11-quotes     | Leads/Quotes  | Quote request CRUD (lead capture)          ✅ done |
+| R12-quote-reply| Leads/Quotes  | Quote detail + AI reply hook (stub → live) ✅ done |
 
 ---
 
@@ -1093,10 +1093,9 @@ R0 → R0a → R1 → R2 → R3   foundation + site admin: skeleton · home+tena
 [resequenced, shipped]
 R4-retrofit → R5-selfreg → R6-errors    admin RBAC (retrofits R3) · self-reg (auto-trial) · error pages ✅
 R7-rbac → R8-dashboard → R9-recovery    tenant users/roles/self/requests · dashboard · account recovery ✅
+R10-domain → R11-quotes → R12-quote-reply  custom domain · quote CRUD · AI reply hook ✅
 
-[resequenced, to build]
-  → R10-domain                             custom domain
-  → R11-quotes → R12-quote-reply           quote CRUD · AI reply hook
+[complete] All R0–R12 shipped.
 ```
 
 Each arrow = a staging deploy. The four-check green gate (compile · quality ·

@@ -62,3 +62,8 @@ config :phoenix,
 config :quote_assist,
   tenant_base_domain: "example.com",
   tenant_url_scheme: "http"
+
+# Custom-domain verification (R10-domain) never hits real DNS in tests — point the
+# resolver at the in-memory stub. Tests publish a domain's TXT records with
+# `QuoteAssist.DnsStub.put/2`; unknown domains resolve to no records.
+config :quote_assist, :dns_resolver, QuoteAssist.DnsStub

@@ -1,8 +1,10 @@
 defmodule QuoteAssistWeb.App.QuoteLive.Form do
   @moduledoc """
-  Create / edit a quote request on a dedicated page (`/app/quotes/new`,
-  `/app/quotes/:id/edit`) — it carries more than three fields, so per the post-R7 UI
-  convention it lives on its own page, not a modal. Gated by `quote:create` (new) /
+  Capture / edit a quote request on a dedicated page (`/app/quotes/new`,
+  `/app/quotes/:id/edit`) — ported from `designs/get-quote.html`: the customer's enquiry
+  email up top, then the trip facts (route · dates · pax · total · currency) and customer
+  details. (The AI extraction/pricing pipeline in the design has no backend; drafting a
+  reply happens on the detail page via the AI stub.) Gated by `quote:create` (new) /
   `quote:update` (edit); saves are audited.
   """
   use QuoteAssistWeb, :live_view
@@ -40,7 +42,7 @@ defmodule QuoteAssistWeb.App.QuoteLive.Form do
 
   defp assign_form(socket, changeset), do: assign(socket, :form, to_form(changeset))
 
-  defp page_title(:new), do: "New quote"
+  defp page_title(:new), do: "Get a quote"
   defp page_title(:edit), do: "Edit quote"
 
   @impl true
@@ -60,16 +62,38 @@ defmodule QuoteAssistWeb.App.QuoteLive.Form do
         <.icon name="hero-arrow-left" class="size-4" /> Back
       </.link>
 
-      <h1
-        class="mb-6 text-3xl font-bold tracking-tight"
-        style="font-family:var(--font-display);color:var(--mc-text)"
-      >
-        {@page_title}
-      </h1>
+      <div class="mb-6">
+        <div class="text-xs font-bold uppercase tracking-widest" style="color:var(--mc-text-3)">
+          Workspace · {if @action == :new, do: "New quotation", else: "Edit"}
+        </div>
+        <h1
+          class="mt-1.5 text-3xl font-bold tracking-tight"
+          style="font-family:var(--font-display);color:var(--mc-text)"
+        >
+          {@page_title}
+        </h1>
+        <p class="mt-1.5 text-sm" style="color:var(--mc-text-2)">
+          Capture the customer's enquiry and the trip facts. You can draft a reply (with AI) once it's saved.
+        </p>
+      </div>
 
-      <.form for={@form} id="quote-form" phx-change="validate" phx-submit="save" class="max-w-2xl">
-        <div class="mtb-card space-y-1 p-6">
-          <div class="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+      <.form
+        for={@form}
+        id="quote-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="max-w-3xl space-y-5"
+      >
+        <%!-- Enquiry --%>
+        <section class="mtb-card p-6">
+          <label class="mtb-label">Customer email / enquiry</label>
+          <.input
+            field={@form[:body]}
+            type="textarea"
+            rows="7"
+            placeholder="Paste the customer's email here — e.g. 'Hi, we're 2 adults flying London to Rome on 12 Sept returning 19 Sept, economy…'"
+          />
+          <div class="mt-2 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
             <.input field={@form[:customer_name]} type="text" label="Customer name" />
             <.input field={@form[:customer_email]} type="email" label="Customer email" />
           </div>
@@ -79,16 +103,38 @@ defmodule QuoteAssistWeb.App.QuoteLive.Form do
             label="Subject"
             placeholder="LHR → JFK, business"
           />
-          <.input
-            field={@form[:body]}
-            type="textarea"
-            label="Request details"
-            rows="6"
-            placeholder="What is the customer asking for?"
-          />
-        </div>
+        </section>
 
-        <div class="mt-5 flex items-center gap-2">
+        <%!-- Trip facts --%>
+        <section class="mtb-card p-6">
+          <h2
+            class="mb-3 text-base font-bold"
+            style="font-family:var(--font-display);color:var(--mc-text)"
+          >
+            Trip facts
+          </h2>
+          <div class="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+            <.input field={@form[:route]} type="text" label="Route" placeholder="LHR–HND" />
+            <.input
+              field={@form[:travel_dates]}
+              type="text"
+              label="Travel dates"
+              placeholder="14–28 Aug"
+            />
+            <.input field={@form[:pax]} type="text" label="Passengers" placeholder="2A · 2C" />
+            <div class="grid grid-cols-[1fr_120px] gap-3">
+              <.input field={@form[:total]} type="number" label="Total" placeholder="6150" />
+              <.input
+                field={@form[:currency]}
+                type="select"
+                label="Currency"
+                options={[{"GBP · £", "GBP"}, {"EUR · €", "EUR"}, {"USD · $", "USD"}]}
+              />
+            </div>
+          </div>
+        </section>
+
+        <div class="flex items-center gap-2">
           <.button class="mtb-btn mtb-btn-primary mtb-btn-sm" phx-disable-with="Saving…">
             {if @action == :new, do: "Create quote", else: "Save changes"}
           </.button>

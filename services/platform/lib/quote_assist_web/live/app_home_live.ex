@@ -46,7 +46,7 @@ defmodule QuoteAssistWeb.AppHomeLive do
   defp recent_quotes(_scope, false), do: []
 
   defp open_leads(scope, true),
-    do: Quotes.list_quote_requests(scope, status: :open, limit: @queue_limit)
+    do: Quotes.list_quote_requests(scope, status: :new, limit: @queue_limit)
 
   defp open_leads(_scope, false), do: []
 

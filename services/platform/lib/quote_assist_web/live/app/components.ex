@@ -7,7 +7,7 @@ defmodule QuoteAssistWeb.App.Components do
   use Phoenix.Component
 
   alias QuoteAssist.Authz.Policy
-  alias QuoteAssist.Quotes.QuoteRequest
+  alias QuoteAssist.Quotes.{QuoteMessage, QuoteRequest}
   alias QuoteAssist.Tenants.{Membership, Request}
 
   @doc """
@@ -68,11 +68,91 @@ defmodule QuoteAssistWeb.App.Components do
     """
   end
 
-  defp quote_status_class(:open), do: "mtb-badge-warning"
+  defp quote_status_class(:new), do: "mtb-badge-info"
   defp quote_status_class(:in_progress), do: "mtb-badge-brand"
-  defp quote_status_class(:quoted), do: "mtb-badge-success"
-  defp quote_status_class(:closed), do: "mtb-badge-neutral"
+  defp quote_status_class(:quoted), do: "mtb-badge-warning"
+  defp quote_status_class(:accepted), do: "mtb-badge-success"
+  defp quote_status_class(:rejected), do: "mtb-badge-error"
+  defp quote_status_class(:expired), do: "mtb-badge-neutral"
+  defp quote_status_class(:cancelled), do: "mtb-badge-neutral"
   defp quote_status_class(_status), do: "mtb-badge-neutral"
+
+  @doc "A badge for the derived `awaiting` (ball-in-court) flag; nothing when unset."
+  attr :awaiting, :atom, default: nil
+
+  def awaiting_badge(assigns) do
+    ~H"""
+    <span
+      :if={@awaiting in [:us, :client]}
+      class={["mtb-badge", if(@awaiting == :us, do: "mtb-badge-warning", else: "mtb-badge-neutral")]}
+    >
+      {QuoteRequest.awaiting_label(@awaiting)}
+    </span>
+    """
+  end
+
+  @doc "A badge for an outbound/inbound message status (the human-in-the-loop gate)."
+  attr :status, :atom, required: true
+
+  def message_status_badge(assigns) do
+    ~H"""
+    <span class={["mtb-badge", message_status_class(@status)]}>
+      {QuoteMessage.status_label(@status)}
+    </span>
+    """
+  end
+
+  defp message_status_class(:draft), do: "mtb-badge-neutral"
+  defp message_status_class(:confirmed), do: "mtb-badge-warning"
+  defp message_status_class(:sent), do: "mtb-badge-success"
+  defp message_status_class(:received), do: "mtb-badge-info"
+  defp message_status_class(_status), do: "mtb-badge-neutral"
+
+  @doc "A badge for a client reply's disposition; nothing when unset."
+  attr :disposition, :atom, default: nil
+
+  def disposition_badge(assigns) do
+    ~H"""
+    <span :if={@disposition} class={["mtb-badge", disposition_class(@disposition)]}>
+      {QuoteMessage.disposition_label(@disposition)}
+    </span>
+    """
+  end
+
+  defp disposition_class(:acceptance), do: "mtb-badge-success"
+  defp disposition_class(:rejection), do: "mtb-badge-error"
+  defp disposition_class(:change_request), do: "mtb-badge-warning"
+  defp disposition_class(:question), do: "mtb-badge-info"
+  defp disposition_class(_disposition), do: "mtb-badge-neutral"
+
+  @doc "Author label for a message (AI / a human's name / Client)."
+  def message_author(%QuoteMessage{author_type: :ai}), do: "AI draft"
+  def message_author(%QuoteMessage{author_type: :client}), do: "Client"
+
+  def message_author(%QuoteMessage{authored_by_membership: %Membership{} = m}), do: member_name(m)
+  def message_author(_message), do: "—"
+
+  @doc """
+  Formats a quote's total (whole currency units) with its currency symbol and thousands
+  grouping (e.g. `£4,820`); an em dash when not yet priced.
+  """
+  def format_total(%{total: nil}), do: "—"
+
+  def format_total(%{total: total, currency: currency}) when is_integer(total),
+    do: currency_symbol(currency) <> group_digits(total)
+
+  @doc "Currency symbol for a code (GBP → £, EUR → €, USD → $)."
+  def currency_symbol("EUR"), do: "€"
+  def currency_symbol("USD"), do: "$"
+  def currency_symbol(_gbp), do: "£"
+
+  defp group_digits(n) when is_integer(n) do
+    n
+    |> Integer.to_string()
+    |> String.reverse()
+    |> String.replace(~r/(\d{3})(?=\d)/, "\\1,")
+    |> String.reverse()
+  end
 
   @doc "A member's display name (falls back to the email local part)."
   def member_name(%Membership{user: %{display_name: name}}) when is_binary(name) and name != "",

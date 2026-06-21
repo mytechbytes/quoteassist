@@ -6,6 +6,26 @@ Phoenix + LiveView platform for QuoteAssist. Read alongside the root
 
 ## Current status
 
+**Quotes — full model + design port.** The quote screens were ported to
+`designs/{quotes,get-quote,quote-detail}.html` and the quote model deepened.
+`quote_requests` gained travel facts (`reference` `QA-####` unique per tenant · `route` ·
+`travel_dates` · `pax` · `total` whole-currency-units + `currency` · `valid_until` ·
+`awaiting`) and a **lead-stage state machine**: `new → in_progress → quoted →
+accepted|rejected|expired`, + `cancelled` from any active state (terminals don't
+transition; the negotiation loop lives in the thread). `quote_messages` gained the
+**human-in-the-loop gate** (`draft → confirmed → sent` / `received`), provenance
+(`author_type` ai|human|client, `authored_by`, `sent_by`, `edited_by_human`), and a client
+`disposition` (question|change_request|acceptance|rejection|other). `QuoteAssist.Quotes`
+drives the interaction: generate/compose → `draft` (quote `→ in_progress`); confirm → send
+(`→ quoted`, `awaiting: :client`, `valid_until` set); a client reply records a `received`
+message + disposition (`awaiting: :us`; acceptance/rejection resolve the quote). Screens:
+`QuoteLive.Index` is a list-kit (table/cards/list views + add/remove filters [status ·
+customer · route · pax · total · created] + sort + paging, filtered in memory);
+`QuoteLive.Form` is the get-quote intake (enquiry + trip facts); `QuoteLive.Show` is the
+detail with the thread gate, trip facts, summary, and activity. The dashboard's open/queue
+stats track the new statuses. Migrations: `extend_quote_requests`, `extend_quote_messages`.
+The design's AI-pipeline / pricing-adapter / per-service UI has no backend and is omitted.
+
 **R12-quote-reply complete.** The reply thread + AI hook on the quote detail. A
 `quote_messages` table (tenant-scoped, soft-delete-aware, append-only) backs an ordered
 thread of `human`/`ai` messages. `QuoteAssist.AIService.generate_reply/1` is the boundary

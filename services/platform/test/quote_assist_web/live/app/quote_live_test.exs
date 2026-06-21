@@ -9,13 +9,11 @@ defmodule QuoteAssistWeb.App.QuoteLiveTest do
   alias QuoteAssist.Quotes
   alias QuoteAssist.Tenants
 
-  # An owner conn for tenant "acme", plus an owner scope on it (used to seed quotes).
   defp owner_conn(conn) do
     %{tenant: tenant, user: user, scope: scope} = owner_scope_fixture(%{slug: "acme"})
     %{conn: log_in_member(conn, user, tenant), tenant: tenant, scope: scope}
   end
 
-  # A conn for a member with exactly `permissions` on `tenant`.
   defp role_conn(conn, tenant, permissions) do
     role = role_fixture(tenant, %{permissions: permissions})
     user = user_fixture()
@@ -23,34 +21,69 @@ defmodule QuoteAssistWeb.App.QuoteLiveTest do
     log_in_member(conn, user, tenant)
   end
 
-  # An owner scope for an existing tenant, so a quote can be seeded in it.
   defp owner_scope_for(tenant) do
     {user, membership} = member_fixture(tenant, "owner")
     scope_fixture(tenant, user, membership)
   end
 
-  describe "index" do
-    test "lists quotes and shows the New button for an owner", %{conn: conn} do
+  describe "index (list-kit)" do
+    test "lists quotes with the reference and travel facts", %{conn: conn} do
       %{conn: conn, scope: scope} = owner_conn(conn)
-      quote_request_fixture(scope, %{"customer_name" => "The Bennetts"})
+      quote_request_fixture(scope, %{"customer_name" => "The Bennetts", "route" => "LHR–HND"})
 
       {:ok, lv, html} = live(conn, ~p"/app/quotes")
-      assert html =~ "Quote requests"
+      assert html =~ "Quotes"
       assert html =~ "The Bennetts"
+      assert html =~ "LHR–HND"
+      assert html =~ "QA-1001"
       assert has_element?(lv, "#new-quote")
     end
 
-    test "filters by status", %{conn: conn} do
+    test "search narrows the list", %{conn: conn} do
       %{conn: conn, scope: scope} = owner_conn(conn)
-      quote_request_fixture(scope, %{"customer_name" => "Stays Open"})
-      closed = quote_request_fixture(scope, %{"customer_name" => "Gets Closed"})
-      {:ok, _} = Quotes.transition_status(scope, closed, :closed)
+      quote_request_fixture(scope, %{"customer_name" => "Keep Me"})
+      quote_request_fixture(scope, %{"customer_name" => "Hide Me"})
 
       {:ok, lv, _html} = live(conn, ~p"/app/quotes")
-      html = lv |> form("form[phx-change=filter]", %{status: "open"}) |> render_change()
+      html = lv |> form("#quote-search", %{query: "keep"}) |> render_change()
+      assert html =~ "Keep Me"
+      refute html =~ "Hide Me"
+    end
 
-      assert html =~ "Stays Open"
-      refute html =~ "Gets Closed"
+    test "add a status filter, then remove it", %{conn: conn} do
+      %{conn: conn, scope: scope} = owner_conn(conn)
+      new_lead = quote_request_fixture(scope, %{"customer_name" => "Fresh Lead"})
+      _quoted = quoted_quote_fixture(scope, %{"customer_name" => "Quoted Lead"})
+
+      {:ok, lv, _html} = live(conn, ~p"/app/quotes")
+
+      # Add a filter row, set it to status is new.
+      lv |> element("button", "Add filter") |> render_click()
+
+      html =
+        lv
+        |> form("#quote-filters", %{
+          "filters" => %{"1" => %{"field" => "status", "op" => "is", "value" => "new"}}
+        })
+        |> render_change()
+
+      assert html =~ "Fresh Lead"
+      refute html =~ "Quoted Lead"
+      assert new_lead
+
+      # Remove the filter — both reappear.
+      html = lv |> element("button[phx-value-id='1']") |> render_click()
+      assert html =~ "Fresh Lead"
+      assert html =~ "Quoted Lead"
+    end
+
+    test "switches to the cards view", %{conn: conn} do
+      %{conn: conn, scope: scope} = owner_conn(conn)
+      quote_request_fixture(scope, %{"customer_name" => "Card Person"})
+
+      {:ok, lv, _html} = live(conn, ~p"/app/quotes")
+      html = lv |> element("button[phx-value-view='cards']") |> render_click()
+      assert html =~ "Card Person"
     end
 
     test "403s without quote:list", %{conn: conn} do
@@ -61,8 +94,8 @@ defmodule QuoteAssistWeb.App.QuoteLiveTest do
   end
 
   describe "create" do
-    test "creates a quote and lands on its detail page", %{conn: conn} do
-      %{conn: conn, tenant: tenant, scope: scope} = owner_conn(conn)
+    test "captures a quote and lands on its detail page", %{conn: conn} do
+      %{conn: conn, scope: scope} = owner_conn(conn)
       {:ok, lv, _html} = live(conn, ~p"/app/quotes/new")
 
       lv
@@ -71,86 +104,90 @@ defmodule QuoteAssistWeb.App.QuoteLiveTest do
           customer_name: "Marcus Webb",
           customer_email: "marcus@example.com",
           subject: "LHR to JFK",
-          body: "Business class, October."
+          body: "Business class, October.",
+          route: "LHR–JFK",
+          total: "3290"
         }
       )
       |> render_submit()
 
       assert [quote] = Quotes.list_quote_requests(scope)
       assert quote.customer_name == "Marcus Webb"
-      assert quote.tenant_id == tenant.id
+      assert quote.status == :new
       assert_redirect(lv, ~p"/app/quotes/#{quote.id}")
     end
 
-    test "the create page 403s without quote:create", %{conn: conn} do
+    test "403s without quote:create", %{conn: conn} do
       tenant = active_tenant_fixture(%{slug: "acme"})
       conn = role_conn(conn, tenant, ["quote:list"])
       assert_error_sent 403, fn -> get(conn, ~p"/app/quotes/new") end
     end
   end
 
-  describe "detail" do
-    test "shows the lead and moves its status", %{conn: conn} do
+  describe "detail — the gate" do
+    test "shows the lead and trip facts", %{conn: conn} do
       %{conn: conn, scope: scope} = owner_conn(conn)
-      quote = quote_request_fixture(scope, %{"subject" => "Skiing in March"})
+      quote = quote_request_fixture(scope, %{"customer_name" => "Skyline", "route" => "CDG–FCO"})
 
-      {:ok, lv, html} = live(conn, ~p"/app/quotes/#{quote.id}")
-      assert html =~ "Skiing in March"
-      assert html =~ "Open"
-
-      html = lv |> element("button", "Start") |> render_click()
-      assert html =~ "In progress"
-      assert Quotes.get_quote_request(scope, quote.id).status == :in_progress
+      {:ok, _lv, html} = live(conn, ~p"/app/quotes/#{quote.id}")
+      assert html =~ "Skyline"
+      assert html =~ "CDG–FCO"
+      assert html =~ "New"
     end
 
-    test "generating a draft fills the composer, then sending posts a reply", %{conn: conn} do
+    test "generate → confirm & send moves the quote to quoted", %{conn: conn} do
       %{conn: conn, scope: scope} = owner_conn(conn)
       quote = quote_request_fixture(scope, %{"customer_name" => "Rana Aziz"})
       {:ok, lv, _html} = live(conn, ~p"/app/quotes/#{quote.id}")
 
+      # AI draft → in progress.
       html = lv |> element("button", "Generate with AI") |> render_click()
       assert html =~ "Hi Rana"
+      assert html =~ "In progress"
+      assert Quotes.get_quote_request(scope, quote.id).status == :in_progress
+
+      # Confirm & send the draft → quoted, awaiting client.
+      html = lv |> element("button", "Confirm & send") |> render_click()
+      assert html =~ "Quoted"
+      assert html =~ "Awaiting client"
+
+      reloaded = Quotes.get_quote_request(scope, quote.id)
+      assert reloaded.status == :quoted
+      assert reloaded.awaiting == :client
+    end
+
+    test "logging a client acceptance resolves the quote", %{conn: conn} do
+      %{conn: conn, scope: scope} = owner_conn(conn)
+      quote = quoted_quote_fixture(scope)
+      {:ok, lv, _html} = live(conn, ~p"/app/quotes/#{quote.id}")
 
       html =
         lv
-        |> form("form[phx-submit=send]", reply: %{body: "Here is your quote, thanks!"})
+        |> form("#client-reply", %{body: "Yes, book it!", disposition: "acceptance"})
         |> render_submit()
 
-      assert html =~ "Here is your quote, thanks!"
-      assert html =~ "Quoted"
-      assert Quotes.get_quote_request(scope, quote.id).status == :quoted
+      assert html =~ "Accepted"
+      assert Quotes.get_quote_request(scope, quote.id).status == :accepted
     end
 
-    test "reopening a closed lead moves it to in progress, not to-do", %{conn: conn} do
-      %{conn: conn, scope: scope} = owner_conn(conn)
-      quote = quote_request_fixture(scope)
-      {:ok, _} = Quotes.transition_status(scope, quote, :closed)
-
-      {:ok, lv, html} = live(conn, ~p"/app/quotes/#{quote.id}")
-      assert html =~ "Closed"
-
-      html = lv |> element("button", "Reopen") |> render_click()
-      assert html =~ "In progress"
-      assert Quotes.get_quote_request(scope, quote.id).status == :in_progress
-    end
-
-    test "deleting removes the quote and returns to the list", %{conn: conn} do
+    test "cancelling a lead", %{conn: conn} do
       %{conn: conn, scope: scope} = owner_conn(conn)
       quote = quote_request_fixture(scope)
       {:ok, lv, _html} = live(conn, ~p"/app/quotes/#{quote.id}")
 
-      lv |> element("button", "Delete") |> render_click()
-      assert_redirect(lv, ~p"/app/quotes")
-      assert Quotes.get_quote_request(scope, quote.id) == nil
+      html = lv |> element("button", "Cancel") |> render_click()
+      assert html =~ "Cancelled"
+      assert Quotes.get_quote_request(scope, quote.id).status == :cancelled
     end
 
     test "a reader without quote:reply sees no composer", %{conn: conn} do
       tenant = active_tenant_fixture(%{slug: "acme"})
       quote = quote_request_fixture(owner_scope_for(tenant))
-
       conn = role_conn(conn, tenant, ["quote:read"])
-      {:ok, _lv, html} = live(conn, ~p"/app/quotes/#{quote.id}")
-      refute html =~ "Send reply"
+
+      {:ok, lv, _html} = live(conn, ~p"/app/quotes/#{quote.id}")
+      refute has_element?(lv, "#composer")
+      refute has_element?(lv, "#client-reply")
     end
 
     test "the detail page 403s without quote:read", %{conn: conn} do

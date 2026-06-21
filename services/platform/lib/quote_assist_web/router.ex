@@ -77,6 +77,8 @@ defmodule QuoteAssistWeb.Router do
     pipe_through [:browser, :require_platform]
 
     live "/tenants", TenantListLive
+    # The release build-status table (moved off `/`, which is now the marketing landing).
+    get "/release-build-status", PageController, :release_status
   end
 
   # Health probes — no auth, no CSRF, no session overhead.

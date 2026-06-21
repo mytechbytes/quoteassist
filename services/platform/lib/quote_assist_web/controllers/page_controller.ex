@@ -2,11 +2,12 @@ defmodule QuoteAssistWeb.PageController do
   use QuoteAssistWeb, :controller
 
   @doc """
-  `/` is host-aware. The platform host shows the build-status home (platform-only
-  content + the "Admin login" chrome). A tenant host shows that tenant's own branded
-  landing (`tenant_home`) — a public page for everyone: signed-in members get a "Go to
-  workspace" CTA, guests a "Sign in" CTA. The platform build-status page is never served
-  off a tenant host, and the tenant root (the post-logout redirect target) doesn't 404.
+  `/` is host-aware. The platform host shows the public **marketing landing** (ported from
+  `designs/index.html`); the release build status moved to `/release-build-status`. A
+  tenant host shows that tenant's own branded landing (`tenant_home`) — a login-hero page:
+  guests get a "Log in" CTA to the tenant login, signed-in members a "Go to workspace" CTA.
+  The marketing page is never served off a tenant host, and the tenant root (the
+  post-logout redirect target) never 404s.
   """
   def home(conn, _params) do
     case conn.assigns[:current_tenant] do
@@ -18,6 +19,16 @@ defmodule QuoteAssistWeb.PageController do
         |> assign(:page_title, tenant.name)
         |> render(:tenant_home)
     end
+  end
+
+  @doc """
+  `/release-build-status` (platform host only) — the release train table that used to live
+  at `/`. Platform-only content, gated by `RequirePlatform` in the router.
+  """
+  def release_status(conn, _params) do
+    conn
+    |> assign(:page_title, "Build status")
+    |> render(:release_status)
   end
 
   @doc """

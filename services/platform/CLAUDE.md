@@ -269,13 +269,14 @@ mix format && mix compile --warnings-as-errors   # part of "green before done"
   3. any other host → load tenant by **verified** `custom_domain`;
   4. a live but **suspended** tenant → branded "workspace suspended" notice, **403**;
   5. unknown / cancelled / deleted → branded "workspace not found", **404**.
-- **Platform-host-only pages.** The tenant directory (`/tenants`) and `/admin/*` are
-  gated by `RequirePlatform` — they 404 on any tenant subdomain / custom domain. The
-  build-status home (`/`) is host-aware: it renders only on the primary domain; on a
-  tenant host the controller redirects to `/app` (signed in) or `/login` rather than
-  showing platform chrome (and rather than 404-ing the tenant root, which is the
-  post-logout redirect target). Net effect: the build-status page and the "Admin
-  login" link in the shared `Layouts.app` chrome appear on the primary domain only.
+- **Platform-host-only pages.** The tenant directory (`/tenants`), `/release-build-status`,
+  and `/admin/*` are gated by `RequirePlatform` — they 404 on any tenant subdomain / custom
+  domain. The root `/` is host-aware (`PageController.home/2`): on the primary domain it
+  renders the **marketing landing** (ported from `designs/index.html`); on a tenant host it
+  renders that tenant's **login-hero landing** (`tenant_home` — branded chrome, a "Log in"
+  CTA to the tenant login for guests, "Go to workspace" for signed-in members). The release
+  **build-status table moved to `/release-build-status`** (platform host only). Nobody is
+  auto-redirected off `/` (it's the post-logout target, so it always renders).
 - Cookies scoped to the **exact resolved host** (never `.quoteassist...`), so
   sessions never leak across tenants or between a subdomain and its custom domain.
 - Dev: `*.quoteassist.localhost:4000` for subdomains (`acme.quoteassist.localhost:4000`).

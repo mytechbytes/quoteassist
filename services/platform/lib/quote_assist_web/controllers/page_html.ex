@@ -9,10 +9,10 @@ defmodule QuoteAssistWeb.PageHTML do
   embed_templates "page_html/*"
 
   @doc """
-  The release train shown on the platform home page, grouped by track.
+  The release train shown on `/release-build-status`, grouped by track.
 
   Hard-coded per the release plan (see `docs/RELEASE_PLAN.md`). Bump a release's
-  status atom as each slice lands; this is the single place the home table reads.
+  status atom as each slice lands; this is the single place the table reads.
   Statuses: `:done | :in_progress | :pending`.
   """
   def release_tracks do
@@ -55,6 +55,185 @@ defmodule QuoteAssistWeb.PageHTML do
            status: :done
          }
        ]}
+    ]
+  end
+
+  @doc """
+  The six "how it works" pipeline steps for the marketing landing (ported from
+  `designs/index.html`). The last step is the highlighted (brand-filled) one.
+  """
+  def how_it_works_steps do
+    [
+      %{
+        num: "01",
+        icon: "hero-envelope",
+        title: "Paste email",
+        last: false,
+        body: "Agent drops the raw customer email into the form."
+      },
+      %{
+        num: "02",
+        icon: "hero-document-text",
+        title: "Extract",
+        last: false,
+        body: "Routes, dates, pax, cabin and preferences are parsed out."
+      },
+      %{
+        num: "03",
+        icon: "hero-exclamation-triangle",
+        title: "Detect gaps",
+        last: false,
+        body: "Missing info is flagged — or sensible defaults are assumed."
+      },
+      %{
+        num: "04",
+        icon: "hero-chart-bar",
+        title: "Fetch pricing",
+        last: false,
+        body: "Live fares via pricing adapters (Amadeus, Hotelbeds…)."
+      },
+      %{
+        num: "05",
+        icon: "hero-shield-check",
+        title: "Apply policy",
+        last: false,
+        body: "Markup, fare rules and hold windows applied automatically."
+      },
+      %{
+        num: "06",
+        icon: "hero-sparkles",
+        title: "Draft reply",
+        last: true,
+        body: "A polished, ready-to-send quotation — agent approves."
+      }
+    ]
+  end
+
+  @doc "Inline style for a how-it-works step icon (brand-filled for the final step)."
+  def step_icon_style(true), do: "background:var(--mc-brand);color:#fff"
+
+  def step_icon_style(_last),
+    do: "background:var(--mc-surface);border:1px solid var(--mc-border);color:var(--mc-brand)"
+
+  @doc "The capability cards for the marketing landing."
+  def capabilities do
+    [
+      %{
+        icon: "hero-document-text",
+        title: "Requirement extraction",
+        body:
+          "Origins, destinations, dates, passenger mix, cabin class and special requests parsed straight from free-text email — no forms for the customer to fill."
+      },
+      %{
+        icon: "hero-exclamation-triangle",
+        title: "Missing-info detection",
+        body:
+          "Spots what the customer forgot — return date, room count, budget tier — and either flags it for the agent or applies a safe default, transparently."
+      },
+      %{
+        icon: "hero-circle-stack",
+        title: "Live pricing adapters",
+        body:
+          "A mock adapter returns realistic fixtures in development; real providers — Amadeus, Hotelbeds and more — plug in for production with no UI change."
+      },
+      %{
+        icon: "hero-shield-check",
+        title: "Policy engine",
+        body:
+          "Markup rules, supplier preferences, fare hold windows and compliance text applied to every quote — so juniors and seniors price the same way."
+      },
+      %{
+        icon: "hero-pencil-square",
+        title: "Professional drafts",
+        body:
+          "On-brand, itemised quotations in your house tone and currency — review, then send. The agent always approves first."
+      },
+      %{
+        icon: "hero-clock",
+        title: "History & audit",
+        body:
+          "Every quote is stored with its source email, extracted fields, pricing snapshot and the agent who approved it — searchable and re-openable."
+      }
+    ]
+  end
+
+  @doc "The email-input roadmap phases for the marketing landing."
+  def roadmap do
+    [
+      %{
+        tag: "Phase 2 · MVP",
+        state: "Available now",
+        current: true,
+        title: "Web form",
+        body:
+          "The agent copies the customer email and pastes it into QuoteAssist. Zero setup, works in any browser — the fastest path to value."
+      },
+      %{
+        tag: "Phase 2b",
+        state: "In design",
+        current: false,
+        title: "Outlook add-in",
+        body:
+          "An Office.js button inside Outlook. The agent clicks it on any open email — no copy-paste, the quote drafts right beside the message."
+      },
+      %{
+        tag: "Phase 11",
+        state: "Planned",
+        current: false,
+        title: "Mailbox automation",
+        body:
+          "A Microsoft Graph listener watches the shared mailbox and drafts quotes for incoming enquiries automatically — agents only review and send."
+      }
+    ]
+  end
+
+  @doc "The pricing plans for the marketing landing (display only; billing is future scope)."
+  def pricing do
+    [
+      %{
+        name: "Starter",
+        blurb: "For a solo agent trialling it.",
+        price: "$0",
+        unit: " /mo",
+        cta: "Start free",
+        featured: false,
+        features: [
+          "25 quotes / month",
+          "Web form input",
+          "Mock pricing adapter",
+          "Community support"
+        ]
+      },
+      %{
+        name: "Team",
+        blurb: "For agencies up to 20 agents.",
+        price: "$39",
+        unit: " /seat",
+        cta: "Start 14-day trial",
+        featured: true,
+        features: [
+          "Unlimited quotes",
+          "Outlook add-in (Phase 2b)",
+          "Live provider adapters",
+          "Policy engine + audit log",
+          "Priority support"
+        ]
+      },
+      %{
+        name: "Scale",
+        blurb: "For multi-branch operations.",
+        price: "Custom",
+        unit: "",
+        cta: "Talk to sales",
+        featured: false,
+        features: [
+          "Mailbox automation (Phase 11)",
+          "SSO & SCIM provisioning",
+          "Custom pricing adapters",
+          "Dedicated success manager",
+          "99.95% SLA"
+        ]
+      }
     ]
   end
 

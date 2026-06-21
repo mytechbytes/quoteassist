@@ -1,72 +1,505 @@
-<Layouts.app flash={@flash}>
-  <div class="mx-auto max-w-3xl">
-    <div class="mb-7">
-      <span class="mtb-badge mtb-badge-brand">QuoteAssist platform</span>
-      <h1
-        class="mt-3 text-2xl font-bold tracking-tight"
-        style="font-family:var(--font-display);color:var(--mc-text)"
+<%!--
+  Platform marketing landing (`/` on the platform host), ported from
+  `designs/index.html` (`mc-*`/`qa-*` → `mtb-*`). A standalone public page rendered into
+  the root layout. CTAs are adapted for the platform host: "Get started" → /register,
+  "Sign in" / "Browse workspaces" → the tenant directory (tenant login lives on each
+  tenant's own host). The release build status lives at /release-build-status.
+--%>
+<div class="font-sans" style="background:var(--mc-bg);color:var(--mc-text)">
+  <%!-- NAV --%>
+  <header
+    class="sticky top-0 z-30 backdrop-blur"
+    style="background:color-mix(in oklch, var(--mc-bg) 80%, transparent);border-bottom:1px solid var(--mc-border)"
+  >
+    <div class="mx-auto flex h-16 max-w-[1280px] items-center gap-8 px-6">
+      <a href="/" class="flex items-center gap-2.5 no-underline" style="color:var(--mc-text)">
+        <span class="mtb-logo" style="width:32px;height:32px;font-size:13px">QA</span>
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1.125rem">
+          QuoteAssist
+        </span>
+      </a>
+      <nav
+        class="hidden items-center gap-6 text-sm font-medium lg:flex"
+        style="color:var(--mc-text-2)"
       >
-        Build status
-      </h1>
-      <p class="mt-1.5 text-sm" style="color:var(--mc-text-2)">
-        Multi-tenant AI-powered quote assistant, built in thin vertical slices —
-        each release is independently deployable to staging. Status updates as each
-        release lands.
-      </p>
+        <a href="#how" class="no-underline hover:opacity-80">How it works</a>
+        <a href="#capabilities" class="no-underline hover:opacity-80">Capabilities</a>
+        <a href="#roadmap" class="no-underline hover:opacity-80">Roadmap</a>
+        <a href="#pricing" class="no-underline hover:opacity-80">Pricing</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-2">
+        <Layouts.theme_toggle />
+        <.link navigate={~p"/tenants"} class="mtb-btn mtb-btn-sm mtb-btn-ghost">Sign in</.link>
+        <.link navigate={~p"/register"} class="mtb-btn mtb-btn-sm mtb-btn-primary">Get started</.link>
+      </div>
     </div>
+  </header>
 
-    <div class="mtb-card overflow-hidden">
-      <table class="mtb-table">
-        <thead>
-          <tr style="border-bottom:1px solid var(--mc-border)">
-            <th
-              class="px-4 py-3 text-left text-xs font-semibold"
-              style="color:var(--mc-text-3);width:5.5rem"
+  <%!-- HERO --%>
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 mtb-grid-bg opacity-60"></div>
+    <div class="mtb-glow"></div>
+    <div class="relative mx-auto max-w-[1280px] px-6 pb-16 pt-24 text-center">
+      <div class="mtb-badge mtb-badge-brand mb-6 inline-flex">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l2.4 6L21 9l-5 4 1.6 7L12 16l-5.6 4L8 13 3 9l6.6-1z" />
+        </svg>
+        Phase 2 · MVP — paste an email, send a quote
+      </div>
+      <h1
+        class="mx-auto font-bold tracking-tight"
+        style="font-family:var(--font-display);font-size:clamp(2.5rem,6vw,5rem);line-height:0.98;max-width:940px"
+      >
+        Turn a customer email<br />into a quote <span class="mtb-grad-text">in seconds.</span>
+      </h1>
+      <p
+        class="mx-auto mt-7 text-lg"
+        style="color:var(--mc-text-2);max-width:640px;line-height:1.55"
+      >
+        Paste the inbound email. QuoteAssist extracts the trip requirements, flags what's missing,
+        pulls live pricing, applies your fare policy, and writes a professional draft reply — all in
+        the browser, before your coffee's cold.
+      </p>
+      <div class="mt-9 flex flex-wrap justify-center gap-3">
+        <.link navigate={~p"/register"} class="mtb-btn mtb-btn-lg mtb-btn-primary">
+          Get started free
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14M13 5l7 7-7 7" />
+          </svg>
+        </.link>
+        <.link navigate={~p"/tenants"} class="mtb-btn mtb-btn-lg mtb-btn-secondary">
+          Browse workspaces
+        </.link>
+      </div>
+      <div
+        class="mt-7 flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs font-medium"
+        style="color:var(--mc-text-3)"
+      >
+        <span class="flex items-center gap-1.5">
+          <.icon name="hero-check" class="size-3.5" style="color:var(--mc-success)" />
+          No copy-paste between tools
+        </span>
+        <span class="flex items-center gap-1.5">
+          <.icon name="hero-check" class="size-3.5" style="color:var(--mc-success)" />
+          Your policy, applied every time
+        </span>
+        <span class="flex items-center gap-1.5">
+          <.icon name="hero-check" class="size-3.5" style="color:var(--mc-success)" />
+          Agent always approves the draft
+        </span>
+      </div>
+
+      <%!-- HERO MOCKUP: pasted email → generated draft --%>
+      <div class="relative mx-auto mt-14 text-left" style="max-width:1080px">
+        <div class="mtb-glow absolute -inset-x-16 -inset-y-8 opacity-70"></div>
+        <div
+          class="relative rounded-2xl border"
+          style="background:var(--mc-surface);border-color:var(--mc-border);box-shadow:0 40px 80px -20px rgb(0 0 0 / 0.20)"
+        >
+          <div
+            class="flex h-11 items-center gap-2 border-b px-4"
+            style="border-color:var(--mc-border)"
+          >
+            <span class="size-2.5 rounded-full" style="background:oklch(70% 0.16 25)"></span>
+            <span class="size-2.5 rounded-full" style="background:oklch(82% 0.15 85)"></span>
+            <span class="size-2.5 rounded-full" style="background:oklch(72% 0.16 145)"></span>
+            <div
+              class="mx-6 flex h-6 items-center gap-2 rounded-md px-3 font-mono text-[11px]"
+              style="background:var(--mc-surface-2);color:var(--mc-text-3);min-width:320px"
             >
-              Release
-            </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold" style="color:var(--mc-text-3)">
-              Description
-            </th>
-            <th
-              class="px-4 py-3 text-right text-xs font-semibold"
-              style="color:var(--mc-text-3);width:8rem"
-            >
-              Status
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <%= for {track, releases} <- release_tracks() do %>
-            <tr>
-              <td
-                colspan="3"
-                class="px-4 pt-5 pb-1 text-[11px] font-bold uppercase tracking-wider"
+              <.icon name="hero-lock-closed-micro" class="size-3" /> acme.quoteassist · get-quote
+            </div>
+            <div class="ml-auto">
+              <span class="mtb-status mtb-status-live text-[11px]">Draft ready · 3.2s</span>
+            </div>
+          </div>
+          <div class="grid" style="grid-template-columns:1fr 1fr;min-height:380px">
+            <div class="border-r p-6" style="border-color:var(--mc-border)">
+              <div
+                class="mb-2 text-[10px] font-bold uppercase tracking-widest"
                 style="color:var(--mc-text-3)"
               >
-                {track}
-              </td>
-            </tr>
-            <%= for release <- releases do %>
-              <tr style="border-top:1px solid var(--mc-border)">
-                <td class="px-4 py-3 align-middle">
-                  <span class="font-mono text-sm font-semibold" style="color:var(--mc-text)">
-                    {release.id}
-                  </span>
-                </td>
-                <td class="px-4 py-3 align-middle text-sm" style="color:var(--mc-text-2)">
-                  {release.desc}
-                </td>
-                <td class="px-4 py-3 align-middle text-right">
-                  <span class={["mtb-badge", status_badge_class(release.status)]}>
-                    {status_label(release.status)}
-                  </span>
-                </td>
-              </tr>
-            <% end %>
-          <% end %>
-        </tbody>
-      </table>
+                Pasted customer email
+              </div>
+              <div
+                class="rounded-lg p-3.5 text-[12.5px] leading-relaxed"
+                style="background:var(--mc-surface-2);border:1px solid var(--mc-border);color:var(--mc-text-2)"
+              >
+                Hi — we're a family of 4 (2 adults, 2 kids aged 6 &amp; 9) looking to fly
+                <b style="color:var(--mc-text)">London → Tokyo</b>
+                departing <b style="color:var(--mc-text)">14 Aug</b>, back <b style="color:var(--mc-text)">28 Aug</b>. Prefer non-stop, economy. Also need a
+                hotel near Shinjuku, 2 rooms.
+              </div>
+              <div
+                class="mb-2 mt-5 text-[10px] font-bold uppercase tracking-widest"
+                style="color:var(--mc-text-3)"
+              >
+                Extracted requirements
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="mtb-badge mtb-badge-brand">LHR → HND</span>
+                <span class="mtb-badge mtb-badge-brand">14–28 Aug</span>
+                <span class="mtb-badge mtb-badge-brand">2 adults · 2 children</span>
+                <span class="mtb-badge mtb-badge-brand">Non-stop · Economy</span>
+                <span class="mtb-badge mtb-badge-brand">Hotel · Shinjuku · 2 rooms</span>
+              </div>
+              <div
+                class="mt-4 flex items-start gap-2 rounded-lg p-3 text-[12px]"
+                style="background:color-mix(in oklch, var(--mc-warning) 12%, transparent)"
+              >
+                <.icon
+                  name="hero-exclamation-triangle"
+                  class="mt-0.5 size-3.5 shrink-0"
+                  style="color:var(--mc-warning)"
+                />
+                <span style="color:var(--mc-text-2)">
+                  <b style="color:var(--mc-text)">1 missing detail:</b>
+                  hotel star rating / budget not specified — assumed 4★.
+                </span>
+              </div>
+            </div>
+            <div class="p-6" style="background:var(--mc-surface-2)">
+              <div class="mb-2 flex items-center justify-between">
+                <div
+                  class="text-[10px] font-bold uppercase tracking-widest"
+                  style="color:var(--mc-text-3)"
+                >
+                  Generated draft reply
+                </div>
+                <span class="mtb-badge mtb-badge-success text-[10px]">AI · review before send</span>
+              </div>
+              <div
+                class="mtb-card p-4 text-[12.5px] leading-relaxed"
+                style="color:var(--mc-text-2)"
+              >
+                <p>Dear Guest,</p>
+                <p class="mt-2">
+                  Thank you for your enquiry. Here is a quotation for your London–Tokyo trip
+                  (2 adults, 2 children), 14–28 August:
+                </p>
+                <div
+                  class="mt-3 overflow-hidden rounded-lg"
+                  style="border:1px solid var(--mc-border)"
+                >
+                  <div
+                    class="flex items-center justify-between px-3 py-2"
+                    style="border-bottom:1px solid var(--mc-border)"
+                  >
+                    <span>Return flights · LHR–HND non-stop</span>
+                    <span class="font-mono" style="color:var(--mc-text)">£3,840</span>
+                  </div>
+                  <div class="flex items-center justify-between px-3 py-2">
+                    <span>Hotel · Shinjuku 4★ · 2 rooms · 14 nts</span>
+                    <span class="font-mono" style="color:var(--mc-text)">£2,310</span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between px-3 py-2 font-semibold"
+                    style="background:var(--mc-surface);color:var(--mc-text)"
+                  >
+                    <span>Total incl. taxes</span>
+                    <span class="font-mono">£6,150</span>
+                  </div>
+                </div>
+                <p class="mt-3">
+                  Fares held for 48 hours under our standard policy. Happy to adjust the hotel tier
+                  or add transfers.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</Layouts.app>
+  </section>
+
+  <%!-- HOW IT WORKS --%>
+  <section
+    id="how"
+    class="border-t py-24"
+    style="border-color:var(--mc-border);background:var(--mc-surface-2)"
+  >
+    <div class="mx-auto max-w-[1280px] px-6">
+      <div class="mx-auto mb-14 max-w-2xl text-center">
+        <div
+          class="mb-3 text-xs font-bold uppercase tracking-widest"
+          style="color:var(--mc-brand)"
+        >
+          The pipeline
+        </div>
+        <h2
+          class="text-4xl font-bold tracking-tight sm:text-5xl"
+          style="font-family:var(--font-display);line-height:1.05"
+        >
+          Six steps. One click.
+        </h2>
+        <p class="mt-4 text-lg" style="color:var(--mc-text-2)">
+          Everything between the inbound email and the outbound quote happens automatically — the
+          agent just reviews and sends.
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-y-8 md:grid-cols-3 lg:grid-cols-6">
+        <div :for={step <- how_it_works_steps()} class="relative px-3 text-center">
+          <div class={["relative", not step.last && "mtb-step-line"]}>
+            <div
+              class="relative z-[1] mx-auto grid size-12 place-items-center rounded-2xl"
+              style={step_icon_style(step.last)}
+            >
+              <.icon name={step.icon} class="size-[22px]" />
+            </div>
+          </div>
+          <div class="mt-3 font-mono text-[11px]" style="color:var(--mc-text-3)">{step.num}</div>
+          <div class="mt-1 text-base font-bold" style="font-family:var(--font-display)">
+            {step.title}
+          </div>
+          <p class="mt-1 text-xs" style="color:var(--mc-text-2)">{step.body}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- CAPABILITIES --%>
+  <section id="capabilities" class="py-28">
+    <div class="mx-auto max-w-[1280px] px-6">
+      <div class="max-w-2xl">
+        <div
+          class="mb-3 text-xs font-bold uppercase tracking-widest"
+          style="color:var(--mc-brand)"
+        >
+          Capabilities
+        </div>
+        <h2
+          class="text-4xl font-bold tracking-tight sm:text-5xl"
+          style="font-family:var(--font-display);line-height:1.05"
+        >
+          Built for the way <span style="color:var(--mc-text-3)">agents actually work.</span>
+        </h2>
+        <p class="mt-5 text-lg" style="color:var(--mc-text-2)">
+          No new inbox, no workflow to relearn. QuoteAssist sits beside the tools your team already
+          uses and does the tedious part.
+        </p>
+      </div>
+      <div class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div :for={cap <- capabilities()} class="mtb-card p-7">
+          <div
+            class="mb-5 grid size-11 place-items-center rounded-xl"
+            style="background:var(--mc-brand-soft);color:var(--mc-brand)"
+          >
+            <.icon name={cap.icon} class="size-[22px]" />
+          </div>
+          <div class="mb-2 text-xl font-bold" style="font-family:var(--font-display)">
+            {cap.title}
+          </div>
+          <p class="text-sm leading-relaxed" style="color:var(--mc-text-2)">{cap.body}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ROADMAP --%>
+  <section
+    id="roadmap"
+    class="border-t py-28"
+    style="border-color:var(--mc-border);background:var(--mc-surface-2)"
+  >
+    <div class="mx-auto max-w-[1280px] px-6">
+      <div class="mx-auto mb-14 max-w-2xl text-center">
+        <div
+          class="mb-3 text-xs font-bold uppercase tracking-widest"
+          style="color:var(--mc-brand)"
+        >
+          Email input · roadmap
+        </div>
+        <h2
+          class="text-4xl font-bold tracking-tight sm:text-5xl"
+          style="font-family:var(--font-display);line-height:1.05"
+        >
+          From paste, to add-in, to fully hands-off.
+        </h2>
+        <p class="mt-4 text-lg" style="color:var(--mc-text-2)">
+          The quotation engine stays the same — only how the email reaches it changes as you roll out.
+        </p>
+      </div>
+      <div class="mx-auto grid max-w-[1080px] gap-5 md:grid-cols-3">
+        <div
+          :for={phase <- roadmap()}
+          class="mtb-card p-7"
+          style={phase.current && "border:2px solid var(--mc-brand)"}
+        >
+          <div class="mb-4 flex items-center justify-between">
+            <span class={[
+              "mtb-badge",
+              if(phase.current, do: "mtb-badge-brand", else: "mtb-badge-neutral")
+            ]}>
+              {phase.tag}
+            </span>
+            <span
+              class={["mtb-status text-[11px]", phase.current && "mtb-status-live"]}
+              style={not phase.current && "color:var(--mc-text-3)"}
+            >
+              {phase.state}
+            </span>
+          </div>
+          <div class="mb-2 text-xl font-bold" style="font-family:var(--font-display)">
+            {phase.title}
+          </div>
+          <p class="text-sm leading-relaxed" style="color:var(--mc-text-2)">{phase.body}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- PRICING --%>
+  <section id="pricing" class="py-28">
+    <div class="mx-auto max-w-[1280px] px-6">
+      <div class="mx-auto mb-14 max-w-2xl text-center">
+        <div
+          class="mb-3 text-xs font-bold uppercase tracking-widest"
+          style="color:var(--mc-brand)"
+        >
+          Pricing
+        </div>
+        <h2
+          class="text-4xl font-bold tracking-tight sm:text-5xl"
+          style="font-family:var(--font-display);line-height:1.05"
+        >
+          Priced per seat. <span style="color:var(--mc-text-3)">Pays for itself by lunch.</span>
+        </h2>
+      </div>
+      <div class="mx-auto grid max-w-[1080px] gap-5 md:grid-cols-3">
+        <div
+          :for={plan <- pricing()}
+          class="mtb-card p-7"
+          style={
+            plan.featured &&
+              "border:2px solid var(--mc-brand);box-shadow:0 20px 40px -16px var(--mc-brand-ring)"
+          }
+        >
+          <div :if={plan.featured} class="mtb-badge mtb-badge-brand mb-3">Most popular</div>
+          <div class="text-xl font-bold" style="font-family:var(--font-display)">{plan.name}</div>
+          <div class="mt-1 text-sm" style="color:var(--mc-text-3)">{plan.blurb}</div>
+          <div
+            class="mb-6 mt-6 font-bold"
+            style="font-family:var(--font-display);font-size:48px;line-height:1"
+          >
+            {plan.price}<span class="text-base font-medium" style="color:var(--mc-text-3)">{plan.unit}</span>
+          </div>
+          <.link
+            navigate={~p"/register"}
+            class={[
+              "w-full",
+              if(plan.featured, do: "mtb-btn mtb-btn-primary", else: "mtb-btn mtb-btn-secondary")
+            ]}
+          >
+            {plan.cta}
+          </.link>
+          <ul class="mt-7 space-y-3 text-sm">
+            <li :for={feature <- plan.features} class="flex gap-2.5">
+              <span style="color:var(--mc-success)">✓</span><span>{feature}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- CTA --%>
+  <section class="py-24">
+    <div class="mx-auto max-w-[1080px] px-6">
+      <div
+        class="relative overflow-hidden rounded-3xl p-16 text-center"
+        style="background:linear-gradient(135deg, var(--mc-grad-2), oklch(40% 0.085 194))"
+      >
+        <div class="mtb-glow absolute -inset-20 opacity-40"></div>
+        <h2
+          class="relative font-bold tracking-tight"
+          style="font-family:var(--font-display);color:#fff;font-size:clamp(2rem,4vw,3.25rem);line-height:1.05"
+        >
+          Stop retyping quotes.<br />Start approving them.
+        </h2>
+        <div class="relative mt-9 flex justify-center gap-3">
+          <.link
+            navigate={~p"/register"}
+            class="mtb-btn mtb-btn-lg"
+            style="background:#fff;color:var(--mc-grad-2)"
+          >
+            Get started free
+          </.link>
+          <.link
+            navigate={~p"/tenants"}
+            class="mtb-btn mtb-btn-lg"
+            style="background:rgb(255 255 255 / 0.15);color:#fff;border:1px solid rgb(255 255 255 / 0.3)"
+          >
+            Browse workspaces
+          </.link>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- FOOTER --%>
+  <footer class="border-t pb-10 pt-16" style="border-color:var(--mc-border)">
+    <div class="mx-auto grid max-w-[1280px] grid-cols-2 gap-10 px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div>
+        <a href="/" class="flex items-center gap-2.5 no-underline" style="color:var(--mc-text)">
+          <span class="mtb-logo" style="width:32px;height:32px;font-size:13px">QA</span>
+          <span style="font-family:var(--font-display);font-weight:700;font-size:1.125rem">QuoteAssist</span>
+        </a>
+        <p class="mt-4 max-w-xs text-sm" style="color:var(--mc-text-2)">
+          AI-assisted travel quotation automation. Paste the email, approve the draft — the tedious
+          middle is on us.
+        </p>
+      </div>
+      <div>
+        <div class="mb-3 text-sm font-bold" style="font-family:var(--font-display)">Product</div>
+        <ul class="space-y-2.5 text-sm" style="color:var(--mc-text-2)">
+          <li><a href="#how" class="no-underline hover:opacity-80">How it works</a></li>
+          <li><a href="#capabilities" class="no-underline hover:opacity-80">Capabilities</a></li>
+          <li><a href="#roadmap" class="no-underline hover:opacity-80">Roadmap</a></li>
+          <li><a href="#pricing" class="no-underline hover:opacity-80">Pricing</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="mb-3 text-sm font-bold" style="font-family:var(--font-display)">
+          Workspace
+        </div>
+        <ul class="space-y-2.5 text-sm" style="color:var(--mc-text-2)">
+          <li>
+            <.link navigate={~p"/register"} class="no-underline hover:opacity-80">Create account</.link>
+          </li>
+          <li>
+            <.link navigate={~p"/tenants"} class="no-underline hover:opacity-80">Find your workspace</.link>
+          </li>
+          <li>
+            <.link navigate={~p"/release-build-status"} class="no-underline hover:opacity-80">
+              Build status
+            </.link>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <div class="mb-3 text-sm font-bold" style="font-family:var(--font-display)">Company</div>
+        <ul class="space-y-2.5 text-sm" style="color:var(--mc-text-2)">
+          <li><a href="/admin/login" class="no-underline hover:opacity-80">Admin login</a></li>
+        </ul>
+      </div>
+    </div>
+    <div
+      class="mx-auto mt-12 flex max-w-[1280px] items-center justify-between px-6 pt-6 text-xs"
+      style="color:var(--mc-text-3);border-top:1px solid var(--mc-border)"
+    >
+      <div>© 2026 QuoteAssist · multi-tenant quote assistant</div>
+      <div class="font-mono">v{Layouts.app_version()} · {Layouts.deploy_env()}</div>
+    </div>
+  </footer>
+</div>
+
+<Layouts.flash_group flash={@flash} />

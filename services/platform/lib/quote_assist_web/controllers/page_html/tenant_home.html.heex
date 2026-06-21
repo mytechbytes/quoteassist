@@ -1,87 +1,101 @@
 <%!--
-  Tenant-host landing (`/` on a tenant subdomain / custom domain). Public — shown to
-  everyone: a signed-in member gets a "Go to workspace" CTA, a guest a "Sign in" CTA
-  (nobody is auto-redirected). Tenant-branded chrome (the tenant's name as the wordmark)
-  rather than the platform `Layouts.app`, whose "Tenants" / "Admin login" links are
-  platform-host-only. Rendered by `PageController.home/2`; wrapped by the root layout.
+  Tenant-host landing (`/` on a tenant subdomain / custom domain). A login-hero page: the
+  split-screen login aesthetic (ported from `designs/login.html`), branded to the resolved
+  tenant. The left aside showcases the tenant's info; the right panel is the hero CTA —
+  a guest gets "Log in" → the tenant login page, a signed-in member "Go to workspace" → /app.
+  Nobody is auto-redirected (this is the post-logout target, so it must always render).
 --%>
-<div class="flex min-h-screen flex-col" style="background:var(--mc-bg)">
-  <header class="mtb-topbar px-6">
-    <a href="/" class="flex items-center gap-3 no-underline" style="color:var(--mc-text)">
-      <span
-        class="mtb-logo"
-        style="width:32px;height:32px;font-size:13px;letter-spacing:-0.04em;color:white"
-      >
-        QA
-      </span>
-      <span style="font-family:var(--font-display);font-weight:700;font-size:1rem;letter-spacing:-0.02em">
+<% signed_in? = @current_scope && @current_scope.user %>
+<div class="grid min-h-screen lg:grid-cols-2">
+  <%!-- Brand aside (tenant info) — hidden below lg, per the login design --%>
+  <aside class="mtb-auth-aside hidden flex-col p-14 lg:flex">
+    <div class="relative flex items-center gap-2.5">
+      <span class="mtb-logo" style="width:36px;height:36px;font-size:15px">QA</span>
+      <span style="font-family:var(--font-display);font-weight:700;font-size:1.125rem">
         {@current_tenant.name}
       </span>
-    </a>
+    </div>
 
-    <nav class="ml-auto flex items-center gap-2 sm:gap-3">
-      <.link
-        :if={@current_scope && @current_scope.user}
-        href={~p"/app"}
-        class="mtb-btn mtb-btn-primary mtb-btn-sm no-underline"
-      >
-        Go to workspace
-      </.link>
-      <.link
-        :if={!(@current_scope && @current_scope.user)}
-        href={~p"/login"}
-        class="mtb-btn mtb-btn-primary mtb-btn-sm no-underline"
-      >
-        Sign in
-      </.link>
+    <div class="relative flex flex-1 items-center">
+      <div>
+        <div class="mb-5 text-sm font-semibold uppercase tracking-widest opacity-80">
+          Powered by QuoteAssist
+        </div>
+        <h1
+          class="font-bold tracking-tight"
+          style="font-family:var(--font-display);font-size:3rem;line-height:1.03"
+        >
+          Enquiries in.<br />Polished quotes out.
+        </h1>
+        <p class="mt-6 max-w-md text-lg opacity-90" style="line-height:1.55">
+          {@current_tenant.name}'s workspace on QuoteAssist — where inbound enquiries become
+          accurate, policy-checked quotations in a click.
+        </p>
+      </div>
+    </div>
+
+    <div class="relative text-sm opacity-80">
+      <span class="font-mono">{@current_tenant.name} · powered by QuoteAssist</span>
+    </div>
+  </aside>
+
+  <%!-- Hero panel — the login CTA --%>
+  <main
+    class="relative flex items-center justify-center p-6 sm:p-10"
+    style="background:var(--mc-bg)"
+  >
+    <div class="absolute right-6 top-6">
       <Layouts.theme_toggle />
-    </nav>
-  </header>
+    </div>
 
-  <main class="flex flex-1 items-center justify-center px-6 py-16">
-    <div class="mx-auto max-w-2xl text-center">
+    <div class="mtb-auth-card">
+      <a
+        href="/"
+        class="mb-8 flex items-center gap-2 no-underline lg:hidden"
+        style="color:var(--mc-text)"
+      >
+        <span class="mtb-logo" style="width:28px;height:28px;font-size:12px">QA</span>
+        <span style="font-family:var(--font-display);font-weight:700">{@current_tenant.name}</span>
+      </a>
+
       <span class="mtb-badge mtb-badge-brand font-mono">{@current_tenant.name}</span>
 
       <h1
-        class="mt-5 text-4xl font-bold tracking-tight sm:text-5xl"
-        style="font-family:var(--font-display);color:var(--mc-text);line-height:1.05"
+        class="mt-4 text-3xl font-bold tracking-tight"
+        style="font-family:var(--font-display);color:var(--mc-text)"
       >
-        Enquiries in.<br />Polished quotes out.
+        {if signed_in?, do: "Welcome back.", else: "Welcome to #{@current_tenant.name}."}
       </h1>
-
-      <p class="mx-auto mt-5 max-w-lg text-base" style="color:var(--mc-text-2);line-height:1.6">
-        Welcome to {@current_tenant.name}'s workspace on QuoteAssist — where inbound enquiries
-        become accurate, policy-checked quotations in a click.
+      <p class="mt-2 text-sm" style="color:var(--mc-text-2);line-height:1.6">
+        <%= if signed_in? do %>
+          You're signed in as <span class="font-medium" style="color:var(--mc-text)">{@current_scope.user.email}</span>. Jump back into your workspace.
+        <% else %>
+          Sign in with your work email to turn inbound enquiries into polished, policy-checked
+          quotations — without leaving your browser.
+        <% end %>
       </p>
 
-      <div class="mt-9 flex flex-wrap justify-center gap-3">
-        <.link
-          :if={@current_scope && @current_scope.user}
-          href={~p"/app"}
-          class="mtb-btn mtb-btn-primary mtb-btn-lg no-underline"
-        >
-          Go to workspace <span aria-hidden="true">→</span>
-        </.link>
-        <.link
-          :if={!(@current_scope && @current_scope.user)}
-          href={~p"/login"}
-          class="mtb-btn mtb-btn-primary mtb-btn-lg no-underline"
-        >
-          Sign in <span aria-hidden="true">→</span>
-        </.link>
-      </div>
+      <.link
+        :if={signed_in?}
+        href={~p"/app"}
+        class="mtb-btn mtb-btn-lg mtb-btn-primary mt-7 w-full no-underline"
+      >
+        Go to workspace <span aria-hidden="true">→</span>
+      </.link>
+
+      <.link
+        :if={!signed_in?}
+        href={~p"/login"}
+        class="mtb-btn mtb-btn-lg mtb-btn-primary mt-7 w-full no-underline"
+      >
+        Log in <span aria-hidden="true">→</span>
+      </.link>
+
+      <p :if={!signed_in?} class="mt-6 text-center text-sm" style="color:var(--mc-text-3)">
+        New to {@current_tenant.name}? Ask a workspace owner for an invite.
+      </p>
     </div>
   </main>
-
-  <footer class="border-t" style="border-color:var(--mc-border)">
-    <div
-      class="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5 text-xs"
-      style="color:var(--mc-text-3)"
-    >
-      <span>{@current_tenant.name} · powered by QuoteAssist</span>
-      <span class="font-mono">v{Layouts.app_version()} · {Layouts.deploy_env()}</span>
-    </div>
-  </footer>
 </div>
 
 <Layouts.flash_group flash={@flash} />

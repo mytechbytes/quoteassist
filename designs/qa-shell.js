@@ -97,71 +97,6 @@
     profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-7 8-7s7 2.5 8 7"/>',
     settings: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/>',
     analytics: '<path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/>',
-    discount: '<circle cx="9" cy="9" r="1.8"/><circle cx="15" cy="15" r="1.8"/><path d="M19 5L5 19"/>',
-    approvals: '<path d="M9 11l3 3L20 6"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10"/>',
-    quotas: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="2" y1="14" x2="6" y2="14"/><line x1="10" y1="8" x2="14" y2="8"/><line x1="18" y1="16" x2="22" y2="16"/>',
-    sellers: '<circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3.5 3-5 6-5s5.5 1.5 6 5"/><circle cx="17" cy="6" r="2"/><path d="M15 12c2.5 0 4 1 4.5 3"/>',
-    agencies: '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h6"/>',
-    verticals: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
-    policy: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
-    billing: '<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
-    deals: '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>',
-    switch: '<path d="M16 3l4 4-4 4"/><path d="M20 7H9a4 4 0 0 0-4 4v0"/><path d="M8 21l-4-4 4-4"/><path d="M4 17h11a4 4 0 0 0 4-4v0"/>',
-  };
-
-  // Per-persona navigation. Legacy sales pages (no data-app) default to 'sales'
-  // with the original Skyline identity, so they render exactly as before.
-  const NAV = {
-    sales: {
-      brandTag: null,
-      sections: [
-        { title: 'Workspace', items: [
-          ['overview', 'dashboard.html', 'Overview'],
-          ['quote', 'get-quote.html', 'Get a quote'],
-          ['list', 'quotes.html', 'Quotes', '8'],
-          ['discount', 'apply-discount.html', 'Apply discount'],
-          ['sources', 'settings.html#sources', 'Pricing sources'],
-          ['analytics', 'dashboard.html', 'Analytics'],
-        ] },
-        { title: 'Account', items: [
-          ['team', 'team.html', 'Team'],
-          ['profile', 'profile.html', 'Profile'],
-          ['settings', 'settings.html', 'Settings'],
-        ] },
-        { title: null, items: [ ['switch', 'launcher.html', 'Switch persona'] ] },
-      ],
-      user: { name: 'Rana Aziz', org: 'Skyline Travel · Agent', initials: 'RA' },
-    },
-    agency: {
-      brandTag: 'Agency',
-      sections: [
-        { title: 'Agency', items: [
-          ['overview', 'agency-dashboard.html', 'Overview'],
-          ['approvals', 'agency-approvals.html', 'Approvals', '__approvals__'],
-          ['quotas', 'agency-quotas.html', 'Discount quotas'],
-          ['sellers', 'agency-team.html', 'Salespeople'],
-        ] },
-        { title: 'Account', items: [
-          ['settings', 'settings.html', 'Settings'],
-        ] },
-        { title: null, items: [ ['switch', 'launcher.html', 'Switch persona'] ] },
-      ],
-      user: { name: 'Daniel Reyes', org: 'Northwind Supply · Admin', initials: 'DR' },
-    },
-    admin: {
-      brandTag: 'Platform',
-      sections: [
-        { title: 'Platform', items: [
-          ['overview', 'admin-dashboard.html', 'Overview'],
-          ['agencies', 'admin-tenants.html', 'Agencies'],
-          ['verticals', 'admin-verticals.html', 'Verticals'],
-          ['policy', 'admin-policy.html', 'Discount policy'],
-          ['billing', 'admin-policy.html#plans', 'Plans & billing'],
-        ] },
-        { title: null, items: [ ['switch', 'launcher.html', 'Switch persona'] ] },
-      ],
-      user: { name: 'Mara Okafor', org: 'Platform admin', initials: 'MO' },
-    },
   };
   function svg(p) {
     return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mc-side-icon">${p}</svg>`;
@@ -172,49 +107,39 @@
     return `<a href="${href}"${cls}>${svg(ic[key])}<span class="mc-side-label">${label}</span>${counter}</a>`;
   }
   function renderSidebar(aside) {
-    const app = aside.dataset.app || 'sales';
-    const cfg = NAV[app] || NAV.sales;
     const active = aside.dataset.active || '';
-    const pending = (window.QAData && window.QAData.pendingCount) ? window.QAData.pendingCount(window.QAData.ACTIVE_TENANT) : 0;
-
-    const sectionsHtml = cfg.sections.map(sec => {
-      const head = sec.title ? `<div class="mc-side-section">${sec.title}</div>` : `<div style="margin-top:auto;"></div>`;
-      const items = sec.items.map(it => {
-        let key = it[0], href = it[1], label = it[2], extra = it[3];
-        if (extra === '__approvals__') extra = pending > 0 ? String(pending) : '';
-        return navItem(active, key, href, label, extra);
-      }).join('');
-      return head + items;
-    }).join('');
-
-    const u = {
-      name: aside.dataset.user || cfg.user.name,
-      org: aside.dataset.org || cfg.user.org,
-      initials: aside.dataset.initials || cfg.user.initials,
-    };
-    const tag = cfg.brandTag ? `<span class="mc-app-tag">${cfg.brandTag}</span>` : '';
-    const homeHref = cfg.sections[0].items[0][1];
-
     const themeBtn = `<button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-footer-meta" data-theme-toggle aria-label="Toggle theme" title="Toggle theme">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>`;
     aside.innerHTML = `
       <div class="mc-side-header">
-        <a href="${homeHref}" class="flex items-center gap-2.5" style="text-decoration:none; color:inherit; min-width:0;">
-          <span class="mc-logo" style="width:30px; height:30px; font-size:14px; flex-shrink:0;">QA</span>
-          <span class="mc-side-brand-text flex items-center gap-2 min-w-0"><span class="font-display font-bold text-base">QuoteAssist</span>${tag}</span>
+        <a href="dashboard.html" class="flex items-center gap-2.5" style="text-decoration:none; color:inherit;">
+          <span class="mc-logo" style="width:30px; height:30px; font-size:14px;">QA</span>
+          <span class="font-display font-bold text-base mc-side-brand-text">QuoteAssist</span>
         </a>
         <button class="mc-btn mc-btn-sm mc-btn-icon mc-btn-ghost mc-side-brand-text" data-sidebar-toggle aria-label="Collapse sidebar" title="Collapse sidebar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
       </div>
-      ${sectionsHtml}
+
+      <div class="mc-side-section">Workspace</div>
+      ${navItem(active, 'overview', 'dashboard.html', 'Overview')}
+      ${navItem(active, 'quote', 'get-quote.html', 'Get a quote')}
+      ${navItem(active, 'list', 'quotes.html', 'Quotes', '8')}
+      ${navItem(active, 'sources', 'settings.html#sources', 'Pricing sources')}
+      ${navItem(active, 'analytics', 'dashboard.html', 'Analytics')}
+
+      <div class="mc-side-section">Account</div>
+      ${navItem(active, 'team', 'team.html', 'Team')}
+      ${navItem(active, 'profile', 'profile.html', 'Profile')}
+      ${navItem(active, 'settings', 'settings.html', 'Settings')}
+
       <div class="mc-side-footer">
-        <div class="w-9 h-9 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, var(--mc-grad-1), var(--mc-grad-2));">${u.initials}</div>
+        <div class="w-9 h-9 rounded-full grid place-items-center text-white text-xs font-bold flex-shrink-0" style="background: linear-gradient(135deg, var(--mc-grad-1), var(--mc-grad-2));">RA</div>
         <div class="min-w-0 flex-1 mc-side-footer-meta">
-          <div class="text-sm font-semibold leading-tight truncate">${u.name}</div>
-          <div class="text-[11px] truncate" style="color: var(--mc-text-3);">${u.org}</div>
+          <div class="text-sm font-semibold leading-tight truncate">Rana Aziz</div>
+          <div class="text-[11px] truncate" style="color: var(--mc-text-3);">Skyline Travel · Agent</div>
         </div>
         ${themeBtn}
       </div>`;

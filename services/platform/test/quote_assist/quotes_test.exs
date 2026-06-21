@@ -76,6 +76,24 @@ defmodule QuoteAssist.QuotesTest do
       assert {:error, changeset} = Quotes.transition_status(scope, quoted, :open)
       assert %{status: ["cannot transition from quoted to open"]} = errors_on(changeset)
     end
+
+    test "to-do is reachable only via in_progress (no direct jump back)", %{scope: scope} do
+      quote = quote_request_fixture(scope)
+      {:ok, in_progress} = Quotes.transition_status(scope, quote, :in_progress)
+      {:ok, quoted} = Quotes.transition_status(scope, in_progress, :quoted)
+
+      # A quoted lead can't jump straight back to to-do…
+      assert {:error, _} = Quotes.transition_status(scope, quoted, :open)
+      {:ok, closed} = Quotes.transition_status(scope, quoted, :closed)
+      # …nor can a closed one; reopening lands in in_progress, not to-do.
+      assert {:error, _} = Quotes.transition_status(scope, closed, :open)
+      assert {:ok, reopened} = Quotes.transition_status(scope, closed, :in_progress)
+      assert reopened.status == :in_progress
+
+      # From in_progress (start) you *can* move back to to-do.
+      assert {:ok, todo} = Quotes.transition_status(scope, reopened, :open)
+      assert todo.status == :open
+    end
   end
 
   describe "dashboard_stats/1" do

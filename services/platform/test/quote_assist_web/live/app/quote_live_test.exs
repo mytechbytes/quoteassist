@@ -121,6 +121,19 @@ defmodule QuoteAssistWeb.App.QuoteLiveTest do
       assert Quotes.get_quote_request(scope, quote.id).status == :quoted
     end
 
+    test "reopening a closed lead moves it to in progress, not to-do", %{conn: conn} do
+      %{conn: conn, scope: scope} = owner_conn(conn)
+      quote = quote_request_fixture(scope)
+      {:ok, _} = Quotes.transition_status(scope, quote, :closed)
+
+      {:ok, lv, html} = live(conn, ~p"/app/quotes/#{quote.id}")
+      assert html =~ "Closed"
+
+      html = lv |> element("button", "Reopen") |> render_click()
+      assert html =~ "In progress"
+      assert Quotes.get_quote_request(scope, quote.id).status == :in_progress
+    end
+
     test "deleting removes the quote and returns to the list", %{conn: conn} do
       %{conn: conn, scope: scope} = owner_conn(conn)
       quote = quote_request_fixture(scope)

@@ -253,12 +253,18 @@ defmodule QuoteAssistWeb.App.QuoteLive.Show do
     end
   end
 
-  # Reachable, meaningful status moves per current status — kept a subset of the schema's
-  # legal transitions so the buttons can never trigger an illegal jump.
+  # Meaningful status moves per current status, following the workflow
+  # (open → in_progress → quoted → closed). Each is a legal schema transition, so the
+  # buttons can never trigger an illegal jump. Note there is no direct path back to
+  # `open` except from `in_progress` — a quoted/closed lead is reopened to `in_progress`
+  # first (then on to `open` if needed).
   defp status_actions(:open), do: [{:in_progress, "Start"}, {:closed, "Close"}]
-  defp status_actions(:in_progress), do: [{:quoted, "Mark quoted"}, {:closed, "Close"}]
-  defp status_actions(:quoted), do: [{:closed, "Close"}]
-  defp status_actions(:closed), do: [{:open, "Reopen"}]
+
+  defp status_actions(:in_progress),
+    do: [{:open, "Back to to-do"}, {:quoted, "Mark quoted"}, {:closed, "Close"}]
+
+  defp status_actions(:quoted), do: [{:in_progress, "Back to in progress"}, {:closed, "Close"}]
+  defp status_actions(:closed), do: [{:in_progress, "Reopen"}]
 
   defp cast_status(value) do
     if value in Enum.map(QuoteRequest.statuses(), &to_string/1),

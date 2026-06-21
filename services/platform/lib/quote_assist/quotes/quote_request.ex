@@ -16,13 +16,17 @@ defmodule QuoteAssist.Quotes.QuoteRequest do
 
   @statuses [:open, :in_progress, :quoted, :closed]
 
-  # `open` is a fresh lead; `closed` is terminal but reopenable. Sending a reply moves a
-  # lead to `quoted` (R12), and close / reopen are the manual lifecycle controls (R11).
+  # Workflow: `open` (to-do) → `in_progress` (start) → `quoted` → `closed`. A lead can
+  # always be closed, and steps can be walked back — but `open` is reachable **only from
+  # `in_progress`**: you can't jump a `quoted`/`closed` lead straight back to to-do, you
+  # first move it to `in_progress`, then to `open` if needed. So `closed` reopens to
+  # `in_progress`, never to `open`. Sending a reply advances an active lead to `quoted`
+  # (R12); close / reopen are the manual lifecycle controls (R11).
   @transitions %{
     open: [:in_progress, :quoted, :closed],
     in_progress: [:open, :quoted, :closed],
     quoted: [:in_progress, :closed],
-    closed: [:open, :in_progress]
+    closed: [:in_progress]
   }
 
   @primary_key {:id, :binary_id, autogenerate: true}

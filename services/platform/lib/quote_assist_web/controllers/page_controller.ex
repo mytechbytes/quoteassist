@@ -12,7 +12,9 @@ defmodule QuoteAssistWeb.PageController do
   def home(conn, _params) do
     case conn.assigns[:current_tenant] do
       nil ->
-        render(conn, :home)
+        # The marketing landing's pricing is driven by the live, active plans, so admin
+        # plan CRUD flows straight through to the home page.
+        render(conn, :home, plans: QuoteAssist.Plans.list_active_plans())
 
       tenant ->
         conn

@@ -1,6 +1,7 @@
 defmodule QuoteAssistWeb.PageControllerTest do
   use QuoteAssistWeb.ConnCase
 
+  import QuoteAssist.PlansFixtures
   import QuoteAssist.TenantsFixtures
 
   describe "platform host /" do
@@ -22,6 +23,37 @@ defmodule QuoteAssistWeb.PageControllerTest do
       assert body =~ ~s|href="/admin/login"|
       assert body =~ ~s|href="/register"|
       assert body =~ ~s|href="/tenants"|
+    end
+
+    test "the pricing section renders the live, active plans from the DB", %{conn: conn} do
+      plan_fixture(%{
+        name: "Starter",
+        slug: "starter",
+        price: 0,
+        limits: %{"quotes_per_month" => 50, "seats" => 3}
+      })
+
+      plan_fixture(%{name: "Growth", slug: "growth", price: 149_900, active: true})
+      plan_fixture(%{name: "Scale", slug: "scale", price: 499_900, active: true})
+      # An inactive plan must not appear in the public pricing.
+      plan_fixture(%{name: "Hidden Plan", slug: "hidden", price: 9900, active: false})
+
+      body = conn |> get(~p"/") |> html_response(200)
+
+      assert body =~ "Starter"
+      assert body =~ "Growth"
+      assert body =~ "Scale"
+      assert body =~ "Free"
+      assert body =~ "₹1,499"
+      assert body =~ "quotes / month"
+      # Middle of three is the highlighted plan; inactive plans are excluded.
+      assert body =~ "Most popular"
+      refute body =~ "Hidden Plan"
+    end
+
+    test "the pricing section shows a fallback when no plans are set up", %{conn: conn} do
+      body = conn |> get(~p"/") |> html_response(200)
+      assert body =~ "Plans are being set up"
     end
   end
 

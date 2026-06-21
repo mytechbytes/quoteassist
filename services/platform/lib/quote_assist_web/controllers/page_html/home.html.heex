@@ -374,35 +374,49 @@
           Priced per seat. <span style="color:var(--mc-text-3)">Pays for itself by lunch.</span>
         </h2>
       </div>
-      <div class="mx-auto grid max-w-[1080px] gap-5 md:grid-cols-3">
+      <p
+        :if={@plans == []}
+        class="text-center text-sm"
+        style="color:var(--mc-text-3)"
+      >
+        Plans are being set up — check back shortly.
+      </p>
+
+      <div :if={@plans != []} class="mx-auto grid max-w-[1080px] gap-5 md:grid-cols-3">
         <div
-          :for={plan <- pricing()}
+          :for={{plan, idx} <- Enum.with_index(@plans)}
           class="mtb-card p-7"
           style={
-            plan.featured &&
+            plan_featured?(idx, @plans) &&
               "border:2px solid var(--mc-brand);box-shadow:0 20px 40px -16px var(--mc-brand-ring)"
           }
         >
-          <div :if={plan.featured} class="mtb-badge mtb-badge-brand mb-3">Most popular</div>
+          <div :if={plan_featured?(idx, @plans)} class="mtb-badge mtb-badge-brand mb-3">
+            Most popular
+          </div>
           <div class="text-xl font-bold" style="font-family:var(--font-display)">{plan.name}</div>
-          <div class="mt-1 text-sm" style="color:var(--mc-text-3)">{plan.blurb}</div>
           <div
-            class="mb-6 mt-6 font-bold"
+            class="mb-6 mt-4 font-bold"
             style="font-family:var(--font-display);font-size:48px;line-height:1"
           >
-            {plan.price}<span class="text-base font-medium" style="color:var(--mc-text-3)">{plan.unit}</span>
+            {plan_price(plan)}<span class="text-base font-medium" style="color:var(--mc-text-3)">{plan_unit(
+              plan
+            )}</span>
           </div>
           <.link
             navigate={~p"/register"}
             class={[
               "w-full",
-              if(plan.featured, do: "mtb-btn mtb-btn-primary", else: "mtb-btn mtb-btn-secondary")
+              if(plan_featured?(idx, @plans),
+                do: "mtb-btn mtb-btn-primary",
+                else: "mtb-btn mtb-btn-secondary"
+              )
             ]}
           >
-            {plan.cta}
+            {plan_cta(plan)}
           </.link>
           <ul class="mt-7 space-y-3 text-sm">
-            <li :for={feature <- plan.features} class="flex gap-2.5">
+            <li :for={feature <- plan_features(plan)} class="flex gap-2.5">
               <span style="color:var(--mc-success)">✓</span><span>{feature}</span>
             </li>
           </ul>

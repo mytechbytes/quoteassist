@@ -187,54 +187,57 @@ defmodule QuoteAssistWeb.PageHTML do
     ]
   end
 
-  @doc "The pricing plans for the marketing landing (display only; billing is future scope)."
-  def pricing do
+  # The marketing landing's pricing is driven by the seeded `plans` table (passed in as
+  # `@plans`), so admin plan CRUD updates it. These helpers format a `%Plan{}` for a card.
+
+  @doc "Price label for a plan: `Free` for a ₹0 plan, else the grouped amount (paise → ₹)."
+  def plan_price(%{price: 0}), do: "Free"
+  def plan_price(%{price: price}) when is_integer(price), do: "₹" <> group_digits(div(price, 100))
+
+  @doc "Billing-interval suffix for a paid plan (`/mo` · `/yr`); empty for a free plan."
+  def plan_unit(%{price: 0}), do: ""
+  def plan_unit(%{interval: :yearly}), do: " /yr"
+  def plan_unit(%{interval: _monthly}), do: " /mo"
+
+  @doc "The call-to-action label for a plan card."
+  def plan_cta(%{price: 0}), do: "Start free"
+  def plan_cta(_plan), do: "Start 14-day trial"
+
+  @doc "Feature bullet list for a plan, derived from its `limits` map."
+  def plan_features(%{limits: limits}) when is_map(limits) do
     [
-      %{
-        name: "Starter",
-        blurb: "For a solo agent trialling it.",
-        price: "$0",
-        unit: " /mo",
-        cta: "Start free",
-        featured: false,
-        features: [
-          "25 quotes / month",
-          "Web form input",
-          "Mock pricing adapter",
-          "Community support"
-        ]
-      },
-      %{
-        name: "Team",
-        blurb: "For agencies up to 20 agents.",
-        price: "$39",
-        unit: " /seat",
-        cta: "Start 14-day trial",
-        featured: true,
-        features: [
-          "Unlimited quotes",
-          "Outlook add-in (Phase 2b)",
-          "Live provider adapters",
-          "Policy engine + audit log",
-          "Priority support"
-        ]
-      },
-      %{
-        name: "Scale",
-        blurb: "For multi-branch operations.",
-        price: "Custom",
-        unit: "",
-        cta: "Talk to sales",
-        featured: false,
-        features: [
-          "Mailbox automation (Phase 11)",
-          "SSO & SCIM provisioning",
-          "Custom pricing adapters",
-          "Dedicated success manager",
-          "99.95% SLA"
-        ]
-      }
+      feature(limits, "quotes_per_month", &"#{group_digits(&1)} quotes / month"),
+      feature(limits, "seats", &"#{&1} team seats"),
+      feature(limits, "ai_generations_per_month", &"#{group_digits(&1)} AI drafts / month"),
+      if(truthy?(Map.get(limits, "custom_domain")),
+        do: "Custom domain",
+        else: "QuoteAssist subdomain"
+      )
     ]
+    |> Enum.reject(&is_nil/1)
+  end
+
+  def plan_features(_plan), do: []
+
+  @doc "Whether the plan at `index` is the highlighted (\"most popular\") one — the middle of 3+."
+  def plan_featured?(index, plans), do: length(plans) >= 3 and index == div(length(plans) - 1, 2)
+
+  defp feature(limits, key, formatter) do
+    case Map.get(limits, key) do
+      n when is_integer(n) -> formatter.(n)
+      _ -> nil
+    end
+  end
+
+  defp truthy?(value), do: value in [true, "true", 1, "1"]
+
+  # Group an integer with thousands separators (e.g. 1499 → "1,499").
+  defp group_digits(n) when is_integer(n) do
+    n
+    |> Integer.to_string()
+    |> String.reverse()
+    |> String.replace(~r/(\d{3})(?=\d)/, "\\1,")
+    |> String.reverse()
   end
 
   @doc "Maps a release status to its `mtb-badge-*` modifier class."

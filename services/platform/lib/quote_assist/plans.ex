@@ -66,6 +66,19 @@ defmodule QuoteAssist.Plans do
     )
   end
 
+  @doc """
+  Live, **active** plans (offerable to new tenants), ordered by price — the public
+  pricing shown on the marketing home page. Admin CRUD over `plans` flows straight
+  through here, so editing/deactivating a plan updates the landing.
+  """
+  def list_active_plans do
+    Repo.all(
+      from p in Plan,
+        where: is_nil(p.deleted_at) and p.active == true,
+        order_by: [asc: p.price, asc: p.name]
+    )
+  end
+
   @doc "Fetches a live plan by id, raising if missing."
   def get_plan!(id) do
     Repo.one!(from p in Plan, where: p.id == ^id and is_nil(p.deleted_at))

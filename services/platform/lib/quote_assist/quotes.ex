@@ -32,9 +32,13 @@ defmodule QuoteAssist.Quotes do
     |> filter_status(opts[:status])
     |> filter_search(opts[:query])
     |> order_by([q], desc: q.inserted_at, desc: q.id)
+    |> maybe_limit(opts[:limit])
     |> preload(submitted_by_membership: :user)
     |> Repo.all()
   end
+
+  defp maybe_limit(query, nil), do: query
+  defp maybe_limit(query, n) when is_integer(n) and n > 0, do: limit(query, ^n)
 
   defp filter_status(query, status) when status in [nil, :all], do: query
 
@@ -139,8 +143,8 @@ defmodule QuoteAssist.Quotes do
   end
 
   @doc """
-  Dashboard counts (R8) for the scope's tenant: open leads and leads quoted this calendar
-  month. Reads only — wired here once the table exists (R11).
+  Dashboard counts (R8) for the scope's tenant: open leads, leads quoted this calendar
+  month, and the all-time total. Reads only.
   """
   def dashboard_stats(%Scope{} = scope) do
     base = Tenancy.scope(QuoteRequest, scope)
@@ -153,7 +157,8 @@ defmodule QuoteAssist.Quotes do
           where(base, [q], q.status == :quoted and q.updated_at >= ^month_start),
           :count,
           :id
-        )
+        ),
+      total: Repo.aggregate(base, :count, :id)
     }
   end
 
